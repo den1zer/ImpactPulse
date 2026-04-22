@@ -2,14 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import AnimatedPage from '../components/AnimatedPage';
-import StatsChart from '../components/StatsChart'; 
+import StatsChart from '../components/StatsChart';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
 import '../styles/Dashboard.css';
 
 const DashboardPage = () => {
   const [contributions, setContributions] = useState([]);
-  const [leaderboard, setLeaderboard] = useState([]); 
+  const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,17 +17,17 @@ const DashboardPage = () => {
       try {
         const token = JSON.parse(localStorage.getItem('userToken'));
         const config = { headers: { 'x-auth-token': token } };
-        
+
         const [contribRes, leaderboardRes] = await Promise.all([
           axios.get('http://localhost:5000/api/contributions/my', config),
-          axios.get('http://localhost:5000/api/users/leaderboard', config)
+          axios.get('http://localhost:5000/api/users/leaderboard', config),
         ]);
-        
+
         setContributions(contribRes.data);
         setLeaderboard(leaderboardRes.data);
-        setLoading(false);
       } catch (err) {
         console.error(err);
+      } finally {
         setLoading(false);
       }
     };
@@ -37,7 +37,8 @@ const DashboardPage = () => {
   const stats = useMemo(() => {
     const totalApproved = contributions.filter(c => c.status === 'approved').length;
     const totalPending = contributions.filter(c => c.status === 'pending').length;
-    return { totalApproved, totalPending };
+    const totalContributions = contributions.length;
+    return { totalApproved, totalPending, totalContributions };
   }, [contributions]);
 
   return (
@@ -46,57 +47,89 @@ const DashboardPage = () => {
       <main className="dashboard-main">
         <DashboardHeader />
         <AnimatedPage>
-          <div className="dashboard-content-wrapper">
-            {loading ? (
-              <div className="stat-card">Завантаження статистики...</div>
-            ) : (
-              <>
-                <div className="stats-grid">
-                  <div className="stat-card">
-                    <p className="stat-title">Схвалено Заявок</p>
-                    <p className="stat-value">{stats.totalApproved}</p>
-                  </div>
-                  <div className="stat-card">
-                    <p className="stat-title">Чекає на Перевірку</p>
-                    <p className="stat-value">{stats.totalPending}</p>
-                  </div>
-                </div>
+          <section className="dashboard-hero">
+            <div className="hero-summary-card">
+              <div>
+                <p className="small-title">Ваш прогрес</p>
+                <h2>Стан рахунку та актуальні задачі</h2>
+                <p className="hero-description">
+                  Легко відстежуйте активність, створюйте нові заявки та слідкуйте за топ-учасниками.
+                </p>
+              </div>
+              <div className="hero-quick-actions">
+                <Link to="/add-help" className="hero-action-button">
+                  Додати допомогу
+                </Link>
+              </div>
+            </div>
 
-                <div className="dashboard-content">
-                  
-                  <div className="chart-container" style={{ gridRow: 'span 2' }}>
-                    <h2>Активність (Останні 7 днів)</h2>
-                    <StatsChart contributions={contributions} />
-                  </div>
+            <div className="dashboard-metrics-grid">
+              <div className="metric-card metric-primary">
+                <span>Усього заявок</span>
+                <strong>{loading ? '...' : stats.totalContributions}</strong>
+              </div>
+              <div className="metric-card metric-accent">
+                <span>Схвалено</span>
+                <strong>{loading ? '...' : stats.totalApproved}</strong>
+              </div>
+              <div className="metric-card metric-secondary">
+                <span>У черзі</span>
+                <strong>{loading ? '...' : stats.totalPending}</strong>
+              </div>
+            </div>
+          </section>
 
-                  <Link to="/add-help" className="neumorph-card add-help-card">
-                    <span className="plus-icon">+</span>
-                    <span>Додати допомогу</span>
-                  </Link>
+          <section className="dashboard-grid">
+            <div className="panel-card panel-chart">
+              <StatsChart contributions={contributions.map(item => item.amount || 1)} />
+            </div>
 
-                  <div className="neumorph-card leaderboard-card">
-                    <h2>🏆 Рейтинг (Топ-10)</h2>
-                    <ul className="leaderboard-list">
-                      {leaderboard.map((user, index) => (
-                        <li key={user._id} className="leaderboard-item">
-                          <span className="leaderboard-rank">#{index + 1}</span>
-                          <img
-                            src={user.avatar ? `http://localhost:5000/${user.avatar}` : 'default-avatar-path.png'}
-                            onError={(e) => e.target.src = 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
-                            alt="avatar"
-                            className="leaderboard-avatar"
-                          />
-                          <span className="leaderboard-user">{user.username}{user.selectedBadge && user.selectedBadge.icon ? ` ${user.selectedBadge.icon} ${user.selectedBadge.name}` : ''}</span>
-                          <span className="leaderboard-points">{user.points}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                </div>
-              </>
-            )}
-          </div>
+            <div className="panel-card panel-actions">
+              <h3>Швидкі дії</h3>
+              <div className="action-list">
+                <Link to="/add-help" className="action-item">
+                  <span>+ Нова заявка</span>
+                </Link>
+                <Link to="/my-contributions" className="action-item">
+                  <span>Переглянути заявки</span>
+                </Link>
+                <Link to="/rewards" className="action-item">
+                  <span>Нагороди</span>
+                </Link>
+              </div>
+            </div>
+
+            <div className="panel-card panel-leaderboard">
+              <div className="panel-heading">
+                <h3>Лідери спільноти</h3>
+                <p>Топ 10 активних користувачів</p>
+              </div>
+              <ul className="leaderboard-list">
+                {loading ? (
+                  <li className="leaderboard-loading">Завантаження...</li>
+                ) : leaderboard.length > 0 ? (
+                  leaderboard.slice(0, 10).map((user, index) => (
+                    <li key={user._id} className="leaderboard-item">
+                      <span className="leaderboard-rank">#{index + 1}</span>
+                      <img
+                        src={user.avatar ? `http://localhost:5000/${user.avatar}` : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
+                        alt={user.username}
+                        className="leaderboard-avatar"
+                        onError={(e) => { e.target.src = 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'; }}
+                      />
+                      <span className="leaderboard-name">
+                        {user.username}
+                        {user.selectedBadge?.icon ? ` ${user.selectedBadge.icon}` : ''}
+                      </span>
+                      <strong className="leaderboard-points">{user.points}</strong>
+                    </li>
+                  ))
+                ) : (
+                  <li className="leaderboard-empty">Немає активних користувачів</li>
+                )}
+              </ul>
+            </div>
+          </section>
         </AnimatedPage>
       </main>
     </div>
