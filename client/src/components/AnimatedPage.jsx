@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const animations = {
-  initial: { opacity: 0, x: 100 }, 
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -100 }, 
+  initial: { opacity: 0, y: 15 }, 
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -15 }, 
 };
 
 const AnimatedPage = ({ children, centerPage = false }) => {
@@ -14,13 +14,8 @@ const AnimatedPage = ({ children, centerPage = false }) => {
       initial="initial"
       animate="animate"
       exit="exit"
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      style={{
-        position: 'absolute', 
-        width: '100%',
-        height: '100%'
-      }}
-      className={centerPage ? 'page-center-container' : ''}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className={centerPage ? '' : 'dashboard-content-wrapper'}
     >
       {children}
     </motion.div>

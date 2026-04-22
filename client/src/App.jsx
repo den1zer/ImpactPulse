@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import AnimatedPage from './components/AnimatedPage';
@@ -27,26 +27,29 @@ const ForgotPasswordPage = () => (
 function App() {
   const location = useLocation();
 
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         
-        <Route path="/" element={<AnimatedPage><DashboardPage /></AnimatedPage>} />
-        <Route path="/admin/dashboard" element={<AnimatedPage><AdminDashboardPage /></AnimatedPage>} />
-        <Route path="/login" element={<AnimatedPage centerPage={true}><LoginPage /></AnimatedPage>} />
-        <Route path="/register" element={<AnimatedPage centerPage={true}><RegisterPage /></AnimatedPage>} />
-        <Route path="/add-help" element={<AnimatedPage><AddHelpPage /></AnimatedPage>} /> 
-        <Route path="/rewards" element={<AnimatedPage><RewardsPage /></AnimatedPage>} />
-        <Route path="/profile" element={<AnimatedPage><ProfilePage /></AnimatedPage>} />
-        <Route path="/forgot-password" element={<AnimatedPage centerPage={true}><ForgotPasswordPage /></AnimatedPage>} />
-        <Route path="/profile" element={<AnimatedPage><ProfilePage /></AnimatedPage>} />
-        <Route path="/my-contributions" element={<AnimatedPage><MyContributionsPage /></AnimatedPage>} />
-        <Route path="/rewards" element={<AnimatedPage><RewardsPage /></AnimatedPage>} />
-        <Route path="/support" element={<AnimatedPage><SupportPage /></AnimatedPage>} />
-        <Route path="/instructions" element={<AnimatedPage><InstructionsPage /></AnimatedPage>} />
-        <Route path="/fundraisers" element={<AnimatedPage><FundraisersPage /></AnimatedPage>} />
-        <Route path="/tasks" element={<AnimatedPage><TasksPage /></AnimatedPage>} />
-        <Route path="/tasks/:id" element={<AnimatedPage><TaskDetailPage /></AnimatedPage>} />
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/add-help" element={<AddHelpPage />} /> 
+        <Route path="/rewards" element={<RewardsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/my-contributions" element={<MyContributionsPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/instructions" element={<InstructionsPage />} />
+        <Route path="/fundraisers" element={<FundraisersPage />} />
+        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/tasks/:id" element={<TaskDetailPage />} />
       </Routes>
     </AnimatePresence>
   );
