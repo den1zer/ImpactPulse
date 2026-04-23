@@ -1,7 +1,7 @@
 {
   "name": "impact-pulse-desktop",
   "version": "1.0.0",
-  "description": "Admin panel ImpactPulse",
+  "description": "ImpactPulse Admin Panel — Desktop Application",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.9.0",
     "electron-is-dev": "^2.0.0"
   },
   "devDependencies": {
