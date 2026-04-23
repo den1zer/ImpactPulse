@@ -1,2 +1,2 @@
-# help-boost
-Help&amp;Boost is a web-based application designed to gamify humanitarian aid. The platform allows users to log their contributions (donations, volunteering), earning points, levels, and badges. Their activity is displayed on a dynamic dashboard and leaderboards, motivating them to continue their support and track the overall impact.
+# impact-pulse
+ImpactPulse — a cross-platform MERN system for volunteer & donation coordination. Features gamification (XP, levels, badges), LiqPay integration, photo verification, and analytics. Supports Web, Mobile (React Native), and Desktop (Electron). Designed to enhance transparency and motivation by visualizing social impact.
