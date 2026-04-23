@@ -6,4 +6,4 @@ dist
 #vite and react
 dist/
 .vite/
-/server/uploads/
+/server/uploads

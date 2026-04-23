@@ -1,13 +1,10 @@
-// ── Token helpers ────────────────────────────────────────
-const getToken  = () => localStorage.getItem('adminToken');
-const setToken  = (t) => localStorage.setItem('adminToken', t);
+const getToken = () => localStorage.getItem('adminToken');
+const setToken = (t) => localStorage.setItem('adminToken', t);
 const clearAuth = () => {
   localStorage.removeItem('adminToken');
   localStorage.removeItem('adminEmail');
 };
 
-// ── API wrapper ──────────────────────────────────────────
-// Sends a request through IPC bridge (window.electron.apiRequest)
 async function api(method, path, body = null) {
   const opts = { method, path, token: getToken() };
   if (body) opts.body = body;
@@ -19,9 +16,6 @@ async function api(method, path, body = null) {
   return res.data;
 }
 
-// ── Multipart helper ─────────────────────────────────────
-// Sends multipart/form-data via Node's http in main process.
-// Fields: plain object. filePath: absolute local path (optional).
 async function apiMultipart(path, fields, filePath = null) {
   const boundary = '----ImpactPulseBoundary' + Date.now();
   const CRLF = '\r\n';
@@ -35,8 +29,7 @@ async function apiMultipart(path, fields, filePath = null) {
   }
 
   if (filePath) {
-    const fs = null; // cannot use fs directly in renderer
-    // We pass filePath as a special field; main process handles it
+    const fs = null;
     body += `--${boundary}${CRLF}`;
     body += `Content-Disposition: form-data; name="__filePath__"${CRLF}${CRLF}`;
     body += `${filePath}${CRLF}`;
