@@ -103,6 +103,7 @@ const ProfilePage = () => {
   const [createdAt, setCreatedAt] = useState('');
   const [badges, setBadges] = useState([]); 
   const [selectedBadge, setSelectedBadge] = useState(null);
+  const [profileCustomization, setProfileCustomization] = useState({ nicknameIcon: '', avatarFrame: 'none', profileTheme: 'default' });
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -116,6 +117,11 @@ const ProfilePage = () => {
           city: res.data.city || '', gender: res.data.gender || 'unspecified',
         });
         setCurrentAvatar(res.data.avatar);
+        setProfileCustomization({
+          nicknameIcon: res.data.profileCustomization?.nicknameIcon || '',
+          avatarFrame: res.data.profileCustomization?.avatarFrame || 'none',
+          profileTheme: res.data.profileCustomization?.profileTheme || 'default'
+        });
         const earned = res.data.badges || [];
 
         const merged = [];
@@ -140,6 +146,7 @@ const ProfilePage = () => {
   }, []);
 
   const onChange = (e) => { setFormData({ ...formData, [e.target.name]: e.target.value }); };
+  const onCustomizationChange = (e) => { setProfileCustomization({ ...profileCustomization, [e.target.name]: e.target.value }); };
   const onFileChange = (e) => { if (e.target.files.length > 0) { setAvatar(e.target.files[0]); setAvatarPreview(URL.createObjectURL(e.target.files[0])); } };
 
   const onSubmit = async (e) => {
@@ -153,6 +160,7 @@ const ProfilePage = () => {
     if (formData.backupEmail) data.append('backupEmail', formData.backupEmail);
     if (formData.city) data.append('city', formData.city);
     if (formData.gender) data.append('gender', formData.gender);
+    data.append('profileCustomization', JSON.stringify(profileCustomization));
     if (avatar) data.append('avatar', avatar);
 
     try {
@@ -200,12 +208,12 @@ const ProfilePage = () => {
       <main className="dashboard-main">
         <DashboardHeader />
         <AnimatedPage>
-          <div className="profile-container">
+          <div className={`profile-container theme-${profileCustomization.profileTheme}`}>
             <form className="profile-form" onSubmit={onSubmit}>
               <h2>Налаштування Профілю</h2>
               {createdAt && <p style={{fontSize: '0.9em', color: '#777', marginBottom: '20px'}}>📅 Акаунт створено: <strong>{createdAt}</strong></p>}
               <div className="avatar-section">
-                <div className="avatar-preview">{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `http://localhost:5000/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '👤'}</div>
+                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `http://localhost:5000/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '👤'}</div>
                 <label htmlFor="avatar" className="avatar-change-btn">Змінити фото<input type="file" id="avatar" accept="image/*" onChange={onFileChange} /></label>
               </div>
               <div className="form-grid">
@@ -228,6 +236,41 @@ const ProfilePage = () => {
                         {badge.unlocked ? `${badge.icon} ${badge.name}` : `${badge.icon} ${badge.name} (заблоковано)`}
                       </option>
                     ))}
+                  </select>
+                </div>
+                <div className="form-group full-width">
+                  <label>Іконка біля нікнейму (наприклад: 👑, 🦄, 🚀)</label>
+                  <select name="nicknameIcon" className="neumorph-select" value={profileCustomization.nicknameIcon} onChange={onCustomizationChange}>
+                    <option value="">Без іконки</option>
+                    <option value="👑">👑 Корона</option>
+                    <option value="🦄">🦄 Єдиноріг</option>
+                    <option value="🚀">🚀 Ракета</option>
+                    <option value="🔥">🔥 Вогонь</option>
+                    <option value="⭐">⭐ Зірка</option>
+                    <option value="💎">💎 Діамант</option>
+                    <option value="⚡">⚡ Блискавка</option>
+                    <option value="🛡️">🛡️ Щит</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Рамка аватара</label>
+                  <select name="avatarFrame" className="neumorph-select" value={profileCustomization.avatarFrame} onChange={onCustomizationChange}>
+                    <option value="none">Стандартна</option>
+                    <option value="gold">Золота</option>
+                    <option value="silver">Срібна</option>
+                    <option value="neon">Неонова</option>
+                    <option value="fire">Вогняна</option>
+                    <option value="diamond">Діамантова</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Тема профілю</label>
+                  <select name="profileTheme" className="neumorph-select" value={profileCustomization.profileTheme} onChange={onCustomizationChange}>
+                    <option value="default">Стандартна</option>
+                    <option value="ocean">Океан</option>
+                    <option value="sunset">Захід сонця</option>
+                    <option value="cyberpunk">Кіберпанк</option>
+                    <option value="forest">Ліс</option>
                   </select>
                 </div>
               </div>

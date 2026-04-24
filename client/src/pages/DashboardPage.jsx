@@ -114,11 +114,12 @@ const DashboardPage = () => {
                       <img
                         src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000/${user.avatar}`) : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
                         alt={user.username}
-                        className="leaderboard-avatar"
+                        className={`leaderboard-avatar frame-${user.profileCustomization?.avatarFrame || 'none'}`}
                         onError={(e) => { e.target.src = 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'; }}
                       />
                       <span className="leaderboard-name">
                         {user.username}
+                        {user.profileCustomization?.nicknameIcon ? ` ${user.profileCustomization.nicknameIcon}` : ''}
                         {user.selectedBadge?.icon ? ` ${user.selectedBadge.icon}` : ''}
                       </span>
                       <strong className="leaderboard-points">{user.points}</strong>

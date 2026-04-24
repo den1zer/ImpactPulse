@@ -89,6 +89,12 @@ const UserSchema = new mongoose.Schema({
     level: { type: Number, default: null },
     name: { type: String, default: null },
     icon: { type: String, default: null }
+  },
+
+  profileCustomization: {
+    nicknameIcon: { type: String, default: '' },
+    avatarFrame: { type: String, default: 'none' },
+    profileTheme: { type: String, default: 'default' }
   }
 
 }, { timestamps: true });
