@@ -16,9 +16,8 @@ export const generateLiqPayData = ({ amount, currency = 'UAH', description, orde
     currency,
     description,
     order_id: orderId,
-    // server_url is where LiqPay will send POST request
     server_url: `${process.env.BASE_URL || 'http://localhost:5000'}/api/payment/callback`,
-    result_url: `http://localhost:3000/fundraisers` // redirect back to frontend after payment
+    result_url: `http://localhost:5173/fundraisers` // redirect back to frontend after payment
   };
 
   const jsonString = JSON.stringify(params);
