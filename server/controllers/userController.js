@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { checkAndAwardBadges } = require('./contributionController'); 
+const cloudinary = require('../config/cloudinary');
 
 exports.getUserProfile = async (req, res) => {
   try {
@@ -23,7 +24,19 @@ exports.updateUserProfile = async (req, res) => {
     user.city = city || user.city;
     user.gender = gender || user.gender;
     if (req.file) {
-      user.avatar = req.file.path;
+      const b64 = Buffer.from(req.file.buffer).toString('base64');
+      let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: 'avatars',
+        public_id: `user_${user._id}`,
+        overwrite: true,
+        transformation: [
+          { width: 256, height: 256, crop: 'fill', gravity: 'face' },
+          { fetch_format: 'auto', quality: 'auto' }
+        ]
+      });
+      user.avatarUrl = result.secure_url;
+      user.avatar = result.secure_url; 
     }
 
     if (user.avatar && user.city && user.age) {
@@ -41,6 +54,38 @@ exports.updateUserProfile = async (req, res) => {
       return res.status(400).json({ msg: 'Цей username або email вже зайнято' });
     }
     res.status(500).send('Помилка на сервері');
+  }
+};
+
+exports.updateAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
+
+    if (!req.file) {
+      return res.status(400).json({ msg: 'Будь ласка, завантажте файл' });
+    }
+
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'avatars',
+      public_id: `user_${user._id}`,
+      overwrite: true,
+      transformation: [
+        { width: 256, height: 256, crop: 'fill', gravity: 'face' },
+        { fetch_format: 'auto', quality: 'auto' }
+      ]
+    });
+
+    user.avatarUrl = result.secure_url;
+    await user.save();
+
+    res.json({ avatarUrl: user.avatarUrl, msg: 'Аватарку успішно оновлено' });
+  } catch (err) {
+    console.error('Cloudinary upload error:', err);
+    res.status(500).json({ msg: 'Помилка при завантаженні аватарки' });
   }
 };
 
