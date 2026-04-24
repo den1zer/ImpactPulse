@@ -205,7 +205,7 @@ const ProfilePage = () => {
               <h2>Налаштування Профілю</h2>
               {createdAt && <p style={{fontSize: '0.9em', color: '#777', marginBottom: '20px'}}>📅 Акаунт створено: <strong>{createdAt}</strong></p>}
               <div className="avatar-section">
-                <div className="avatar-preview">{avatarPreview ? <img src={avatarPreview} /> : currentAvatar ? <img src={`http://localhost:5000/${currentAvatar}`} /> : '👤'}</div>
+                <div className="avatar-preview">{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `http://localhost:5000/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '👤'}</div>
                 <label htmlFor="avatar" className="avatar-change-btn">Змінити фото<input type="file" id="avatar" accept="image/*" onChange={onFileChange} /></label>
               </div>
               <div className="form-grid">

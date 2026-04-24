@@ -196,3 +196,45 @@
     font-size: 1.8rem;
   }
 }
+
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.avatar-preview {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(124, 58, 237, 0.5);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 4rem;
+  margin-bottom: 15px;
+}
+
+.avatar-change-btn {
+  padding: 8px 16px;
+  background: rgba(91, 124, 255, 0.1);
+  border: 1px solid rgba(91, 124, 255, 0.3);
+  border-radius: 8px;
+  color: #60a5fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.avatar-change-btn:hover {
+  background: rgba(91, 124, 255, 0.2);
+  color: #fff;
+}
+
+.avatar-change-btn input {
+  display: none;
+}

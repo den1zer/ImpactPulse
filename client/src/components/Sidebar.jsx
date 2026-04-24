@@ -60,7 +60,7 @@ const Sidebar = () => {
         <NavLink to="/profile" className={({ isActive }) => `sidebar-link sidebar-profile${isActive ? ' active' : ''}`}>
           <span className="sidebar-icon profile-icon">
             {avatar ? (
-              <img src={`http://localhost:5000/${avatar}`} alt="Avatar" />
+              <img src={avatar.startsWith('http') ? avatar : `http://localhost:5000/${avatar}`} alt="Avatar" />
             ) : (
               <FiUser />
             )}

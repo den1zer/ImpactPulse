@@ -112,7 +112,7 @@ const DashboardPage = () => {
                     <li key={user._id} className="leaderboard-item">
                       <span className="leaderboard-rank">#{index + 1}</span>
                       <img
-                        src={user.avatar ? `http://localhost:5000/${user.avatar}` : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
+                        src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000/${user.avatar}`) : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
                         alt={user.username}
                         className="leaderboard-avatar"
                         onError={(e) => { e.target.src = 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'; }}
