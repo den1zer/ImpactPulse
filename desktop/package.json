@@ -17,5 +17,13 @@
   "devDependencies": {
     "electron": "^30.0.0",
     "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.impactpulse.admin",
+    "productName": "ImpactPulse Admin",
+    "afterPack": "build/after-pack.js",
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }

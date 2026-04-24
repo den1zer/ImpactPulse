@@ -8,7 +8,7 @@ let serverProcess;
 
 const SERVER_DIR = path.join(__dirname, '..', 'server');
 const SERVER_PORT = 5000;
-const API_BASE = `http://localhost:${SERVER_PORT}`;
+const API_BASE = `http://127.0.0.1:${SERVER_PORT}`;
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-setuid-sandbox');
 // ─── Server Management ────────────────────────────────────────────────────────
@@ -84,15 +84,17 @@ app.whenReady().then(async () => {
     // startServer();
     createWindow();
 
-    // Notify renderer when server is ready
-    waitForServer()
-        .then(() => {
-            if (mainWindow) mainWindow.webContents.send('server-ready');
-        })
-        .catch((err) => {
-            console.error('[Main] Server wait error:', err.message);
-            if (mainWindow) mainWindow.webContents.send('server-error', err.message);
-        });
+    // Wait for the window to finish loading HTML and JS before sending IPC events
+    mainWindow.webContents.once('did-finish-load', () => {
+        waitForServer()
+            .then(() => {
+                if (mainWindow) mainWindow.webContents.send('server-ready');
+            })
+            .catch((err) => {
+                console.error('[Main] Server wait error:', err.message);
+                if (mainWindow) mainWindow.webContents.send('server-error', err.message);
+            });
+    });
 });
 
 app.on('window-all-closed', () => {
