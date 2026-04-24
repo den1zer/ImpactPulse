@@ -4,17 +4,17 @@ document.getElementById('create-fundraiser-form').addEventListener('submit', asy
   const btn = e.target.querySelector('button[type=submit]');
   btn.disabled = true;
   const body = {
-    title:      document.getElementById('cf-title').value,
-    description:document.getElementById('cf-description').value,
+    title: document.getElementById('cf-title').value,
+    description: document.getElementById('cf-description').value,
     goalAmount: document.getElementById('cf-goal').value,
-    cardName:   document.getElementById('cf-card-name').value,
+    cardName: document.getElementById('cf-card-name').value,
     cardNumber: document.getElementById('cf-card-number').value
   };
   try {
     await api('POST', '/api/fundraisers', body);
     showMsg('cf-message', '✅ Збір успішно створено!', 'success');
     e.target.reset();
-  } catch(err) {
+  } catch (err) {
     showMsg('cf-message', '❌ ' + err.message, 'error');
   } finally { btn.disabled = false; }
 });
@@ -49,11 +49,11 @@ document.getElementById('create-task-form').addEventListener('submit', async (e)
   const btn = e.target.querySelector('button[type=submit]');
   btn.disabled = true;
   const fields = {
-    title:       document.getElementById('ct-title').value,
+    title: document.getElementById('ct-title').value,
     description: document.getElementById('ct-description').value,
-    category:    document.getElementById('ct-category').value,
-    points:      document.getElementById('ct-points').value,
-    endDate:     document.getElementById('ct-end-date').value || undefined
+    category: document.getElementById('ct-category').value,
+    points: document.getElementById('ct-points').value,
+    endDate: document.getElementById('ct-end-date').value || undefined
   };
   try {
     // Tasks require multipart because of optional file, but we use
@@ -65,7 +65,7 @@ document.getElementById('create-task-form').addEventListener('submit', async (e)
     _ctFilePath = null;
     document.getElementById('ct-file-label').textContent = '📁 Натисніть або перетягніть файл';
     document.getElementById('ct-file-zone').classList.remove('has-file');
-  } catch(err) {
+  } catch (err) {
     showMsg('ct-message', '❌ ' + err.message, 'error');
   } finally { btn.disabled = false; }
 });

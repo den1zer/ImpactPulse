@@ -27,6 +27,13 @@ app.use('/api/fundraisers', require('./routes/fundraiserRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/skins', require('./routes/skinRoutes'));            // Фіксить /api/skins 404
 
+// Підключення ES-модуля payment.js через динамічний import, оскільки весь проект на CommonJS
+import('./routes/payment.js')
+  .then(paymentRouter => {
+    app.use('/api/payment', paymentRouter.default);
+  })
+  .catch(err => console.error('Помилка завантаження payment.js:', err));
+
 // --- START SERVER ---
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -1,8 +1,8 @@
 const Fundraiser = require('../models/Fundraiser');
-const User = require('../models/User'); 
+const User = require('../models/User');
 
 exports.createFundraiser = async (req, res) => {
-  
+
   try {
     const { title, description, goalAmount, cardName, cardNumber } = req.body;
     const newFundraiser = new Fundraiser({
@@ -18,7 +18,7 @@ exports.createFundraiser = async (req, res) => {
 };
 
 exports.getAllFundraisers = async (req, res) => {
-  
+
   try {
     const fundraisers = await Fundraiser.find({ status: 'open' }).sort({ createdAt: -1 });
     res.json(fundraisers);
@@ -74,8 +74,8 @@ exports.simulateDonation = async (req, res) => {
 exports.getAllFundraisersAdmin = async (req, res) => {
   try {
     const fundraisers = await Fundraiser.find({})
-                                       .populate('createdBy', 'username')
-                                       .sort({ createdAt: -1 });
+      .populate('createdBy', 'username')
+      .sort({ createdAt: -1 });
     res.json(fundraisers);
   } catch (err) {
     res.status(500).send('Помилка на сервері');

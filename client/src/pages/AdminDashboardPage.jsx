@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AnimatedPage from '../components/AnimatedPage';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 
-import '../styles/AdminDashboard.css'; 
-import '../styles/AddHelpPage.css'; 
+import '../styles/AdminDashboard.css';
+import '../styles/AddHelpPage.css';
 
 const PendingContributions = () => {
   const [contributions, setContributions] = useState([]);
@@ -20,7 +20,7 @@ const PendingContributions = () => {
     setLoading(true);
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
-      const config = { 
+      const config = {
         headers: { 'x-auth-token': token },
         params: { type: filterType }
       };
@@ -32,16 +32,16 @@ const PendingContributions = () => {
       setLoading(false);
     }
   };
-  
-  useEffect(() => { 
-    fetchPending(); 
+
+  useEffect(() => {
+    fetchPending();
     setCurrentPage(1);
   }, [filterType]);
-  
+
   const handleApprove = async (id) => {
     const pointsInput = prompt("Скільки балів нарахувати?", "100");
-    if (pointsInput === null) return; 
-    const points = parseInt(pointsInput) || 100; 
+    if (pointsInput === null) return;
+    const points = parseInt(pointsInput) || 100;
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
@@ -49,13 +49,13 @@ const PendingContributions = () => {
       setContributions(contributions.filter(c => c._id !== id));
     } catch (err) { alert('Помилка схвалення: ' + (err.response?.data?.msg || '')); }
   };
-  
+
   const handleReject = async (id) => {
     const comment = prompt('Вкажіть причину відхилення:');
     if (comment === null) return;
     if (comment === "") {
-        alert("Причина відхилення є обов'язковою");
-        return;
+      alert("Причина відхилення є обов'язковою");
+      return;
     }
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
@@ -64,13 +64,13 @@ const PendingContributions = () => {
       setContributions(contributions.filter(c => c._id !== id));
     } catch (err) { alert('Помилка відхилення: ' + (err.response?.data?.msg || '')); }
   };
-  
+
   if (loading) return <p>Завантаження заявок...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
-  
-  let filtered = contributions.filter(item => 
+
+  let filtered = contributions.filter(item =>
     (filterType === 'all' || item.type === filterType) &&
-    (searchTerm === '' || 
+    (searchTerm === '' ||
       item.user?.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.title.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -79,27 +79,27 @@ const PendingContributions = () => {
   if (sortBy === 'newest') filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   else if (sortBy === 'oldest') filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   else if (sortBy === 'username') filtered.sort((a, b) => (a.user?.username || '').localeCompare(b.user?.username || ''));
-  
+
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentContribs = filtered.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  
+
   return (
     <>
-      <div className="admin-filters" style={{display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px'}}>
+      <div className="admin-filters" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Тип:</label>
+          <label style={{ fontWeight: 600, color: '#555' }}>Тип:</label>
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="filter-select">
             <option value="all">Всі</option><option value="donation">Донат</option><option value="aid">Гум. Допомога</option><option value="volunteering">Волонтерство</option><option value="other">Інше</option>
           </select>
         </div>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Пошук:</label>
-          <input type="text" placeholder="Користувач, email, заголовок..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{padding: '8px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', width: '250px'}} />
+          <label style={{ fontWeight: 600, color: '#555' }}>Пошук:</label>
+          <input type="text" placeholder="Користувач, email, заголовок..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', width: '250px' }} />
         </div>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Сортування:</label>
+          <label style={{ fontWeight: 600, color: '#555' }}>Сортування:</label>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="filter-select">
             <option value="newest">Найновіші</option><option value="oldest">Найстарші</option><option value="username">По користувачу (A-Z)</option>
           </select>
@@ -116,7 +116,7 @@ const PendingContributions = () => {
                   <td>{item.user ? `${item.user.username}${item.user.selectedBadge && item.user.selectedBadge.icon ? ` ${item.user.selectedBadge.icon}` : ''} (${item.user.email})` : 'Юзер видалений'}</td>
                   <td>{item.type}</td>
                   <td>{item.title}</td>
-                  <td style={{fontSize: '0.85em', color: '#999'}}>{new Date(item.createdAt).toLocaleDateString('uk-UA')}</td>
+                  <td style={{ fontSize: '0.85em', color: '#999' }}>{new Date(item.createdAt).toLocaleDateString('uk-UA')}</td>
                   <td><a href={`http://localhost:5000/${item.filePath}`} target="_blank" rel="noopener noreferrer" className="proof-link">Подивитись</a></td>
                   <td>
                     <button className="action-btn approve" onClick={() => handleApprove(item._id)}>Схвалити</button>
@@ -129,7 +129,7 @@ const PendingContributions = () => {
           {totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', margin: '20px 0', flexWrap: 'wrap' }}>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                <button 
+                <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
                   style={{
@@ -209,19 +209,19 @@ const AdminUserList = () => {
 
   return (
     <>
-      <div className="admin-filters" style={{display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px'}}>
+      <div className="admin-filters" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Роль:</label>
+          <label style={{ fontWeight: 600, color: '#555' }}>Роль:</label>
           <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="filter-select">
             <option value="all">Всі</option><option value="user">Юзери</option><option value="admin">Адміни</option>
           </select>
         </div>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Пошук:</label>
-          <input type="text" placeholder="Username, email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{padding: '8px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', width: '250px'}} />
+          <label style={{ fontWeight: 600, color: '#555' }}>Пошук:</label>
+          <input type="text" placeholder="Username, email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', width: '250px' }} />
         </div>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Сортування:</label>
+          <label style={{ fontWeight: 600, color: '#555' }}>Сортування:</label>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="filter-select">
             <option value="username">По Username (A-Z)</option><option value="email">По Email (A-Z)</option><option value="role">По Ролі</option>
           </select>
@@ -241,7 +241,7 @@ const AdminUserList = () => {
                       <option value="user">User</option><option value="admin">Admin</option>
                     </select>
                   </td>
-                  <td style={{fontSize: '0.85em', color: '#999'}}>{new Date(user.createdAt).toLocaleDateString('uk-UA')}</td>
+                  <td style={{ fontSize: '0.85em', color: '#999' }}>{new Date(user.createdAt).toLocaleDateString('uk-UA')}</td>
                   <td>
                     {user.role === 'user' ? (
                       <button className="action-btn approve" onClick={() => handleRoleChange(user._id, 'admin')}>Зробити Адміном</button>
@@ -253,8 +253,8 @@ const AdminUserList = () => {
               ))}
             </tbody>
           </table>
-          <div style={{display: 'flex', justifyContent: 'center', gap: '8px', margin: '20px 0', flexWrap: 'wrap'}}>
-            {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', margin: '20px 0', flexWrap: 'wrap' }}>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
               <button key={page} onClick={() => setCurrentPage(page)} style={{
                 padding: '8px 12px',
                 border: `2px solid ${currentPage === page ? '#007bff' : '#e0e0e0'}`,
@@ -319,13 +319,13 @@ const AdminTicketList = () => {
 
   return (
     <>
-      <div className="admin-filters" style={{display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px'}}>
+      <div className="admin-filters" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Пошук:</label>
-          <input type="text" placeholder="Ім'я, email, питання..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{padding: '8px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', width: '300px'}} />
+          <label style={{ fontWeight: 600, color: '#555' }}>Пошук:</label>
+          <input type="text" placeholder="Ім'я, email, питання..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', width: '300px' }} />
         </div>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Сортування:</label>
+          <label style={{ fontWeight: 600, color: '#555' }}>Сортування:</label>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="filter-select">
             <option value="newest">Найновіші</option><option value="oldest">Найстарші</option><option value="name">По Імені (A-Z)</option>
           </select>
@@ -340,13 +340,13 @@ const AdminTicketList = () => {
               <td><a href={`mailto:${ticket.email}`} className="proof-link">{ticket.email}</a></td>
               <td>{ticket.phone || '---'}</td>
               <td>{ticket.question}</td>
-              <td style={{fontSize: '0.85em', color: '#999'}}>{new Date(ticket.createdAt).toLocaleDateString('uk-UA')}</td>
+              <td style={{ fontSize: '0.85em', color: '#999' }}>{new Date(ticket.createdAt).toLocaleDateString('uk-UA')}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div style={{display: 'flex', justifyContent: 'center', gap: '8px', margin: '20px 0', flexWrap: 'wrap'}}>
-        {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', margin: '20px 0', flexWrap: 'wrap' }}>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
           <button key={page} onClick={() => setCurrentPage(page)} style={{
             padding: '8px 12px',
             border: `2px solid ${currentPage === page ? '#007bff' : '#e0e0e0'}`,
@@ -421,19 +421,19 @@ const AdminFeedbackList = () => {
 
   return (
     <>
-      <div className="admin-filters" style={{display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px'}}>
+      <div className="admin-filters" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Рейтинг:</label>
+          <label style={{ fontWeight: 600, color: '#555' }}>Рейтинг:</label>
           <select value={filterRating} onChange={(e) => setFilterRating(e.target.value)} className="filter-select">
             <option value="all">Всі</option><option value="5">5★</option><option value="4">4★</option><option value="3">3★</option><option value="2">2★</option><option value="1">1★</option>
           </select>
         </div>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Пошук:</label>
-          <input type="text" placeholder="Користувач, коментар..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{padding: '8px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', width: '250px'}} />
+          <label style={{ fontWeight: 600, color: '#555' }}>Пошук:</label>
+          <input type="text" placeholder="Користувач, коментар..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', width: '250px' }} />
         </div>
         <div>
-          <label style={{fontWeight: 600, color: '#555'}}>Сортування:</label>
+          <label style={{ fontWeight: 600, color: '#555' }}>Сортування:</label>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="filter-select">
             <option value="newest">Найновіші</option><option value="oldest">Найстарші</option><option value="rating-high">Рейтинг (Вверх)</option><option value="rating-low">Рейтинг (Вниз)</option>
           </select>
@@ -450,13 +450,13 @@ const AdminFeedbackList = () => {
                   <td>{item.user ? item.user.username : 'Анонім'}</td>
                   <td><StarRating rating={item.rating} /></td>
                   <td>{item.comment || '---'}</td>
-                  <td style={{fontSize: '0.85em', color: '#999'}}>{new Date(item.createdAt).toLocaleDateString('uk-UA')}</td>
+                  <td style={{ fontSize: '0.85em', color: '#999' }}>{new Date(item.createdAt).toLocaleDateString('uk-UA')}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div style={{display: 'flex', justifyContent: 'center', gap: '8px', margin: '20px 0', flexWrap: 'wrap'}}>
-            {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', margin: '20px 0', flexWrap: 'wrap' }}>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
               <button key={page} onClick={() => setCurrentPage(page)} style={{
                 padding: '8px 12px',
                 border: `2px solid ${currentPage === page ? '#007bff' : '#e0e0e0'}`,
@@ -604,12 +604,12 @@ const AdminManageTasks = () => {
             <tr key={task._id}>
               <td>
                 {editingTask === task._id ? (
-                  <input value={editForm.title} onChange={(e) => setEditForm({...editForm, title: e.target.value})} />
+                  <input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
                 ) : task.title}
               </td>
               <td>
                 {editingTask === task._id ? (
-                  <select value={editForm.category} onChange={(e) => setEditForm({...editForm, category: e.target.value})}>
+                  <select value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}>
                     <option value="volunteering">Волонтерство</option>
                     <option value="aid">Допомога</option>
                     <option value="other">Інше</option>
@@ -618,7 +618,7 @@ const AdminManageTasks = () => {
               </td>
               <td>
                 {editingTask === task._id ? (
-                  <select value={editForm.status} onChange={(e) => setEditForm({...editForm, status: e.target.value})}>
+                  <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
                     <option value="open">Відкрите</option>
                     <option value="in_progress">В роботі</option>
                     <option value="completed">Завершене</option>
@@ -627,7 +627,7 @@ const AdminManageTasks = () => {
               </td>
               <td>
                 {editingTask === task._id ? (
-                  <input type="number" value={editForm.points} onChange={(e) => setEditForm({...editForm, points: e.target.value})} />
+                  <input type="number" value={editForm.points} onChange={(e) => setEditForm({ ...editForm, points: e.target.value })} />
                 ) : task.points}
               </td>
               <td>{new Date(task.createdAt).toLocaleDateString('uk-UA')}</td>
@@ -715,18 +715,18 @@ const AdminManageFundraisers = () => {
             <tr key={fundraiser._id}>
               <td>
                 {editingFundraiser === fundraiser._id ? (
-                  <input value={editForm.title} onChange={(e) => setEditForm({...editForm, title: e.target.value})} />
+                  <input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
                 ) : fundraiser.title}
               </td>
               <td>
                 {editingFundraiser === fundraiser._id ? (
-                  <input type="number" value={editForm.goalAmount} onChange={(e) => setEditForm({...editForm, goalAmount: e.target.value})} />
+                  <input type="number" value={editForm.goalAmount} onChange={(e) => setEditForm({ ...editForm, goalAmount: e.target.value })} />
                 ) : fundraiser.goalAmount}
               </td>
               <td>{fundraiser.collectedAmount}</td>
               <td>
                 {editingFundraiser === fundraiser._id ? (
-                  <select value={editForm.status} onChange={(e) => setEditForm({...editForm, status: e.target.value})}>
+                  <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
                     <option value="open">Відкритий</option>
                     <option value="closed">Закритий</option>
                   </select>
@@ -757,9 +757,9 @@ const AdminManageFundraisers = () => {
 const CreateFundraiser = () => {
   const [formData, setFormData] = useState({ title: '', description: '', goalAmount: '', cardName: '', cardNumber: '' });
   const [message, setMessage] = useState('');
-  
+
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  
+
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -768,7 +768,7 @@ const CreateFundraiser = () => {
       await axios.post('http://localhost:5000/api/fundraisers', formData, config);
       setMessage('Збір успішно створено!');
       setFormData({ title: '', description: '', goalAmount: '', cardName: '', cardNumber: '' });
-    } catch (err) { 
+    } catch (err) {
       const errorMsg = err.response?.data?.errors ? err.response.data.errors[0].msg : (err.response?.data?.msg || 'Щось пішло не так');
       setMessage('Помилка: ' + errorMsg);
     }
@@ -788,7 +788,7 @@ const CreateFundraiser = () => {
         <label>Опис</label>
         <textarea name="description" value={formData.description} onChange={onChange} className="neumorph-textarea" required minLength="10"></textarea>
       </div>
-      <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #ccc' }}/>
+      <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #ccc' }} />
       <div className="form-group">
         <label>Реквізити (Ім'я на карті)</label>
         <input type="text" name="cardName" value={formData.cardName} onChange={onChange} className="neumorph-input" required />
@@ -802,37 +802,37 @@ const CreateFundraiser = () => {
     </form>
   );
 };
-        
+
 const CreateTask = () => {
   const [formData, setFormData] = useState({
     title: '', description: '', category: 'volunteering', points: '100', endDate: ''
   });
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
-  
+
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const onFileChange = (e) => {
     setFile(e.target.files.length > 0 ? e.target.files[0] : null);
   };
-  
+
   const onSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData(); 
+    const data = new FormData();
     data.append('title', formData.title);
     data.append('description', formData.description);
     data.append('category', formData.category);
     data.append('points', formData.points);
-    if(formData.endDate) data.append('endDate', formData.endDate);
+    if (formData.endDate) data.append('endDate', formData.endDate);
     if (file) {
       data.append('taskFile', file);
     }
 
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
-      const config = { 
-        headers: { 
+      const config = {
+        headers: {
           'x-auth-token': token,
-        } 
+        }
       };
       await axios.post('http://localhost:5000/api/tasks', data, config);
       setMessage('Завдання успішно створено!');
@@ -883,17 +883,17 @@ const CreateTask = () => {
     </form>
   );
 };
-        
+
 const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('contributions');
-  const navigate = useNavigate(); 
-  
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     alert('Ви вийшли з адмін-панелі');
     localStorage.removeItem('userToken');
     localStorage.removeItem('userRole');
-    localStorage.removeItem('userId'); 
-    navigate('/login'); 
+    localStorage.removeItem('userId');
+    navigate('/login');
   };
 
   return (
@@ -901,14 +901,14 @@ const AdminDashboardPage = () => {
       <div className="admin-container">
         <div className="admin-header">
           <h2>Адмін-панель</h2>
-          <button 
-            className="action-btn reject" 
+          <button
+            className="action-btn reject"
             onClick={handleLogout}
           >
             Вийти
           </button>
         </div>
-        
+
         <div className="admin-tabs">
           <button
             className={`tab-btn ${activeTab === 'contributions' ? 'active' : ''}`}
@@ -965,7 +965,7 @@ const AdminDashboardPage = () => {
             Створити Завдання
           </button>
         </div>
-        
+
         {activeTab === 'contributions' && <PendingContributions />}
         {activeTab === 'users' && <AdminUserList />}
         {activeTab === 'tickets' && <AdminTicketList />}

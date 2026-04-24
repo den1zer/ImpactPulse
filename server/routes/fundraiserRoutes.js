@@ -13,15 +13,15 @@ const {
 } = require('../controllers/fundraiserController');
 
 router.post(
-  '/', 
-  [ 
-    isAuthenticated, 
+  '/',
+  [
+    isAuthenticated,
     isAdmin,
     body('title', 'Назва є обов\'язковою').not().isEmpty(),
     body('description', 'Опис є обов\'язковим').not().isEmpty(),
     body('goalAmount', 'Ціль має бути додатнім числом').isInt({ gt: 0 }),
     body('cardNumber', 'Номер картки є обов\'язковим').isLength({ min: 16, max: 16 }),
-  ], 
+  ],
   validate,
   createFundraiser
 );

@@ -24,10 +24,10 @@ const FundraiserSchema = new mongoose.Schema({
   },
   cardName: { type: String, required: true },
   cardNumber: { type: String, required: true },
-  
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', 
+    ref: 'User',
   },
 }, { timestamps: true });
 
