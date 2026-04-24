@@ -29,6 +29,11 @@ const FundraiserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
+  bonuses: [{
+    minimumAmount: { type: Number, required: true },
+    promoCode: { type: String, required: true },
+    description: { type: String, required: true }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Fundraiser', FundraiserSchema);

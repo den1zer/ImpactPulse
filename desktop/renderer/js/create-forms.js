@@ -3,20 +3,47 @@ document.getElementById('create-fundraiser-form').addEventListener('submit', asy
   e.preventDefault();
   const btn = e.target.querySelector('button[type=submit]');
   btn.disabled = true;
+
+  const bonuses = [];
+  document.querySelectorAll('.bonus-row').forEach(row => {
+    bonuses.push({
+      minimumAmount: Number(row.querySelector('.b-min').value),
+      promoCode: row.querySelector('.b-code').value,
+      description: row.querySelector('.b-desc').value
+    });
+  });
+
   const body = {
     title: document.getElementById('cf-title').value,
     description: document.getElementById('cf-description').value,
     goalAmount: document.getElementById('cf-goal').value,
     cardName: document.getElementById('cf-card-name').value,
-    cardNumber: document.getElementById('cf-card-number').value
+    cardNumber: document.getElementById('cf-card-number').value,
+    bonuses
   };
   try {
     await api('POST', '/api/fundraisers', body);
     showMsg('cf-message', '✅ Збір успішно створено!', 'success');
     e.target.reset();
+    document.getElementById('cf-bonuses-container').innerHTML = '';
   } catch (err) {
     showMsg('cf-message', '❌ ' + err.message, 'error');
   } finally { btn.disabled = false; }
+});
+
+document.getElementById('cf-add-bonus-btn')?.addEventListener('click', () => {
+  const container = document.getElementById('cf-bonuses-container');
+  const div = document.createElement('div');
+  div.className = 'form-row bonus-row';
+  div.style.marginBottom = '10px';
+  div.style.alignItems = 'flex-end';
+  div.innerHTML = `
+    <div class="form-group" style="flex:1;"><label class="form-label">Мін. сума</label><input type="number" class="form-input b-min" placeholder="1000" min="1" required></div>
+    <div class="form-group" style="flex:1;"><label class="form-label">Промокод</label><input type="text" class="form-input b-code" placeholder="SALE20" required></div>
+    <div class="form-group" style="flex:2;"><label class="form-label">Опис</label><input type="text" class="form-input b-desc" placeholder="Знижка 20% на мерч" required></div>
+    <button type="button" class="btn-icon reject" onclick="this.parentElement.remove()" style="margin-bottom:8px;">🗑</button>
+  `;
+  container.appendChild(div);
 });
 
 // ── Create Task Form ──────────────────────────────────────

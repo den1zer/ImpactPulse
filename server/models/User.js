@@ -95,7 +95,15 @@ const UserSchema = new mongoose.Schema({
     nicknameIcon: { type: String, default: '' },
     avatarFrame: { type: String, default: 'none' },
     profileTheme: { type: String, default: 'default' }
-  }
+  },
+
+  rewards: [{
+    type: { type: String }, 
+    name: { type: String }, 
+    code: { type: String }, 
+    source: { type: String }, 
+    date: { type: Date, default: Date.now }
+  }]
 
 }, { timestamps: true });
 

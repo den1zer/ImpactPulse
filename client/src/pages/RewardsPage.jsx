@@ -194,6 +194,26 @@ const RewardsPage = () => {
                 ))}
               </div>
             )}
+            
+            {user && user.rewards && user.rewards.length > 0 && (
+              <div style={{ marginTop: '50px' }}>
+                <h3 style={{ marginBottom: '20px', color: 'var(--text-primary)' }}>🎁 Ваші Промокоди та Бонуси</h3>
+                <div className="rewards-grid">
+                  {user.rewards.map((reward, i) => (
+                    <motion.div key={i} className="badge-card" style={{ padding: '20px', background: 'var(--panel)', borderRadius: '15px', border: '1px solid var(--panel-border)', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>🎟️</div>
+                        <h4 style={{ margin: '0 0 10px', color: 'var(--accent-primary)' }}>{reward.name}</h4>
+                        <p style={{ margin: '0 0 15px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Збір: {reward.source}</p>
+                      </div>
+                      <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '1.2rem', letterSpacing: '2px', color: 'var(--text-primary)', border: '1px dashed var(--accent-secondary)' }}>
+                        {reward.code}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </AnimatedPage>
       </main>
