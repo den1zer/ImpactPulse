@@ -4,6 +4,28 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root.theme-light {
+  /* Light Theme Colors */
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface2: #e9ecef;
+  --surface3: #dee2e6;
+  --border: #ced4da;
+  --border2: #adb5bd;
+  --accent: #4353d8;
+  --accent2: #5b6ef5;
+  --accent-glow: rgba(67, 83, 216, 0.25);
+  --green: #10b981;
+  --green-bg: rgba(16, 185, 129, 0.15);
+  --red: #ef4444;
+  --red-bg: rgba(239, 68, 68, 0.15);
+  --yellow: #f59e0b;
+  --yellow-bg: rgba(245, 158, 11, 0.15);
+  --text: #1f2937;
+  --text2: #4b5563;
+  --text3: #6b7280;
+}
+
 :root {
   /* Colors */
   --bg: #0f1117;
@@ -283,10 +305,12 @@ html, body {
   flex-shrink: 0;
 }
 .sidebar-username { font-size: 13px; font-weight: 600; flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-theme,
 .btn-logout {
   background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text3);
   transition: color .2s; padding: 4px; border-radius: 6px;
 }
+.btn-theme:hover { color: var(--accent); }
 .btn-logout:hover { color: var(--red); }
 
 /* ─── Content ───────────────────────────────────────── */

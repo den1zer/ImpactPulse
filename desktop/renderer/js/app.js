@@ -53,3 +53,22 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
 
 // ── Initial default tab ───────────────────────────────────
 // Tabs are switched after login in login.js via loadCurrentTab()
+
+// ── Theme toggle ──────────────────────────────────────────
+const themeBtn = document.getElementById('theme-btn');
+const rootEl = document.documentElement;
+
+// Load saved theme
+if (localStorage.getItem('theme') === 'light') {
+  rootEl.classList.add('theme-light');
+  if (themeBtn) themeBtn.textContent = '☀️';
+}
+
+if (themeBtn) {
+  themeBtn.addEventListener('click', () => {
+    rootEl.classList.toggle('theme-light');
+    const isLight = rootEl.classList.contains('theme-light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    themeBtn.textContent = isLight ? '☀️' : '🌙';
+  });
+}
