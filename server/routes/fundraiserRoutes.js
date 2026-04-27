@@ -26,7 +26,7 @@ router.post(
   createFundraiser
 );
 
-router.get('/', isAuthenticated, getAllFundraisers);
+router.get('/', getAllFundraisers);
 
 router.post(
   '/:id/donate',

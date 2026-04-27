@@ -1,0 +1,237 @@
+.modern-footer {
+  background: var(--panel);
+  border-top: 1px solid var(--panel-border);
+  padding: 40px 0;
+  margin-top: auto;
+  color: var(--text-secondary);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  z-index: 10;
+  transition: margin-left 0.25s ease, width 0.25s ease;
+}
+
+body.has-sidebar .modern-footer {
+  margin-left: 88px;
+  width: calc(100% - 88px);
+}
+
+body.sidebar-expanded .modern-footer {
+  margin-left: 260px;
+  width: calc(100% - 260px);
+}
+
+.modern-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+  opacity: 0.5;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.footer-left {
+  flex: 1;
+  min-width: 300px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.footer-brand .brand-icon {
+  font-size: 24px;
+}
+
+.footer-brand h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.footer-description {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 400px;
+}
+
+.footer-copyright {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.footer-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 350px;
+}
+
+.support-card {
+  background: var(--bg-card);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.support-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.support-card h4 {
+  color: var(--text-primary);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.heart-icon {
+  color: #ef4444;
+  animation: heartbeat 2s infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.support-card p {
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.amount-selectors {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.amount-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--panel-border);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 60px;
+  text-align: center;
+}
+
+.amount-btn:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: var(--accent-primary);
+}
+
+.amount-btn.active {
+  background: var(--gradient-primary);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+}
+
+.custom-amount-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--panel-border);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 80px;
+  flex: 1;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.custom-amount-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.btn-support-modern {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(109, 40, 217, 0.3);
+}
+
+.btn-support-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(109, 40, 217, 0.4);
+}
+
+.btn-support-modern:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .footer-brand {
+    justify-content: center;
+  }
+  
+  .footer-right {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 960px) {
+  body.has-sidebar .modern-footer, 
+  body.sidebar-expanded .modern-footer {
+    margin-left: 0;
+    width: 100%;
+  }
+}

@@ -89,7 +89,7 @@ const FundraisersPage = () => {
   const fetchFundraisers = async () => {
     setLoading(true); 
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.get('http://localhost:5000/api/fundraisers', config);
       setFundraisers(res.data);
@@ -136,7 +136,13 @@ const FundraisersPage = () => {
                   </div>
                   
                   {item.status === 'open' ? (
-                    <LiqPayPaymentForm fundraiser={item} onDonation={fetchFundraisers} />
+                    localStorage.getItem('userRole') !== 'guest' ? (
+                      <LiqPayPaymentForm fundraiser={item} onDonation={fetchFundraisers} />
+                    ) : (
+                      <p style={{marginTop: '20px', fontWeight: 600, color: '#ffc107', textAlign: 'center'}}>
+                        Увійдіть, щоб підтримати збір.
+                      </p>
+                    )
                   ) : (
                     <p style={{marginTop: '20px', fontWeight: 600, color: '#28a745', textAlign: 'center'}}>
                       ✅ ЗБІР ЗАКРИТО! ({new Date(item.updatedAt).toLocaleDateString('uk-UA')})

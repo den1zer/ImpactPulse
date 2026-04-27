@@ -14,7 +14,7 @@ const TasksPage = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
         const config = { headers: { 'x-auth-token': token } };
         const res = await axios.get('http://localhost:5000/api/tasks', config);
         setTasks(res.data);

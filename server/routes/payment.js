@@ -37,7 +37,33 @@ router.post('/create', isAuthenticated, async (req, res) => {
   }
 });
 
+// POST /api/payment/support-project
+router.post('/support-project', async (req, res) => {
+  try {
+    const { amount, description } = req.body;
+
+    if (!amount) {
+      return res.status(400).json({ error: 'amount is required' });
+    }
+
+    const orderId = `support_${Date.now()}`;
+    const desc = description || `Підтримка проекту ImpactPulse`;
+
+    const { data, signature } = generateLiqPayData({
+      amount,
+      description: desc,
+      orderId
+    });
+
+    res.json({ data, signature, orderId });
+  } catch (error) {
+    console.error('Error in /api/payment/support-project:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /api/payment/callback
+
 router.post('/callback', async (req, res) => {
   try {
     const { data, signature } = req.body;

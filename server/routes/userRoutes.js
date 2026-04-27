@@ -38,7 +38,7 @@ router.put(
 router.patch('/avatar', isAuthenticated, uploadMemory.single('avatar'), updateAvatar);
 
 
-router.get('/leaderboard', isAuthenticated, getLeaderboard);
+router.get('/leaderboard', getLeaderboard);
 router.put('/selected-badge', isAuthenticated, updateSelectedBadge);
 router.get('/', [isAuthenticated, isAdmin], getAllUsers);
 router.put('/role/:id', [isAuthenticated, isAdmin], updateUserRole);

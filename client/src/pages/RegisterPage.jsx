@@ -20,6 +20,13 @@ const RegisterPage = () => {
   const { username, email, password } = formData;
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  const handleGuestLogin = () => {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userId');
+    localStorage.setItem('userRole', 'guest');
+    navigate('/');
+  };
+
   const onRegisterSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -68,7 +75,8 @@ const RegisterPage = () => {
             <div className="form-group">
               <input type="password" name="password" value={password} onChange={onChange} placeholder="Password" required minLength="6" />
             </div>
-            <button type="submit" className="auth-button">SIGN UP</button>
+            <button type="submit" className="auth-button">ЗАРЕЄСТРУВАТИСЬ</button>
+            <button type="button" className="auth-button guest-button" onClick={handleGuestLogin} style={{ marginTop: '10px', backgroundColor: 'transparent', border: '1px solid var(--accent-blue)', color: 'var(--text-color)' }}>ПРОДОВЖИТИ ЯК ГІСТЬ</button>
           </form>
         </div>
       </div>

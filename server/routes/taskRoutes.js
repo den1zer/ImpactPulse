@@ -32,9 +32,9 @@ router.post(
   createTask
 );
 
-router.get('/', isAuthenticated, getOpenTasks);
+router.get('/', getOpenTasks);
 router.get('/my', isAuthenticated, getMyTasks);
-router.get('/:id', isAuthenticated, getTaskById);
+router.get('/:id', getTaskById);
 router.put('/:id/claim', isAuthenticated, claimTask);
 
 router.put(
