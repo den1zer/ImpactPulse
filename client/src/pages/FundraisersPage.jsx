@@ -7,7 +7,7 @@ import '../styles/Dashboard.css';
 import '../styles/AddHelpPage.css'; 
 import '../styles/FundraisersPage.css'; 
 
-const DummyPaymentForm = ({ fundraiser, onDonation }) => {
+const LiqPayPaymentForm = ({ fundraiser, onDonation }) => {
   const [amount, setAmount] = useState('');
   const [card, setCard] = useState('');
   
@@ -23,19 +23,38 @@ const DummyPaymentForm = ({ fundraiser, onDonation }) => {
       const config = { headers: { 'x-auth-token': token } };
       
       const res = await axios.post(
-        `http://localhost:5000/api/fundraisers/${fundraiser._id}/donate`, 
-        { amount }, 
+        'http://localhost:5000/api/payment/create', 
+        { amount, collectionId: fundraiser._id, description: fundraiser.title }, 
         config
       );
       
-    
-      alert(res.data.msg); 
+      const { data, signature } = res.data;
+
+      // Створюємо приховану форму для редіректу на сторінку оплати LiqPay
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://www.liqpay.ua/api/3/checkout';
+      form.acceptCharset = 'utf-8';
       
-      onDonation(); 
+      const dataInput = document.createElement('input');
+      dataInput.type = 'hidden';
+      dataInput.name = 'data';
+      dataInput.value = data;
+      form.appendChild(dataInput);
+      
+      const signatureInput = document.createElement('input');
+      signatureInput.type = 'hidden';
+      signatureInput.name = 'signature';
+      signatureInput.value = signature;
+      form.appendChild(signatureInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+      
       setAmount('');
       setCard('');
     } catch (err) {
-      alert('Помилка "донату": ' + (err.response?.data?.msg || ''));
+      alert('Помилка ініціалізації платежу: ' + (err.response?.data?.msg || err.message));
     }
   };
 
@@ -70,7 +89,7 @@ const FundraisersPage = () => {
   const fetchFundraisers = async () => {
     setLoading(true); 
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.get('http://localhost:5000/api/fundraisers', config);
       setFundraisers(res.data);
@@ -117,7 +136,13 @@ const FundraisersPage = () => {
                   </div>
                   
                   {item.status === 'open' ? (
-                    <DummyPaymentForm fundraiser={item} onDonation={fetchFundraisers} />
+                    localStorage.getItem('userRole') !== 'guest' ? (
+                      <LiqPayPaymentForm fundraiser={item} onDonation={fetchFundraisers} />
+                    ) : (
+                      <p style={{marginTop: '20px', fontWeight: 600, color: '#ffc107', textAlign: 'center'}}>
+                        Увійдіть, щоб підтримати збір.
+                      </p>
+                    )
                   ) : (
                     <p style={{marginTop: '20px', fontWeight: 600, color: '#28a745', textAlign: 'center'}}>
                       ✅ ЗБІР ЗАКРИТО! ({new Date(item.updatedAt).toLocaleDateString('uk-UA')})

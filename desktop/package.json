@@ -1,0 +1,29 @@
+{
+  "name": "impact-pulse-desktop",
+  "version": "1.0.0",
+  "description": "ImpactPulse Admin Panel — Desktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --no-sandbox",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "electron-is-dev": "^2.0.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.impactpulse.admin",
+    "productName": "ImpactPulse Admin",
+    "afterPack": "build/after-pack.js",
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}

@@ -51,6 +51,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: '', 
   },
+  avatarUrl: {
+    type: String,
+    default: '',
+  },
   age: {
     type: Number,
     min: 13,
@@ -85,6 +89,25 @@ const UserSchema = new mongoose.Schema({
     level: { type: Number, default: null },
     name: { type: String, default: null },
     icon: { type: String, default: null }
+  },
+
+  profileCustomization: {
+    nicknameIcon: { type: String, default: '' },
+    avatarFrame: { type: String, default: 'none' },
+    profileTheme: { type: String, default: 'default' }
+  },
+
+  rewards: [{
+    type: { type: String }, 
+    name: { type: String }, 
+    code: { type: String }, 
+    source: { type: String }, 
+    date: { type: Date, default: Date.now }
+  }],
+
+  wheelLastSpun: {
+    type: Date,
+    default: null
   }
 
 }, { timestamps: true });

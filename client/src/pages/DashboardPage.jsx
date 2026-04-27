@@ -15,16 +15,20 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = JSON.parse(localStorage.getItem('userToken')) || '';
         const config = { headers: { 'x-auth-token': token } };
+        const isGuest = localStorage.getItem('userRole') === 'guest';
 
-        const [contribRes, leaderboardRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/contributions/my', config),
-          axios.get('http://localhost:5000/api/users/leaderboard', config),
-        ]);
+        const requests = [axios.get('http://localhost:5000/api/users/leaderboard', config)];
+        if (!isGuest) {
+          requests.push(axios.get('http://localhost:5000/api/contributions/my', config));
+        }
 
-        setContributions(contribRes.data);
-        setLeaderboard(leaderboardRes.data);
+        const responses = await Promise.all(requests);
+        setLeaderboard(responses[0].data);
+        if (!isGuest && responses[1]) {
+          setContributions(responses[1].data);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -57,9 +61,15 @@ const DashboardPage = () => {
                 </p>
               </div>
               <div className="hero-quick-actions">
-                <Link to="/add-help" className="hero-action-button">
-                  Додати допомогу
-                </Link>
+                {localStorage.getItem('userRole') !== 'guest' ? (
+                  <Link to="/add-help" className="hero-action-button">
+                    Додати допомогу
+                  </Link>
+                ) : (
+                  <Link to="/login" className="hero-action-button">
+                    Авторизуватись
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -87,15 +97,23 @@ const DashboardPage = () => {
             <div className="panel-card panel-actions">
               <h3>Швидкі дії</h3>
               <div className="action-list">
-                <Link to="/add-help" className="action-item">
-                  <span>+ Нова заявка</span>
-                </Link>
-                <Link to="/my-contributions" className="action-item">
-                  <span>Переглянути заявки</span>
-                </Link>
-                <Link to="/rewards" className="action-item">
-                  <span>Нагороди</span>
-                </Link>
+                {localStorage.getItem('userRole') !== 'guest' ? (
+                  <>
+                    <Link to="/add-help" className="action-item">
+                      <span>+ Нова заявка</span>
+                    </Link>
+                    <Link to="/my-contributions" className="action-item">
+                      <span>Переглянути заявки</span>
+                    </Link>
+                    <Link to="/rewards" className="action-item">
+                      <span>Нагороди</span>
+                    </Link>
+                  </>
+                ) : (
+                  <Link to="/login" className="action-item">
+                    <span>Увійти для всіх можливостей</span>
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -112,13 +130,14 @@ const DashboardPage = () => {
                     <li key={user._id} className="leaderboard-item">
                       <span className="leaderboard-rank">#{index + 1}</span>
                       <img
-                        src={user.avatar ? `http://localhost:5000/${user.avatar}` : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
+                        src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000/${user.avatar}`) : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
                         alt={user.username}
-                        className="leaderboard-avatar"
+                        className={`leaderboard-avatar frame-${user.profileCustomization?.avatarFrame || 'none'}`}
                         onError={(e) => { e.target.src = 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'; }}
                       />
                       <span className="leaderboard-name">
                         {user.username}
+                        {user.profileCustomization?.nicknameIcon ? ` ${user.profileCustomization.nicknameIcon}` : ''}
                         {user.selectedBadge?.icon ? ` ${user.selectedBadge.icon}` : ''}
                       </span>
                       <strong className="leaderboard-points">{user.points}</strong>

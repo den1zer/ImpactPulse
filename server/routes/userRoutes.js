@@ -11,8 +11,12 @@ const {
   updateUserProfile,
   getLeaderboard,
   updateSelectedBadge,
-  getUserStats
+  getUserStats,
+  updateAvatar
 } = require('../controllers/userController');
+
+const multer = require('multer');
+const uploadMemory = multer({ storage: multer.memoryStorage() });
 
 router.get('/me', isAuthenticated, getUserProfile);
 
@@ -20,7 +24,7 @@ router.put(
   '/me',
   [ 
     isAuthenticated, 
-    uploadMiddleware.single('avatar'),
+    uploadMemory.single('avatar'),
     body('username', 'Username є обов\'язковим').not().isEmpty(),
     body('age').optional({ checkFalsy: true }).isInt({ min: 13 }).withMessage('Вік має бути 13+'),
     body('backupEmail').optional({ checkFalsy: true }).isEmail().withMessage('Резервний email некоректний'),
@@ -31,7 +35,10 @@ router.put(
   updateUserProfile
 );
 
-router.get('/leaderboard', isAuthenticated, getLeaderboard);
+router.patch('/avatar', isAuthenticated, uploadMemory.single('avatar'), updateAvatar);
+
+
+router.get('/leaderboard', getLeaderboard);
 router.put('/selected-badge', isAuthenticated, updateSelectedBadge);
 router.get('/', [isAuthenticated, isAdmin], getAllUsers);
 router.put('/role/:id', [isAuthenticated, isAdmin], updateUserRole);

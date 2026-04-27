@@ -1,12 +1,13 @@
 const Fundraiser = require('../models/Fundraiser');
-const User = require('../models/User'); 
+const User = require('../models/User');
 
 exports.createFundraiser = async (req, res) => {
-  
+
   try {
-    const { title, description, goalAmount, cardName, cardNumber } = req.body;
+    const { title, description, goalAmount, cardName, cardNumber, bonuses } = req.body;
     const newFundraiser = new Fundraiser({
       title, description, goalAmount, cardName, cardNumber,
+      bonuses: bonuses || [],
       createdBy: req.user.id
     });
     await newFundraiser.save();
@@ -18,7 +19,7 @@ exports.createFundraiser = async (req, res) => {
 };
 
 exports.getAllFundraisers = async (req, res) => {
-  
+
   try {
     const fundraisers = await Fundraiser.find({ status: 'open' }).sort({ createdAt: -1 });
     res.json(fundraisers);
@@ -50,19 +51,43 @@ exports.simulateDonation = async (req, res) => {
 
     await fundraiser.save();
 
-    if (pointsToAward > 0) {
-      const user = await User.findById(req.user.id);
-      user.points += pointsToAward;
+    let awardedBonus = null;
+    let extraMsg = '';
+    if (fundraiser.bonuses && fundraiser.bonuses.length > 0) {
+      const sortedBonuses = [...fundraiser.bonuses].sort((a, b) => b.minimumAmount - a.minimumAmount);
+      for (const b of sortedBonuses) {
+        if (Number(amount) >= b.minimumAmount) {
+          awardedBonus = b;
+          break;
+        }
+      }
+    }
 
-      const { checkAndAwardBadges } = require('./contributionController');
-      await checkAndAwardBadges(user);
+    if (pointsToAward > 0 || awardedBonus) {
+      const user = await User.findById(req.user.id);
+      
+      if (pointsToAward > 0) {
+        user.points += pointsToAward;
+        const { checkAndAwardBadges } = require('./contributionController');
+        await checkAndAwardBadges(user);
+      }
+
+      if (awardedBonus) {
+        user.rewards.push({
+          type: 'PROMOCODE',
+          name: awardedBonus.description,
+          code: awardedBonus.promoCode,
+          source: fundraiser.title
+        });
+        extraMsg = ` Ви отримали бонус: ${awardedBonus.description} (Код: ${awardedBonus.promoCode})!`;
+      }
 
       await user.save();
     }
 
     res.json({
       fundraiser: fundraiser,
-      msg: `Дякуємо! Вам нараховано ${pointsToAward} балів!`
+      msg: `Дякуємо! Вам нараховано ${pointsToAward} балів!${extraMsg}`
     });
 
   } catch (err) {
@@ -74,8 +99,8 @@ exports.simulateDonation = async (req, res) => {
 exports.getAllFundraisersAdmin = async (req, res) => {
   try {
     const fundraisers = await Fundraiser.find({})
-                                       .populate('createdBy', 'username')
-                                       .sort({ createdAt: -1 });
+      .populate('createdBy', 'username')
+      .sort({ createdAt: -1 });
     res.json(fundraisers);
   } catch (err) {
     res.status(500).send('Помилка на сервері');
@@ -84,7 +109,7 @@ exports.getAllFundraisersAdmin = async (req, res) => {
 
 exports.updateFundraiser = async (req, res) => {
   try {
-    const { title, description, goalAmount, status, cardName, cardNumber } = req.body;
+    const { title, description, goalAmount, status, cardName, cardNumber, bonuses } = req.body;
     const fundraiser = await Fundraiser.findById(req.params.id);
     if (!fundraiser) return res.status(404).json({ msg: 'Збір не знайдено' });
 
@@ -94,6 +119,7 @@ exports.updateFundraiser = async (req, res) => {
     fundraiser.status = status || fundraiser.status;
     fundraiser.cardName = cardName || fundraiser.cardName;
     fundraiser.cardNumber = cardNumber || fundraiser.cardNumber;
+    if (bonuses !== undefined) fundraiser.bonuses = bonuses;
 
     await fundraiser.save();
     res.json(fundraiser);

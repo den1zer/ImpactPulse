@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { checkAndAwardBadges } = require('./contributionController'); 
+const cloudinary = require('../config/cloudinary');
 
 exports.getUserProfile = async (req, res) => {
   try {
@@ -14,7 +15,7 @@ exports.getUserProfile = async (req, res) => {
 
 exports.updateUserProfile = async (req, res) => {
   try {
-    const { username, age, backupEmail, city, gender } = req.body;
+    const { username, age, backupEmail, city, gender, profileCustomization } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
     user.username = username || user.username;
@@ -22,8 +23,29 @@ exports.updateUserProfile = async (req, res) => {
     user.backupEmail = backupEmail || user.backupEmail;
     user.city = city || user.city;
     user.gender = gender || user.gender;
+    if (profileCustomization) {
+      let parsedCustomization = profileCustomization;
+      if (typeof profileCustomization === 'string') {
+        try { parsedCustomization = JSON.parse(profileCustomization); } catch(e) {}
+      }
+      if (parsedCustomization.nicknameIcon !== undefined) user.profileCustomization.nicknameIcon = parsedCustomization.nicknameIcon;
+      if (parsedCustomization.avatarFrame !== undefined) user.profileCustomization.avatarFrame = parsedCustomization.avatarFrame;
+      if (parsedCustomization.profileTheme !== undefined) user.profileCustomization.profileTheme = parsedCustomization.profileTheme;
+    }
     if (req.file) {
-      user.avatar = req.file.path;
+      const b64 = Buffer.from(req.file.buffer).toString('base64');
+      let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: 'avatars',
+        public_id: `user_${user._id}`,
+        overwrite: true,
+        transformation: [
+          { width: 256, height: 256, crop: 'fill', gravity: 'face' },
+          { fetch_format: 'auto', quality: 'auto' }
+        ]
+      });
+      user.avatarUrl = result.secure_url;
+      user.avatar = result.secure_url; 
     }
 
     if (user.avatar && user.city && user.age) {
@@ -41,6 +63,38 @@ exports.updateUserProfile = async (req, res) => {
       return res.status(400).json({ msg: 'Цей username або email вже зайнято' });
     }
     res.status(500).send('Помилка на сервері');
+  }
+};
+
+exports.updateAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
+
+    if (!req.file) {
+      return res.status(400).json({ msg: 'Будь ласка, завантажте файл' });
+    }
+
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'avatars',
+      public_id: `user_${user._id}`,
+      overwrite: true,
+      transformation: [
+        { width: 256, height: 256, crop: 'fill', gravity: 'face' },
+        { fetch_format: 'auto', quality: 'auto' }
+      ]
+    });
+
+    user.avatarUrl = result.secure_url;
+    await user.save();
+
+    res.json({ avatarUrl: user.avatarUrl, msg: 'Аватарку успішно оновлено' });
+  } catch (err) {
+    console.error('Cloudinary upload error:', err);
+    res.status(500).json({ msg: 'Помилка при завантаженні аватарки' });
   }
 };
 
@@ -76,7 +130,7 @@ exports.getLeaderboard = async (req, res) => {
     const leaderboard = await User.find({ role: 'user' })
       .sort({ points: -1 })
       .limit(10)
-      .select('username avatar points level selectedBadge');
+      .select('username avatar points level selectedBadge profileCustomization');
 
     res.json(leaderboard);
   } catch (err) {

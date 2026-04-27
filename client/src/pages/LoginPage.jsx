@@ -20,6 +20,13 @@ const LoginPage = () => {
   const { email, password } = formData;
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  const handleGuestLogin = () => {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userId');
+    localStorage.setItem('userRole', 'guest');
+    navigate('/');
+  };
+
   const onLoginSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -62,7 +69,8 @@ const LoginPage = () => {
               <input type="password" name="password" value={password} onChange={onChange} placeholder="Password" required />
             </div>
             <Link to="/forgot-password" className="forgot-password-link">Forgot your password?</Link>
-            <button type="submit" className="auth-button">SIGN IN</button>
+            <button type="submit" className="auth-button">УВІЙТИ</button>
+            <button type="button" className="auth-button guest-button" onClick={handleGuestLogin} style={{ marginTop: '10px', backgroundColor: 'transparent', border: '1px solid var(--accent-blue)', color: 'var(--text-color)' }}>ПРОДОВЖИТИ ЯК ГІСТЬ</button>
           </form>
         </div>
 

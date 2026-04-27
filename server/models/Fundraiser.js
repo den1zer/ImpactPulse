@@ -24,11 +24,16 @@ const FundraiserSchema = new mongoose.Schema({
   },
   cardName: { type: String, required: true },
   cardNumber: { type: String, required: true },
-  
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', 
+    ref: 'User',
   },
+  bonuses: [{
+    minimumAmount: { type: Number, required: true },
+    promoCode: { type: String, required: true },
+    description: { type: String, required: true }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Fundraiser', FundraiserSchema);

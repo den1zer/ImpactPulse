@@ -27,7 +27,7 @@ const TaskDetailPage = () => {
   const fetchTask = async () => {
     try {
       setLoading(true); 
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.get(`http://localhost:5000/api/tasks/${id}`, config);
       setTask(res.data);
@@ -109,10 +109,15 @@ const TaskDetailPage = () => {
               )}
               
               
-              {isOpen && (
+              {isOpen && localStorage.getItem('userRole') !== 'guest' && (
                 <button className="task-button" onClick={handleClaim}>
                   Взяти в опрацювання
                 </button>
+              )}
+              {isOpen && localStorage.getItem('userRole') === 'guest' && (
+                <p style={{ marginTop: '20px', fontWeight: 600, color: '#ffc107', textAlign: 'center' }}>
+                  Увійдіть, щоб взяти завдання в опрацювання.
+                </p>
               )}
               
               {isInProgress && isAssignedToMe && !isPendingProof && (

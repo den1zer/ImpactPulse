@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ImpactPulse — Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ═══════════════════ SPLASH ═══════════════════ -->
+  <div id="splash" class="splash">
+    <div class="splash-inner">
+      <div class="splash-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">ImpactPulse</span>
+      </div>
+      <p class="splash-subtitle">Admin Panel</p>
+      <div class="splash-status" id="splash-status">Очікуємо на відповідь сервера...</div>
+      <div class="loader-bar">
+        <div class="loader-fill" id="loader-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ LOGIN ═══════════════════ -->
+  <div id="login-screen" class="screen hidden">
+    <div class="login-bg"></div>
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">ImpactPulse</span>
+      </div>
+      <h1 class="login-title">Вхід до адмін-панелі</h1>
+      <p class="login-sub">Тільки для авторизованих адміністраторів</p>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="login-email" class="form-input" placeholder="admin@example.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль</label>
+        <div class="input-wrap">
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••"
+            autocomplete="current-password" />
+          <button class="eye-btn" id="eye-btn" type="button">👁</button>
+        </div>
+      </div>
+      <div id="login-error" class="error-msg hidden"></div>
+      <button class="btn btn-primary btn-full" id="login-btn">Увійти</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MAIN APP ═══════════════════ -->
+  <div id="app" class="screen hidden">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">ImpactPulse</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="contributions">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Заявки</span>
+          <span class="nav-badge" id="badge-contributions"></span>
+        </button>
+        <button class="nav-item" data-tab="users">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Користувачі</span>
+        </button>
+        <button class="nav-item" data-tab="tickets">
+          <span class="nav-icon">🎫</span>
+          <span class="nav-label">Тікети</span>
+          <span class="nav-badge" id="badge-tickets"></span>
+        </button>
+        <button class="nav-item" data-tab="feedback">
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">Відгуки</span>
+        </button>
+        <button class="nav-item" data-tab="statistics">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Статистика</span>
+        </button>
+        <div class="nav-separator"></div>
+        <button class="nav-item" data-tab="manage-tasks">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Завдання</span>
+        </button>
+        <button class="nav-item" data-tab="manage-fundraisers">
+          <span class="nav-icon">💰</span>
+          <span class="nav-label">Збори</span>
+        </button>
+        <button class="nav-item" data-tab="create-fundraiser">
+          <span class="nav-icon">➕</span>
+          <span class="nav-label">Новий збір</span>
+        </button>
+        <button class="nav-item" data-tab="create-task">
+          <span class="nav-icon">✏️</span>
+          <span class="nav-label">Нове завдання</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="user-avatar-sm" id="sidebar-avatar">A</div>
+          <span class="sidebar-username" id="sidebar-username">Admin</span>
+        </div>
+        <button class="btn-theme" id="theme-btn" title="Змінити тему">🌙</button>
+        <button class="btn-logout" id="logout-btn" title="Вийти">⏻</button>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="content">
+      <header class="content-header">
+        <div>
+          <h2 class="page-title" id="page-title">Заявки на перевірку</h2>
+          <p class="page-sub" id="page-sub">Розгляньте та схваліть або відхиліть внески користувачів</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="refresh-btn">🔄 Оновити</button>
+      </header>
+
+      <!-- ── CONTRIBUTIONS TAB ── -->
+      <section id="tab-contributions" class="tab-content active">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <select class="form-select" id="contrib-filter-type">
+              <option value="all">Всі типи</option>
+              <option value="donation">💸 Донат</option>
+              <option value="aid">📦 Гум. допомога</option>
+              <option value="volunteering">🤝 Волонтерство</option>
+              <option value="other">📌 Інше</option>
+            </select>
+            <select class="form-select" id="contrib-sort">
+              <option value="newest">Найновіші</option>
+              <option value="oldest">Найстаріші</option>
+              <option value="username">По користувачу</option>
+            </select>
+          </div>
+          <input class="form-input search-input" id="contrib-search" type="text"
+            placeholder="🔍 Пошук за користувачем, email, заголовком..." />
+        </div>
+        <div id="contrib-list" class="table-wrap">
+          <div class="loading-state">Завантаження...</div>
+        </div>
+        <div class="pagination" id="contrib-pagination"></div>
+      </section>
+
+      <!-- ── USERS TAB ── -->
+      <section id="tab-users" class="tab-content">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <select class="form-select" id="users-filter-role">
+              <option value="all">Всі ролі</option>
+              <option value="user">👤 User</option>
+              <option value="admin">🛡 Admin</option>
+            </select>
+            <select class="form-select" id="users-sort">
+              <option value="username">По Username (A-Z)</option>
+              <option value="email">По Email (A-Z)</option>
+              <option value="role">По Ролі</option>
+            </select>
+          </div>
+          <input class="form-input search-input" id="users-search" type="text"
+            placeholder="🔍 Пошук за username або email..." />
+        </div>
+        <div id="users-list" class="table-wrap">
+          <div class="loading-state">Завантаження...</div>
+        </div>
+        <div class="pagination" id="users-pagination"></div>
+      </section>
+
+      <!-- ── TICKETS TAB ── -->
+      <section id="tab-tickets" class="tab-content">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <select class="form-select" id="tickets-sort">
+              <option value="newest">Найновіші</option>
+              <option value="oldest">Найстаріші</option>
+              <option value="name">По Імені (A-Z)</option>
+            </select>
+          </div>
+          <input class="form-input search-input" id="tickets-search" type="text"
+            placeholder="🔍 Пошук за іменем, email, питанням..." />
+        </div>
+        <div id="tickets-list" class="table-wrap">
+          <div class="loading-state">Завантаження...</div>
+        </div>
+        <div class="pagination" id="tickets-pagination"></div>
+      </section>
+
+      <!-- ── FEEDBACK TAB ── -->
+      <section id="tab-feedback" class="tab-content">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <select class="form-select" id="feedback-filter-rating">
+              <option value="all">Всі рейтинги</option>
+              <option value="5">★★★★★ (5)</option>
+              <option value="4">★★★★☆ (4)</option>
+              <option value="3">★★★☆☆ (3)</option>
+              <option value="2">★★☆☆☆ (2)</option>
+              <option value="1">★☆☆☆☆ (1)</option>
+            </select>
+            <select class="form-select" id="feedback-sort">
+              <option value="newest">Найновіші</option>
+              <option value="oldest">Найстаріші</option>
+              <option value="rating-high">Рейтинг ↓</option>
+              <option value="rating-low">Рейтинг ↑</option>
+            </select>
+          </div>
+          <input class="form-input search-input" id="feedback-search" type="text"
+            placeholder="🔍 Пошук за користувачем або коментарем..." />
+        </div>
+        <div id="feedback-list" class="table-wrap">
+          <div class="loading-state">Завантаження...</div>
+        </div>
+        <div class="pagination" id="feedback-pagination"></div>
+      </section>
+
+      <!-- ── STATISTICS TAB ── -->
+      <section id="tab-statistics" class="tab-content">
+        <div id="stats-content">
+          <div class="loading-state">Завантаження статистики...</div>
+        </div>
+      </section>
+
+      <!-- ── MANAGE TASKS TAB ── -->
+      <section id="tab-manage-tasks" class="tab-content">
+        <div id="manage-tasks-content" class="table-wrap">
+          <div class="loading-state">Завантаження...</div>
+        </div>
+      </section>
+
+      <!-- ── MANAGE FUNDRAISERS TAB ── -->
+      <section id="tab-manage-fundraisers" class="tab-content">
+        <div id="manage-fundraisers-content" class="table-wrap">
+          <div class="loading-state">Завантаження...</div>
+        </div>
+      </section>
+
+      <!-- ── CREATE FUNDRAISER TAB ── -->
+      <section id="tab-create-fundraiser" class="tab-content">
+        <div class="form-card">
+          <h3 class="form-card-title">Новий збір коштів</h3>
+          <form id="create-fundraiser-form">
+            <div class="form-group">
+              <label class="form-label">Назва збору <span class="required">*</span></label>
+              <input type="text" id="cf-title" class="form-input" placeholder="Назва збору (мін. 5 символів)"
+                minlength="5" required />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Ціль (UAH) <span class="required">*</span></label>
+                <input type="number" id="cf-goal" class="form-input" placeholder="50000" min="1" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Опис <span class="required">*</span></label>
+              <textarea id="cf-description" class="form-textarea" placeholder="Детальний опис збору (мін. 10 символів)"
+                minlength="10" required rows="4"></textarea>
+            </div>
+            <div class="form-separator">Банківські реквізити</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Ім'я на картці <span class="required">*</span></label>
+                <input type="text" id="cf-card-name" class="form-input" placeholder="IVAN PETRENKO" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Номер картки <span class="required">*</span></label>
+                <input type="text" id="cf-card-number" class="form-input" placeholder="1234567890123456" minlength="16"
+                  maxlength="16" required />
+              </div>
+            </div>
+            <div class="form-separator">Бонуси для донатерів (Опціонально)</div>
+            <div id="cf-bonuses-container"></div>
+            <button type="button" class="btn btn-secondary btn-sm" id="cf-add-bonus-btn" style="margin-bottom: 20px;">+ Додати рівень бонусу</button>
+            <div id="cf-message" class="form-message hidden"></div>
+            <button type="submit" class="btn btn-primary">➕ Створити збір</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── CREATE TASK TAB ── -->
+      <section id="tab-create-task" class="tab-content">
+        <div class="form-card">
+          <h3 class="form-card-title">Нове завдання</h3>
+          <form id="create-task-form">
+            <div class="form-group">
+              <label class="form-label">Назва завдання <span class="required">*</span></label>
+              <input type="text" id="ct-title" class="form-input" placeholder="Назва завдання (мін. 5 символів)"
+                minlength="5" required />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Категорія <span class="required">*</span></label>
+                <select id="ct-category" class="form-select">
+                  <option value="volunteering">🤝 Волонтерство</option>
+                  <option value="aid">📦 Гуманітарна допомога</option>
+                  <option value="other">📌 Інше</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Бали <span class="required">*</span></label>
+                <input type="number" id="ct-points" class="form-input" placeholder="100" min="1" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Опис завдання <span class="required">*</span></label>
+              <textarea id="ct-description" class="form-textarea"
+                placeholder="Детальний опис завдання (мін. 10 символів)" minlength="10" required rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Дата кінця (опціонально)</label>
+              <input type="date" id="ct-end-date" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Файл (інструкція / фото, опціонально)</label>
+              <div class="file-drop-zone" id="ct-file-zone">
+                <span id="ct-file-label">📁 Натисніть або перетягніть файл</span>
+                <input type="file" id="ct-file" class="file-input-hidden" />
+              </div>
+            </div>
+            <div id="ct-message" class="form-message hidden"></div>
+            <button type="submit" class="btn btn-primary">✏️ Створити завдання</button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ═══════════════════ MODALS ═══════════════════ -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Підтвердження</h3>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/ui.js"></script>
+  <script src="./js/login.js"></script>
+  <script src="./js/contributions.js"></script>
+  <script src="./js/users.js"></script>
+  <script src="./js/tickets.js"></script>
+  <script src="./js/feedback.js"></script>
+  <script src="./js/statistics.js"></script>
+  <script src="./js/manage-tasks.js"></script>
+  <script src="./js/manage-fundraisers.js"></script>
+  <script src="./js/create-forms.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+
+</html>

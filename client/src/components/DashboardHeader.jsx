@@ -46,6 +46,7 @@ const DashboardHeader = () => {
           username: res.data.username,
           points: res.data.points,
           selectedBadge: res.data.selectedBadge,
+          profileCustomization: res.data.profileCustomization
         });
 
         const userPoints = res.data.points;
@@ -94,7 +95,7 @@ const DashboardHeader = () => {
     <header className="dashboard-header">
       <div className="header-left">
         <span className="header-subtitle">Панель керування</span>
-        <h1>Привіт, {userData.username}!</h1>
+        <h1>Привіт, {userData.username} {userData.profileCustomization?.nicknameIcon}</h1>
       </div>
 
       <div className="header-right">
