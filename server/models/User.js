@@ -103,7 +103,12 @@ const UserSchema = new mongoose.Schema({
     code: { type: String }, 
     source: { type: String }, 
     date: { type: Date, default: Date.now }
-  }]
+  }],
+
+  wheelLastSpun: {
+    type: Date,
+    default: null
+  }
 
 }, { timestamps: true });
 
