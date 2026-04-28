@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import '../styles/Dashboard.css'; 
 import '../styles/AddHelpPage.css'; 
+import API_BASE_URL from '../config/api.js';
+
 
 const SubmissionModal = ({ task, onClose, onSuccess }) => {
   const [description, setDescription] = useState('');
@@ -25,7 +27,7 @@ const SubmissionModal = ({ task, onClose, onSuccess }) => {
       data.append('description', description);
       data.append('proofFile', file);
 
-      await axios.post('http://localhost:5000/api/contributions/add', data, config);
+      await axios.post(`${API_BASE_URL}/api/contributions/add`, data, config);
       
       alert('Чудово! Звіт відправлено на перевірку.');
       onSuccess();

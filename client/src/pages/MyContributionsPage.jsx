@@ -7,6 +7,8 @@ import { Link } from 'react-router-dom';
 import '../styles/Dashboard.css'; 
 import '../styles/MyContributions.css'; 
 import '../styles/TasksPage.css'; 
+import API_BASE_URL from '../config/api.js';
+
 
 const MyContributionsPage = () => {
   const [contributions, setContributions] = useState([]);
@@ -24,8 +26,8 @@ const MyContributionsPage = () => {
         const config = { headers: { 'x-auth-token': token } };
         
         const [contribRes, tasksRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/contributions/my', config),
-          axios.get('http://localhost:5000/api/tasks/my', config)
+          axios.get(`${API_BASE_URL}/api/contributions/my`, config),
+          axios.get(`${API_BASE_URL}/api/tasks/my`, config)
         ]);
         
         setContributions(contribRes.data);

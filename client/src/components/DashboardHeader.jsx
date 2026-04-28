@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { FiStar, FiAward, FiSun, FiMoon } from 'react-icons/fi';
+import API_BASE_URL from '../config/api.js';
+
 
 const POINT_LEVELS = [
   { level: 1, name: 'Новачок', value: 500, icon: '🌱' },
@@ -40,7 +42,7 @@ const DashboardHeader = () => {
         }
 
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/users/me', config);
+        const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
 
         setUserData({
           username: res.data.username,

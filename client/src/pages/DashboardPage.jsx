@@ -6,6 +6,8 @@ import StatsChart from '../components/StatsChart';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
 import '../styles/Dashboard.css';
+import API_BASE_URL from '../config/api.js';
+
 
 const DashboardPage = () => {
   const [contributions, setContributions] = useState([]);
@@ -19,9 +21,9 @@ const DashboardPage = () => {
         const config = { headers: { 'x-auth-token': token } };
         const isGuest = localStorage.getItem('userRole') === 'guest';
 
-        const requests = [axios.get('http://localhost:5000/api/users/leaderboard', config)];
+        const requests = [axios.get(`${API_BASE_URL}/api/users/leaderboard`, config)];
         if (!isGuest) {
-          requests.push(axios.get('http://localhost:5000/api/contributions/my', config));
+          requests.push(axios.get(`${API_BASE_URL}/api/contributions/my`, config));
         }
 
         const responses = await Promise.all(requests);
@@ -130,7 +132,7 @@ const DashboardPage = () => {
                     <li key={user._id} className="leaderboard-item">
                       <span className="leaderboard-rank">#{index + 1}</span>
                       <img
-                        src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000/${user.avatar}`) : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
+                        src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${API_BASE_URL}/${user.avatar}`) : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'}
                         alt={user.username}
                         className={`leaderboard-avatar frame-${user.profileCustomization?.avatarFrame || 'none'}`}
                         onError={(e) => { e.target.src = 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'; }}

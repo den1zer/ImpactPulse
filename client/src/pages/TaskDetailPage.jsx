@@ -7,6 +7,8 @@ import DashboardHeader from '../components/DashboardHeader';
 import SubmissionModal from '../components/SubmissionModal'; 
 import '../styles/Dashboard.css'; 
 import '../styles/TasksPage.css'; 
+import API_BASE_URL from '../config/api.js';
+
 
 const TaskDetailPage = () => {
   const { id } = useParams(); 
@@ -29,7 +31,7 @@ const TaskDetailPage = () => {
       setLoading(true); 
       const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.get(`http://localhost:5000/api/tasks/${id}`, config);
+      const res = await axios.get(`${API_BASE_URL}/api/tasks/${id}`, config);
       setTask(res.data);
       setLoading(false);
     } catch (err) {
@@ -44,7 +46,7 @@ const TaskDetailPage = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.put(`http://localhost:5000/api/tasks/${id}/claim`, {}, config);
+      await axios.put(`${API_BASE_URL}/api/tasks/${id}/claim`, {}, config);
       alert('Завдання "взято в опрацювання"!');
       fetchTask(); 
     } catch (err) {
@@ -62,7 +64,7 @@ const TaskDetailPage = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.put(`http://localhost:5000/api/tasks/${id}/abandon`, { reason }, config);
+      await axios.put(`${API_BASE_URL}/api/tasks/${id}/abandon`, { reason }, config);
       alert('Ви відхилили завдання.');
       fetchTask();
     } catch (err) {
@@ -103,7 +105,7 @@ const TaskDetailPage = () => {
               <p className="task-body">{task.description}</p>
               
               {task.filePath && (
-                <a href={`http://localhost:5000/${task.filePath}`} target="_blank" rel="noopener noreferrer" className="proof-link">
+                <a href={`${API_BASE_URL}/${task.filePath}`} target="_blank" rel="noopener noreferrer" className="proof-link">
                   Завантажити прикрілений файл
                 </a>
               )}

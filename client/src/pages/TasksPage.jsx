@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config/api.js';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
@@ -16,7 +17,7 @@ const TasksPage = () => {
       try {
         const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/tasks', config);
+        const res = await axios.get(`${API_BASE_URL}/api/tasks`, config);
         setTasks(res.data);
         setLoading(false);
       } catch (err) {
@@ -68,7 +69,7 @@ const TasksPage = () => {
                 <p className="task-body">{task.description}</p>
                 {task.filePath && (
                   <a 
-                    href={`http://localhost:5000/${task.filePath}`} 
+                    href={`${API_BASE_URL}/${task.filePath}`} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="proof-link" 

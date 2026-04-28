@@ -7,6 +7,8 @@ import DashboardHeader from '../components/DashboardHeader';
 import WheelOfFortune from '../components/WheelOfFortune';
 import '../styles/Dashboard.css';
 import '../styles/RewardsPage.css';
+import API_BASE_URL from '../config/api.js';
+
 
 const BADGE_DICTIONARY = [
   {
@@ -169,7 +171,7 @@ const RewardsPage = () => {
       try {
         const token = JSON.parse(localStorage.getItem('userToken'));
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/users/me', config);
+        const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
         setUser(res.data);
         setLoading(false);
       } catch (err) { console.error(err); setLoading(false); }
@@ -191,7 +193,7 @@ const RewardsPage = () => {
                 try {
                   const token = JSON.parse(localStorage.getItem('userToken'));
                   const config = { headers: { 'x-auth-token': token } };
-                  const res = await axios.get('http://localhost:5000/api/users/me', config);
+                  const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
                   setUser(res.data);
                 } catch (err) { console.error(err); }
               };
