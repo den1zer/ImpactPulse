@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 
 import '../styles/AdminDashboard.css';
 import '../styles/AddHelpPage.css';
+import API_BASE_URL from '../config/api.js';
+
 
 const PendingContributions = () => {
   const [contributions, setContributions] = useState([]);
@@ -24,7 +26,7 @@ const PendingContributions = () => {
         headers: { 'x-auth-token': token },
         params: { type: filterType }
       };
-      const res = await axios.get('http://localhost:5000/api/contributions/pending', config);
+      const res = await axios.get(`${API_BASE_URL}/api/contributions/pending`, config);
       setContributions(res.data);
       setLoading(false);
     } catch (err) {
@@ -45,7 +47,7 @@ const PendingContributions = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.put(`http://localhost:5000/api/contributions/approve/${id}`, { points: points }, config);
+      await axios.put(`${API_BASE_URL}/api/contributions/approve/${id}`, { points: points }, config);
       setContributions(contributions.filter(c => c._id !== id));
     } catch (err) { alert('Помилка схвалення: ' + (err.response?.data?.msg || '')); }
   };
@@ -60,7 +62,7 @@ const PendingContributions = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.put(`http://localhost:5000/api/contributions/reject/${id}`, { comment: comment }, config);
+      await axios.put(`${API_BASE_URL}/api/contributions/reject/${id}`, { comment: comment }, config);
       setContributions(contributions.filter(c => c._id !== id));
     } catch (err) { alert('Помилка відхилення: ' + (err.response?.data?.msg || '')); }
   };
@@ -117,7 +119,7 @@ const PendingContributions = () => {
                   <td>{item.type}</td>
                   <td>{item.title}</td>
                   <td style={{ fontSize: '0.85em', color: '#999' }}>{new Date(item.createdAt).toLocaleDateString('uk-UA')}</td>
-                  <td><a href={`http://localhost:5000/${item.filePath}`} target="_blank" rel="noopener noreferrer" className="proof-link">Подивитись</a></td>
+                  <td><a href={`${API_BASE_URL}/${item.filePath}`} target="_blank" rel="noopener noreferrer" className="proof-link">Подивитись</a></td>
                   <td>
                     <button className="action-btn approve" onClick={() => handleApprove(item._id)}>Схвалити</button>
                     <button className="action-btn reject" onClick={() => handleReject(item._id)}>Відхилити</button>
@@ -169,7 +171,7 @@ const AdminUserList = () => {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token }, params: { role: filterRole } };
       try {
-        const res = await axios.get('http://localhost:5000/api/users', config);
+        const res = await axios.get(`${API_BASE_URL}/api/users`, config);
         setUsers(res.data);
         setLoading(false);
       } catch (err) { setLoading(false); }
@@ -183,7 +185,7 @@ const AdminUserList = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.put(`http://localhost:5000/api/users/role/${id}`, { role: newRole }, config);
+      await axios.put(`${API_BASE_URL}/api/users/role/${id}`, { role: newRole }, config);
       setUsers(users.map(user => user._id === id ? { ...user, role: newRole } : user));
       alert('Роль оновлено!');
     } catch (err) { alert('Помилка оновлення ролі'); }
@@ -289,7 +291,7 @@ const AdminTicketList = () => {
       try {
         const token = JSON.parse(localStorage.getItem('userToken'));
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/support/tickets', config);
+        const res = await axios.get(`${API_BASE_URL}/api/support/tickets`, config);
         setTickets(res.data);
         setLoading(false);
       } catch (err) { setLoading(false); }
@@ -391,7 +393,7 @@ const AdminFeedbackList = () => {
       try {
         const token = JSON.parse(localStorage.getItem('userToken'));
         const config = { headers: { 'x-auth-token': token }, params: { rating: filterRating } };
-        const res = await axios.get('http://localhost:5000/api/support/feedback', config);
+        const res = await axios.get(`${API_BASE_URL}/api/support/feedback`, config);
         setFeedback(res.data);
         setLoading(false);
       } catch (err) { setLoading(false); }
@@ -487,7 +489,7 @@ const AdminStatistics = () => {
       try {
         const token = JSON.parse(localStorage.getItem('userToken'));
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/users/stats', config);
+        const res = await axios.get(`${API_BASE_URL}/api/users/stats`, config);
         setStats(res.data);
         setLoading(false);
       } catch (err) { setLoading(false); }
@@ -555,7 +557,7 @@ const AdminManageTasks = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.get('http://localhost:5000/api/tasks/admin/all', config);
+      const res = await axios.get(`${API_BASE_URL}/api/tasks/admin/all`, config);
       setTasks(res.data);
       setLoading(false);
     } catch (err) { setLoading(false); }
@@ -577,7 +579,7 @@ const AdminManageTasks = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.put(`http://localhost:5000/api/tasks/${editingTask}/admin`, editForm, config);
+      await axios.put(`${API_BASE_URL}/api/tasks/${editingTask}/admin`, editForm, config);
       setEditingTask(null);
       fetchTasks();
     } catch (err) { alert('Помилка оновлення завдання'); }
@@ -588,7 +590,7 @@ const AdminManageTasks = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.delete(`http://localhost:5000/api/tasks/${id}/admin`, config);
+      await axios.delete(`${API_BASE_URL}/api/tasks/${id}/admin`, config);
       fetchTasks();
     } catch (err) { alert('Помилка видалення завдання'); }
   };
@@ -666,7 +668,7 @@ const AdminManageFundraisers = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.get('http://localhost:5000/api/fundraisers/admin/all', config);
+      const res = await axios.get(`${API_BASE_URL}/api/fundraisers/admin/all`, config);
       setFundraisers(res.data);
       setLoading(false);
     } catch (err) { setLoading(false); }
@@ -688,7 +690,7 @@ const AdminManageFundraisers = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.put(`http://localhost:5000/api/fundraisers/${editingFundraiser}/admin`, editForm, config);
+      await axios.put(`${API_BASE_URL}/api/fundraisers/${editingFundraiser}/admin`, editForm, config);
       setEditingFundraiser(null);
       fetchFundraisers();
     } catch (err) { alert('Помилка оновлення збору'); }
@@ -699,7 +701,7 @@ const AdminManageFundraisers = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.delete(`http://localhost:5000/api/fundraisers/${id}/admin`, config);
+      await axios.delete(`${API_BASE_URL}/api/fundraisers/${id}/admin`, config);
       fetchFundraisers();
     } catch (err) { alert('Помилка видалення збору'); }
   };
@@ -765,7 +767,7 @@ const CreateFundraiser = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      await axios.post('http://localhost:5000/api/fundraisers', formData, config);
+      await axios.post(`${API_BASE_URL}/api/fundraisers`, formData, config);
       setMessage('Збір успішно створено!');
       setFormData({ title: '', description: '', goalAmount: '', cardName: '', cardNumber: '' });
     } catch (err) {
@@ -834,7 +836,7 @@ const CreateTask = () => {
           'x-auth-token': token,
         }
       };
-      await axios.post('http://localhost:5000/api/tasks', data, config);
+      await axios.post(`${API_BASE_URL}/api/tasks`, data, config);
       setMessage('Завдання успішно створено!');
       setFormData({ title: '', description: '', category: 'volunteering', points: '100', endDate: '' });
       setFile(null);

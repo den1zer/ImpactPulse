@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config/api.js';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
@@ -31,7 +32,7 @@ const TicketForm = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/support/ticket', formData);
+      const res = await axios.post(`${API_BASE_URL}/api/support/ticket`, formData);
       setMessage(res.data.msg); 
       setFormData({ name: '', email: '', phone: '', question: '' }); 
     } catch (err) {
@@ -76,7 +77,7 @@ const FeedbackForm = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.post('http://localhost:5000/api/support/feedback', { rating, comment }, config);
+      const res = await axios.post(`${API_BASE_URL}/api/support/feedback`, { rating, comment }, config);
       setMessage(res.data.msg); 
       setRating(0); setComment('');
     } catch (err) {

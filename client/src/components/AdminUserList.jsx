@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config/api.js';
+
 
 const AdminUserList = () => {
   const [users, setUsers] = useState([]);
@@ -9,7 +11,7 @@ const AdminUserList = () => {
     const token = JSON.parse(localStorage.getItem('userToken'));
     const config = { headers: { 'x-auth-token': token } };
     try {
-      const res = await axios.get('http://localhost:5000/api/users', config);
+      const res = await axios.get(`${API_BASE_URL}/api/users`, config);
       setUsers(res.data);
       setLoading(false);
     } catch (err) {
@@ -30,7 +32,7 @@ const AdminUserList = () => {
     const token = JSON.parse(localStorage.getItem('userToken'));
     const config = { headers: { 'x-auth-token': token } };
     try {
-      await axios.put(`http://localhost:5000/api/users/role/${id}`, { role: newRole }, config);
+      await axios.put(`${API_BASE_URL}/api/users/role/${id}`, { role: newRole }, config);
       setUsers(users.map(user => user._id === id ? { ...user, role: newRole } : user));
       alert('Роль оновлено!');
     } catch (err) {

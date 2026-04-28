@@ -6,6 +6,8 @@ import DashboardHeader from '../components/DashboardHeader';
 import '../styles/Dashboard.css';
 import '../styles/AddHelpPage.css';
 import '../styles/ProfilePage.css';
+import API_BASE_URL from '../config/api.js';
+
 
 const BADGE_DICTIONARY = [
   {
@@ -110,7 +112,7 @@ const ProfilePage = () => {
       try {
         const token = JSON.parse(localStorage.getItem('userToken'));
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/users/me', config);
+        const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
         setFormData({
           username: res.data.username || '', email: res.data.email || '',
           backupEmail: res.data.backupEmail || '', age: res.data.age || '',
@@ -166,7 +168,7 @@ const ProfilePage = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'Content-Type': 'multipart/form-data', 'x-auth-token': token } };
-      const res = await axios.put('http://localhost:5000/api/users/me', data, config);
+      const res = await axios.put(`${API_BASE_URL}/api/users/me`, data, config);
       showAlert('Профіль оновлено!');
       if (res.data.avatar) { setCurrentAvatar(res.data.avatar); setAvatarPreview(null); }
       window.location.reload();
@@ -188,7 +190,7 @@ const ProfilePage = () => {
     try {
       const token = JSON.parse(localStorage.getItem('userToken'));
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.put('http://localhost:5000/api/users/selected-badge', {
+      const res = await axios.put(`${API_BASE_URL}/api/users/selected-badge`, {
         badgeId: selected ? selected.badgeId : null,
         level: selected ? selected.level : null,
         name: selected ? selected.name : null,
@@ -213,7 +215,7 @@ const ProfilePage = () => {
               <h2>Налаштування Профілю</h2>
               {createdAt && <p style={{fontSize: '0.9em', color: '#777', marginBottom: '20px'}}>📅 Акаунт створено: <strong>{createdAt}</strong></p>}
               <div className="avatar-section">
-                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `http://localhost:5000/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '👤'}</div>
+                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `${API_BASE_URL}/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '👤'}</div>
                 <label htmlFor="avatar" className="avatar-change-btn">Змінити фото<input type="file" id="avatar" accept="image/*" onChange={onFileChange} /></label>
               </div>
               <div className="form-grid">

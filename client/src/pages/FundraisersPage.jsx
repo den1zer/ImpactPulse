@@ -6,6 +6,8 @@ import DashboardHeader from '../components/DashboardHeader';
 import '../styles/Dashboard.css'; 
 import '../styles/AddHelpPage.css'; 
 import '../styles/FundraisersPage.css'; 
+import API_BASE_URL from '../config/api.js';
+
 
 const LiqPayPaymentForm = ({ fundraiser, onDonation }) => {
   const [amount, setAmount] = useState('');
@@ -23,7 +25,7 @@ const LiqPayPaymentForm = ({ fundraiser, onDonation }) => {
       const config = { headers: { 'x-auth-token': token } };
       
       const res = await axios.post(
-        'http://localhost:5000/api/payment/create', 
+        `${API_BASE_URL}/api/payment/create`, 
         { amount, collectionId: fundraiser._id, description: fundraiser.title }, 
         config
       );
@@ -91,7 +93,7 @@ const FundraisersPage = () => {
     try {
       const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.get('http://localhost:5000/api/fundraisers', config);
+      const res = await axios.get(`${API_BASE_URL}/api/fundraisers`, config);
       setFundraisers(res.data);
       setLoading(false);
     } catch (err) {
