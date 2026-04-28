@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_BASE_URL from '../config/api.js';
 import {
   FiGrid,
   FiAward,
@@ -43,7 +44,7 @@ const Sidebar = () => {
         if (!token) return;
 
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/users/me', config);
+        const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
 
         if (res.data.avatar) {
           setAvatar(res.data.avatar);
@@ -78,7 +79,7 @@ const Sidebar = () => {
           <NavLink to="/profile" className={({ isActive }) => `sidebar-link sidebar-profile${isActive ? ' active' : ''}`}>
             <span className="sidebar-icon profile-icon">
               {avatar ? (
-                <img src={avatar.startsWith('http') ? avatar : `http://localhost:5000/${avatar}`} alt="Avatar" />
+                <img src={avatar.startsWith('http') ? avatar : `${API_BASE_URL}/${avatar}`} alt="Avatar" />
               ) : (
                 <FiUser />
               )}

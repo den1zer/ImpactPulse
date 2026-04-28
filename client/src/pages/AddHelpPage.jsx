@@ -8,6 +8,7 @@ import AnimatedPage from '../components/AnimatedPage';
 import '../styles/Dashboard.css'; 
 import '../styles/AddHelpPage.css';
 import axios from 'axios';
+import API_BASE_URL from '../config/api.js';
 
 const useAlertHook = () => ({ showAlert: (message, type) => { alert(message); } });
 
@@ -85,7 +86,7 @@ const AddHelpPage = () => {
       const config = {
         headers: { 'Content-Type': 'multipart/form-data', 'x-auth-token': token }
       };
-      const res = await axios.post('http://localhost:5000/api/contributions/add', data, config);
+      const res = await axios.post(`${API_BASE_URL}/api/contributions/add`, data, config);
       
       showAlert(res.data.msg, 'success'); 
       setFormData({ 
