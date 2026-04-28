@@ -60,7 +60,7 @@ const WheelOfFortune = ({ onPrizeWon }) => {
   const checkStatus = async () => {
     try {
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.get('http://localhost:5000/api/wheel/status', config);
+      const res = await axios.get(`${API_BASE_URL}/api/wheel/status`, config);
       setCanSpin(res.data.canSpin);
       setNextSpinDate(res.data.nextSpinDate);
     } catch (err) {
@@ -74,7 +74,7 @@ const WheelOfFortune = ({ onPrizeWon }) => {
     try {
       setIsSpinning(true);
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.post('http://localhost:5000/api/wheel/spin', {}, config);
+      const res = await axios.post(`${API_BASE_URL}/api/wheel/spin`, {}, config);
       
       const { prizeIndex, prize } = res.data;
       

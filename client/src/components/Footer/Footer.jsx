@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_BASE_URL from '../../config/api.js';
 import './Footer.css';
 import axios from 'axios';
 import { FiHeart, FiCoffee } from 'react-icons/fi';
@@ -19,7 +20,7 @@ const Footer = () => {
     
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/payment/support-project', {
+      const response = await axios.post(`${API_BASE_URL}/api/payment/support-project`, {
         amount: finalAmount,
         description: 'Підтримка розробників проекту ImpactPulse',
       });
