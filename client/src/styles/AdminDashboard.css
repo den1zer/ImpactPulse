@@ -184,20 +184,96 @@
     padding: 0;
   }
 
-  .admin-header h1 {
-    font-size: 2rem;
+  .admin-header {
+    margin-bottom: 20px;
   }
 
-  .admin-table {
+  .admin-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .admin-tabs {
+    gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .tab-btn {
+    padding: 10px 14px;
     font-size: 0.85rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .admin-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .admin-stat-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .stat-icon {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .admin-content {
+    padding: 14px;
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+
+  .content-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  /* Responsive table: make it scrollable */
+  .admin-table {
+    font-size: 0.8rem;
+    min-width: 500px;
   }
 
   .admin-table thead th,
   .admin-table tbody td {
-    padding: 10px 12px;
+    padding: 10px 8px;
+    font-size: 0.8rem;
   }
 
   .action-cell {
     flex-direction: column;
+    gap: 4px;
+  }
+
+  .admin-btn {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header h1 {
+    font-size: 1.3rem;
   }
 }

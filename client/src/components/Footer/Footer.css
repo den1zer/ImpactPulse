@@ -212,24 +212,79 @@ body.sidebar-expanded .modern-footer {
   transform: none;
 }
 
+/* ── Mobile footer (≤ 768px) ── */
 @media (max-width: 768px) {
+  body.has-sidebar .modern-footer,
+  body.sidebar-expanded .modern-footer {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .modern-footer {
+    padding: 28px 0;
+  }
+
   .footer-container {
     flex-direction: column;
     text-align: center;
+    gap: 24px;
+    padding: 0 16px;
   }
-  
+
+  .footer-left {
+    min-width: unset;
+    width: 100%;
+  }
+
   .footer-brand {
     justify-content: center;
   }
-  
+
+  .footer-description {
+    max-width: 100%;
+    font-size: 13px;
+  }
+
   .footer-right {
     justify-content: center;
     width: 100%;
+    min-width: unset;
+  }
+
+  .support-card {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .support-card h4 {
+    font-size: 16px;
+    justify-content: center;
+  }
+
+  .amount-selectors {
+    gap: 6px;
+  }
+
+  .amount-btn {
+    padding: 7px 10px;
+    font-size: 13px;
+    min-width: 50px;
+  }
+
+  .custom-amount-input {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
+
+  .btn-support-modern {
+    padding: 11px;
+    font-size: 14px;
   }
 }
 
-@media (max-width: 960px) {
-  body.has-sidebar .modern-footer, 
+/* ── Footer sidebar offset for larger screens ── */
+@media (max-width: 960px) and (min-width: 769px) {
+  body.has-sidebar .modern-footer,
   body.sidebar-expanded .modern-footer {
     margin-left: 0;
     width: 100%;

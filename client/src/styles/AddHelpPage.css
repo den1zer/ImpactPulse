@@ -204,6 +204,7 @@
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  padding: 16px;
 }
 
 .map-modal-content {
@@ -266,18 +267,70 @@
   .add-help-container {
     padding: 0;
   }
+
   .add-help-form {
-    padding: 24px;
+    padding: 18px;
+    border-radius: 16px;
   }
+
   .add-help-form h2 {
-    font-size: 1.6rem;
-    margin-bottom: 24px;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
   }
+
+  .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+
+  .neumorph-input,
+  .neumorph-textarea,
+  .neumorph-select {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+  }
+
+  .neumorph-textarea {
+    min-height: 100px;
+  }
+
+  .neumorph-file-input {
+    padding: 16px;
+    font-size: 0.9rem;
+  }
+
   .neumorph-button {
     padding: 14px;
+    font-size: 0.95rem;
   }
+
+  .map-placeholder {
+    height: 160px;
+  }
+
+  .map-placeholder::before {
+    font-size: 2em;
+  }
+
   .map-modal-content {
-    height: 400px;
+    height: 70vh;
     width: 95%;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .map-modal-header h3 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .add-help-form {
+    padding: 14px;
+  }
+
+  .add-help-form h2 {
+    font-size: 1.2rem;
   }
 }

@@ -132,6 +132,12 @@
 }
 
 @media (max-width: 768px) {
+  .auth-page {
+    padding: 12px;
+    align-items: flex-start;
+    padding-top: 30px;
+  }
+
   .auth-main-container {
     flex-direction: column;
     min-height: auto;
@@ -139,7 +145,7 @@
 
   .auth-left-panel,
   .auth-right-panel {
-    padding: 30px;
+    padding: 24px 20px;
   }
 
   .auth-left-panel {
@@ -148,6 +154,42 @@
   }
 
   .auth-title {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
+  .auth-button {
+    padding: 13px 18px;
+    font-size: 0.95rem;
+  }
+
+  .auth-toggle {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .auth-page {
+    padding: 8px;
+    padding-top: 20px;
+  }
+
+  .auth-left-panel,
+  .auth-right-panel {
+    padding: 20px 14px;
+  }
+
+  .auth-title {
+    font-size: 1.3rem;
   }
 }

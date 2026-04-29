@@ -8,7 +8,9 @@ let serverProcess;
 
 const SERVER_DIR = path.join(__dirname, '..', 'server');
 const SERVER_PORT = 5000;
-const API_BASE = `http://127.0.0.1:${SERVER_PORT}`;
+// Allow overriding server URL via environment variable for production (e.g., Render URL)
+const SERVER_URL = process.env.SERVER_URL || `http://127.0.0.1:${SERVER_PORT}`;
+const API_BASE = SERVER_URL;
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-setuid-sandbox');
 // ─── Server Management ────────────────────────────────────────────────────────
@@ -32,21 +34,10 @@ function startServer() {
   });
 }
 */
-function waitForServer(retries = 10, interval = 1000) {
-    return new Promise((resolve, reject) => {
-        const attempt = (n) => {
-            http.get(`${API_BASE}/api/auth`, () => {
-                resolve();
-            }).on('error', () => {
-                if (n <= 0) {
-                    reject(new Error('Немає відповіді від сервера (таймаут 10 секунд)'));
-                } else {
-                    setTimeout(() => attempt(n - 1), interval);
-                }
-            });
-        };
-        attempt(retries);
-    });
+// Deprecated waitForServer: Desktop app now assumes server is reachable via SERVER_URL.
+// If needed, you can implement a ping here, but we proceed without waiting.
+function waitForServer() {
+  return Promise.resolve();
 }
 
 // ─── Window ───────────────────────────────────────────────────────────────────
@@ -86,14 +77,8 @@ app.whenReady().then(async () => {
 
     // Wait for the window to finish loading HTML and JS before sending IPC events
     mainWindow.webContents.once('did-finish-load', () => {
-        waitForServer()
-            .then(() => {
-                if (mainWindow) mainWindow.webContents.send('server-ready');
-            })
-            .catch((err) => {
-                console.error('[Main] Server wait error:', err.message);
-                if (mainWindow) mainWindow.webContents.send('server-error', err.message);
-            });
+        // Immediately notify renderer that the server is assumed ready.
+        if (mainWindow) mainWindow.webContents.send('server-ready');
     });
 });
 
