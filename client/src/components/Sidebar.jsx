@@ -13,10 +13,12 @@ import {
   FiDollarSign,
   FiClipboard,
   FiMenu,
+  FiX,
 } from 'react-icons/fi';
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [avatar, setAvatar] = useState(null);
   const navigate = useNavigate();
   const isGuest = localStorage.getItem('userRole') === 'guest';
@@ -36,6 +38,16 @@ const Sidebar = () => {
       document.body.classList.remove('sidebar-expanded');
     };
   }, []);
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isMobileOpen]);
 
   useEffect(() => {
     const fetchUserAvatar = async () => {
@@ -62,79 +74,102 @@ const Sidebar = () => {
     navigate('/login');
   };
 
-  return (
-    <aside className={`sidebar ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      <div className="sidebar-top">
-        <div className="sidebar-brand">
-          <div className="brand-icon">IP</div>
-          {isExpanded && <h2>ImpactPulse</h2>}
-        </div>
-        <button className="sidebar-toggle" onClick={() => setIsExpanded(!isExpanded)}>
-          <FiMenu />
-        </button>
-      </div>
+  const closeMobileSidebar = () => setIsMobileOpen(false);
 
-      {!isGuest && (
-        <div className="sidebar-profile-link">
-          <NavLink to="/profile" className={({ isActive }) => `sidebar-link sidebar-profile${isActive ? ' active' : ''}`}>
-            <span className="sidebar-icon profile-icon">
-              {avatar ? (
-                <img src={avatar.startsWith('http') ? avatar : `${API_BASE_URL}/${avatar}`} alt="Avatar" />
-              ) : (
-                <FiUser />
-              )}
-            </span>
-            {isExpanded && <span className="sidebar-text">Мій профіль</span>}
-          </NavLink>
-        </div>
+  return (
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        className="mobile-menu-btn"
+        onClick={() => setIsMobileOpen(true)}
+        aria-label="Відкрити меню"
+      >
+        <FiMenu />
+      </button>
+
+      {/* Mobile overlay */}
+      {isMobileOpen && (
+        <div className="sidebar-overlay" onClick={closeMobileSidebar} />
       )}
 
-      <nav className="sidebar-links">
-        <NavLink to="/" end className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="sidebar-icon"><FiGrid /></span>
-          {isExpanded && <span className="sidebar-text">Дашборд</span>}
-        </NavLink>
-        {!isGuest && (
-          <>
-            <NavLink to="/my-contributions" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-              <span className="sidebar-icon"><FiClipboard /></span>
-              {isExpanded && <span className="sidebar-text">Мої заявки</span>}
-            </NavLink>
-            <NavLink to="/add-help" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-              <span className="sidebar-icon"><FiPlus /></span>
-              {isExpanded && <span className="sidebar-text">Додати допомогу</span>}
-            </NavLink>
-            <NavLink to="/rewards" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-              <span className="sidebar-icon"><FiAward /></span>
-              {isExpanded && <span className="sidebar-text">Нагороди</span>}
-            </NavLink>
-          </>
-        )}
-        <NavLink to="/fundraisers" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="sidebar-icon"><FiDollarSign /></span>
-          {isExpanded && <span className="sidebar-text">Збори</span>}
-        </NavLink>
-        <NavLink to="/tasks" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="sidebar-icon"><FiClipboard /></span>
-          {isExpanded && <span className="sidebar-text">Завдання</span>}
-        </NavLink>
-      </nav>
+      <aside className={`sidebar ${isExpanded ? 'expanded' : 'collapsed'} ${isMobileOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-top">
+          <div className="sidebar-brand">
+            <div className="brand-icon">IP</div>
+            {isExpanded && <h2>ImpactPulse</h2>}
+          </div>
+          {/* Desktop toggle */}
+          <button className="sidebar-toggle desktop-toggle" onClick={() => setIsExpanded(!isExpanded)}>
+            <FiMenu />
+          </button>
+          {/* Mobile close */}
+          <button className="sidebar-toggle mobile-close-btn" onClick={closeMobileSidebar}>
+            <FiX />
+          </button>
+        </div>
 
-      <div className="sidebar-bottom">
-        <NavLink to="/instructions" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="sidebar-icon"><FiBookOpen /></span>
-          {isExpanded && <span className="sidebar-text">Інструкція</span>}
-        </NavLink>
-        <NavLink to="/support" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
-          <span className="sidebar-icon"><FiHelpCircle /></span>
-          {isExpanded && <span className="sidebar-text">Підтримка</span>}
-        </NavLink>
-        <button type="button" className="sidebar-link sidebar-logout" onClick={handleLogout}>
-          <span className="sidebar-icon"><FiLogOut /></span>
-          {isExpanded && <span className="sidebar-text">{isGuest ? 'Увійти' : 'Вийти'}</span>}
-        </button>
-      </div>
-    </aside>
+        {!isGuest && (
+          <div className="sidebar-profile-link">
+            <NavLink to="/profile" className={({ isActive }) => `sidebar-link sidebar-profile${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+              <span className="sidebar-icon profile-icon">
+                {avatar ? (
+                  <img src={avatar.startsWith('http') ? avatar : `${API_BASE_URL}/${avatar}`} alt="Avatar" />
+                ) : (
+                  <FiUser />
+                )}
+              </span>
+              {isExpanded && <span className="sidebar-text">Мій профіль</span>}
+            </NavLink>
+          </div>
+        )}
+
+        <nav className="sidebar-links">
+          <NavLink to="/" end className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+            <span className="sidebar-icon"><FiGrid /></span>
+            {isExpanded && <span className="sidebar-text">Дашборд</span>}
+          </NavLink>
+          {!isGuest && (
+            <>
+              <NavLink to="/my-contributions" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+                <span className="sidebar-icon"><FiClipboard /></span>
+                {isExpanded && <span className="sidebar-text">Мої заявки</span>}
+              </NavLink>
+              <NavLink to="/add-help" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+                <span className="sidebar-icon"><FiPlus /></span>
+                {isExpanded && <span className="sidebar-text">Додати допомогу</span>}
+              </NavLink>
+              <NavLink to="/rewards" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+                <span className="sidebar-icon"><FiAward /></span>
+                {isExpanded && <span className="sidebar-text">Нагороди</span>}
+              </NavLink>
+            </>
+          )}
+          <NavLink to="/fundraisers" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+            <span className="sidebar-icon"><FiDollarSign /></span>
+            {isExpanded && <span className="sidebar-text">Збори</span>}
+          </NavLink>
+          <NavLink to="/tasks" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+            <span className="sidebar-icon"><FiClipboard /></span>
+            {isExpanded && <span className="sidebar-text">Завдання</span>}
+          </NavLink>
+        </nav>
+
+        <div className="sidebar-bottom">
+          <NavLink to="/instructions" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+            <span className="sidebar-icon"><FiBookOpen /></span>
+            {isExpanded && <span className="sidebar-text">Інструкція</span>}
+          </NavLink>
+          <NavLink to="/support" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+            <span className="sidebar-icon"><FiHelpCircle /></span>
+            {isExpanded && <span className="sidebar-text">Підтримка</span>}
+          </NavLink>
+          <button type="button" className="sidebar-link sidebar-logout" onClick={handleLogout}>
+            <span className="sidebar-icon"><FiLogOut /></span>
+            {isExpanded && <span className="sidebar-text">{isGuest ? 'Увійти' : 'Вийти'}</span>}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 

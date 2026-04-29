@@ -110,6 +110,7 @@
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(5px);
+  padding: 16px;
 }
 
 .prize-modal {
@@ -157,4 +158,88 @@
 
 .prize-close-btn:hover {
   background: var(--bg-tertiary);
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .wheel-container {
+    margin: 20px 0;
+    padding: 20px 14px;
+    border-radius: 16px;
+  }
+
+  .wheel-header {
+    margin-bottom: 16px;
+  }
+
+  .wheel-header h3 {
+    font-size: 1.4rem;
+  }
+
+  .wheel-header p {
+    font-size: 0.9rem;
+  }
+
+  .wheel-wrapper {
+    width: 260px;
+    height: 260px;
+    margin: 14px auto;
+  }
+
+  .wheel-pointer {
+    width: 32px;
+    height: 32px;
+    top: -12px;
+  }
+
+  .wheel {
+    border-width: 6px;
+  }
+
+  .wheel-spin-btn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    font-size: 1rem;
+  }
+
+  .timer-text {
+    font-size: 0.95rem;
+  }
+
+  .prize-modal {
+    padding: 28px 20px;
+    border-radius: 16px;
+  }
+
+  .prize-modal h2 {
+    font-size: 1.5rem;
+  }
+
+  .prize-value {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  .prize-close-btn {
+    padding: 10px 24px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .wheel-wrapper {
+    width: 220px;
+    height: 220px;
+  }
+
+  .wheel-pointer {
+    width: 28px;
+    height: 28px;
+    top: -10px;
+  }
+
+  .wheel-spin-btn {
+    padding: 10px 24px;
+    font-size: 0.9rem;
+  }
 }

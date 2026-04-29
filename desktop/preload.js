@@ -1,6 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose bridge APIs to renderer, including server URL for dynamic links
 contextBridge.exposeInMainWorld('electron', {
   apiRequest: (opts) => ipcRenderer.invoke('api-request', opts),
   openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
