@@ -24,7 +24,7 @@ const RegisterPage = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userId');
     localStorage.setItem('userRole', 'guest');
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const onRegisterSubmit = async (e) => {

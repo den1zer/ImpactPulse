@@ -124,7 +124,7 @@ const Sidebar = () => {
         )}
 
         <nav className="sidebar-links">
-          <NavLink to="/" end className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
+          <NavLink to="/dashboard" end className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`} onClick={closeMobileSidebar}>
             <span className="sidebar-icon"><FiGrid /></span>
             {isExpanded && <span className="sidebar-text">Дашборд</span>}
           </NavLink>

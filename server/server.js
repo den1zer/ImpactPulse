@@ -7,9 +7,16 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // --- MIDDLEWARE ---
-app.use(cors());
+const allowedOrigins = process.env.FRONTEND_URL
+  ? [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000']
+  : true; // allow all in dev
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(express.json());
-// "Чотко" роздаємо статику (аватарки, пруфи)
+// Serve static files (avatars, proofs)
 app.use('/uploads', express.static('uploads'));
 
 // --- DATABASE CONNECTION ---

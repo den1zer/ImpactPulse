@@ -34,6 +34,16 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Redirect root: guests/authed → dashboard, strangers → login
+const RootRedirect = () => {
+  const token = localStorage.getItem('userToken');
+  const isGuest = localStorage.getItem('userRole') === 'guest';
+  if (token || isGuest) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Navigate to="/login" replace />;
+};
+
 function App() {
   const location = useLocation();
 
@@ -46,7 +56,8 @@ function App() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
