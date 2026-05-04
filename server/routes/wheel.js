@@ -1,6 +1,9 @@
 import express from 'express';
-import auth from '../middleware/auth.js';
+import authModule from '../middleware/authMiddleware.js';
 import User from '../models/User.js';
+
+// authMiddleware.js is CommonJS — extract isAuthenticated
+const { isAuthenticated: auth } = authModule;
 
 const router = express.Router();
 

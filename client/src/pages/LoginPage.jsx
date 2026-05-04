@@ -24,7 +24,7 @@ const LoginPage = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userId');
     localStorage.setItem('userRole', 'guest');
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const onLoginSubmit = async (e) => {
@@ -35,7 +35,7 @@ const LoginPage = () => {
       if (role === 'admin') {
         navigate('/admin/dashboard');
       } else {
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error) {
       alert('Помилка входу: ' + (error.response?.data?.msg || 'Невідома помилка'));
