@@ -22,6 +22,7 @@ const ProfilePage = () => {
   const [badges, setBadges] = useState([]); 
   const [selectedBadge, setSelectedBadge] = useState(null);
   const [profileCustomization, setProfileCustomization] = useState({ nicknameIcon: '', avatarFrame: 'none', profileTheme: 'default' });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -61,9 +62,12 @@ const ProfilePage = () => {
         });
         
         setBadges(merged);
-        setSelectedBadge(userData.selectedBadge || null);
+        // Treat {badgeId: null, ...} (DB default) the same as "none selected"
+        const rawBadge = userData.selectedBadge;
+        setSelectedBadge(rawBadge?.badgeId ? rawBadge : null);
         if (userData.createdAt) setCreatedAt(new Date(userData.createdAt).toLocaleDateString('uk-UA'));
-      } catch (err) { showAlert('Помилка завантаження профілю'); }
+        setIsLoading(false);
+      } catch (err) { showAlert('Помилка завантаження профілю'); setIsLoading(false); }
     };
     fetchProfileData();
   }, []);
@@ -130,7 +134,11 @@ const ProfilePage = () => {
       <main className="dashboard-main">
         <DashboardHeader />
         <AnimatedPage>
+          <div className="dashboard-content-wrapper">
           <div className={`profile-container theme-${profileCustomization.profileTheme}`}>
+            {isLoading ? (
+              <div style={{ padding: 40, color: 'var(--text-muted)', textAlign: 'center' }}>Завантаження профілю…</div>
+            ) : (
             <form className="profile-form" onSubmit={onSubmit}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2>Налаштування Профілю</h2>
@@ -210,6 +218,8 @@ const ProfilePage = () => {
               <hr style={{ margin: '30px 0', border: 'none', borderTop: '1px solid var(--panel-border)' }} />
               <button type="submit" className="neumorph-button">Зберегти зміни</button>
             </form>
+            )}
+          </div>
           </div>
         </AnimatedPage>
       </main>

@@ -1,24 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../api/authService';
-import { motion } from 'framer-motion'; 
-
-const pageVariants = {
-  initial: { opacity: 0, y: 20 },
-  in: { opacity: 1, y: 0 },
-  out: { opacity: 0, y: -20 }
-};
-const pageTransition = {
-  type: 'tween',
-  ease: 'anticipate',
-  duration: 0.5
-};
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
   const { email, password } = formData;
-  const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleGuestLogin = () => {
     localStorage.removeItem('userToken');
@@ -27,62 +18,113 @@ const LoginPage = () => {
     navigate('/dashboard');
   };
 
-  const onLoginSubmit = async (e) => {
+  const onSubmit = async e => {
     e.preventDefault();
+    setErrorMsg('');
+    setLoading(true);
     try {
       const { role } = await authService.login({ email, password });
-      alert('Вхід успішний!');
-      if (role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate(role === 'admin' ? '/admin/dashboard' : '/dashboard');
     } catch (error) {
-      alert('Помилка входу: ' + (error.response?.data?.msg || 'Невідома помилка'));
+      const msg = error.response?.data?.msg || '';
+      if (error.response?.status === 401 && msg.includes('verify')) {
+        setErrorMsg('Будь ласка, підтвердіть вашу пошту перед входом.');
+      } else {
+        setErrorMsg('Помилка входу: ' + (msg || 'Невідома помилка'));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <motion.div
-      className="auth-page" 
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      transition={pageTransition}
-    >
+    <div className="auth-page">
       <div className="auth-main-container">
+
+        {/* ── Left: form ── */}
         <div className="auth-left-panel">
-          <h2 className="auth-title">Sign in to Website</h2>
-          <div className="social-icons">
-            <img className='social-icon' src="/assets/images/icon-facebook.png" alt="facebook_logo" />
-            <img className='social-icon' src="/assets/images/icon-instagram.png" alt="instagram_logo" /> 
-            <img className='social-icon' src="/assets/images/icon-telegram.png" alt="telegram_logo" /> 
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 6,
+              background: 'var(--accent)', display: 'grid', placeItems: 'center',
+              color: '#fff', fontWeight: 700, fontSize: '0.8rem',
+            }}>IP</div>
+            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+              ImpactPulse
+            </span>
           </div>
-          <p className="divider">or use your email account</p>
 
-          <form onSubmit={onLoginSubmit} className="auth-form">
+          <h1 className="auth-title">З поверненням</h1>
+          <p className="auth-subtitle">Увійдіть, щоб продовжити</p>
+
+          {errorMsg && <div className="error-message">{errorMsg}</div>}
+
+          <form onSubmit={onSubmit} className="auth-form">
             <div className="form-group">
-              <input type="email" name="email" value={email} onChange={onChange} placeholder="Email" required />
+              <label htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={onChange}
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+              />
             </div>
+
             <div className="form-group">
-              <input type="password" name="password" value={password} onChange={onChange} placeholder="Password" required />
+              <label htmlFor="login-password">Пароль</label>
+              <input
+                id="login-password"
+                type="password"
+                name="password"
+                value={password}
+                onChange={onChange}
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
+              />
             </div>
-            <Link to="/forgot-password" className="forgot-password-link">Forgot your password?</Link>
-            <button type="submit" className="auth-button">УВІЙТИ</button>
-            <button type="button" className="auth-button guest-button" onClick={handleGuestLogin} style={{ marginTop: '10px', backgroundColor: 'transparent', border: '1px solid var(--accent-blue)', color: 'var(--text-color)' }}>ПРОДОВЖИТИ ЯК ГІСТЬ</button>
+
+            <Link to="/forgot-password" className="forgot-password-link">
+              Забули пароль?
+            </Link>
+
+            <button type="submit" className="auth-button" disabled={loading}>
+              {loading ? 'Вхід…' : 'Увійти'}
+            </button>
+
+            <button
+              type="button"
+              className="auth-button secondary"
+              onClick={handleGuestLogin}
+            >
+              Продовжити як гість
+            </button>
           </form>
+
+          <p className="auth-toggle">
+            Немає акаунту? <Link to="/register">Зареєструватись</Link>
+          </p>
         </div>
 
+        {/* ── Right: promo ── */}
         <div className="auth-right-panel">
-          <div className="circle-decoration top-right"></div>
-          <div className="circle-decoration bottom-left"></div>
-          <h2 className="auth-title">Welcome back!</h2>
-          <p>To keep connected with us please login with your personal info</p>
-          <Link to="/register" className="auth-button">SIGN UP</Link>
+          <h2>Разом ми робимо різницю</h2>
+          <p>
+            Приєднуйтесь до спільноти волонтерів ImpactPulse — відстежуйте внески,
+            збирайте нагороди та допомагайте тим, хто потребує підтримки.
+          </p>
+          <Link to="/register" className="auth-button ghost">
+            Створити акаунт
+          </Link>
         </div>
+
       </div>
-    </motion.div>
+    </div>
   );
 };
 

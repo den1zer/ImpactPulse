@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config(); 
 
-const isAuthenticated = (req, res, next) => {
+const User = require('../models/User');
+
+const isAuthenticated = async (req, res, next) => {
   const token = req.header('x-auth-token');
 
   if (!token) {
@@ -12,6 +14,12 @@ const isAuthenticated = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded.user; 
     
+    // Check if user is verified
+    const user = await User.findById(req.user.id);
+    if (user && !user.isVerified) {
+      return res.status(403).json({ msg: 'Please verify your email' });
+    }
+
     next(); 
   } catch (err) {
     res.status(401).json({ msg: 'Токен недійсний' });

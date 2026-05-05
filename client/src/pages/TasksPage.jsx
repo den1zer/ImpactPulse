@@ -1,33 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import API_BASE_URL from '../config/api.js';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
-import { Link } from 'react-router-dom'; 
-import '../styles/Dashboard.css'; 
-import '../styles/TasksPage.css'; 
+import '../styles/Dashboard.css';
+import '../styles/TasksPage.css';
+
+const FILTERS = [
+  { key: 'all',         label: 'Всі' },
+  { key: 'open',        label: 'Відкриті' },
+  { key: 'in_progress', label: 'В роботі' },
+  { key: 'completed',   label: 'Завершені' },
+];
+
+const STATUS_MAP = {
+  open:        { label: 'Відкрите',  dot: 'open' },
+  in_progress: { label: 'В процесі', dot: 'in_progress' },
+  completed:   { label: 'Завершено', dot: 'completed' },
+};
 
 const TasksPage = () => {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks]     = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter]   = useState('all');
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetch = async () => {
       try {
-        const token = localStorage.getItem('userToken') || '';
+        const token  = localStorage.getItem('userToken') || '';
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get(`${API_BASE_URL}/api/tasks`, config);
+        const res    = await axios.get(`${API_BASE_URL}/api/tasks`, config);
         setTasks(res.data);
-        setLoading(false);
       } catch (err) {
         console.error(err);
+      } finally {
         setLoading(false);
       }
     };
-    fetchTasks();
+    fetch();
   }, []);
-  
+
+  const filtered = filter === 'all' ? tasks : tasks.filter(t => t.status === filter);
 
   return (
     <div className="dashboard-layout">
@@ -35,58 +50,77 @@ const TasksPage = () => {
       <main className="dashboard-main">
         <DashboardHeader />
         <AnimatedPage>
-          <div className="tasks-container">
-            <h2>Актуальні Завдання</h2>
-            
-            {loading && <p>Завантаження завдань...</p>}
-            {!loading && tasks.length === 0 && <p>Нових завдань немає.</p>}
+          <div className="dashboard-content-wrapper">
+            <div className="tasks-container">
 
-            {!loading && tasks.map(task => (
-              <div key={task._id} className="task-card">
-                <div className="task-header">
-                  <h3>{task.title}</h3>
-                  <span className="task-points">+{task.points} балів</span>
+              {/* Header row */}
+              <div className="tasks-header">
+                <h2>Актуальні завдання <span className="text-muted" style={{ fontWeight: 400 }}>({filtered.length})</span></h2>
+                <div className="tasks-filter">
+                  {FILTERS.map(f => (
+                    <button
+                      key={f.key}
+                      className={`filter-btn${filter === f.key ? ' active' : ''}`}
+                      onClick={() => setFilter(f.key)}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
                 </div>
-                <div className="task-meta">
-                  <span>
-                    <strong>Категорія:</strong> {task.category}
-                  </span>
-                  <span>
-                    <strong>Дедлайн:</strong> {task.endDate ? new Date(task.endDate).toLocaleDateString() : 'Немає'}
-                  </span>
-                  <span>
-                    <strong>Статус:</strong> {task.status === 'open' ? '🟢 Відкрите' : task.status === 'in_progress' ? '🟡 В процесі' : '🟢 Завершено'}
-                  </span>
-                  <span style={{fontSize: '0.85em', color: '#777'}}>
-                    📅 Створено: {new Date(task.createdAt).toLocaleDateString('uk-UA')}
-                  </span>
-                  {task.status === 'completed' && task.updatedAt && (
-                    <span style={{fontSize: '0.85em', color: '#28a745'}}>
-                      ✅ Закрито: {new Date(task.updatedAt).toLocaleDateString('uk-UA')}
-                    </span>
-                  )}
-                </div>
-                <p className="task-body">{task.description}</p>
-                {task.filePath && (
-                  <a 
-                    href={`${API_BASE_URL}/${task.filePath}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="proof-link" 
-                  >
-                    Завантажити інструкцію
-                  </a>
-                )}
-                
-                <Link 
-                  to={`/tasks/${task._id}`} 
-                  className="task-button" 
-                  style={{ textDecoration: 'none', marginTop: '20px' }}
-                >
-                  Переглянути Деталі
-                </Link>
               </div>
-            ))}
+
+              {/* States */}
+              {loading && (
+                <div className="tasks-empty">Завантаження завдань…</div>
+              )}
+              {!loading && filtered.length === 0 && (
+                <div className="tasks-empty">Завдань за цим фільтром немає.</div>
+              )}
+
+              {/* Task list */}
+              {!loading && filtered.length > 0 && (
+                <div className="tasks-grid">
+                  {filtered.map(task => {
+                    const s = STATUS_MAP[task.status] || { label: task.status, dot: 'open' };
+                    return (
+                      <div key={task._id} className="task-card">
+                        <div className="task-header">
+                          <h3>{task.title}</h3>
+                          <span className="task-points">+{task.points} балів</span>
+                        </div>
+
+                        <div className="task-meta">
+                          <span>
+                            <span className={`status-dot ${s.dot}`} />
+                            {s.label}
+                          </span>
+                          <span><strong>Категорія:</strong> {task.category || '—'}</span>
+                          <span>
+                            <strong>Дедлайн:</strong>{' '}
+                            {task.endDate ? new Date(task.endDate).toLocaleDateString('uk-UA') : 'Немає'}
+                          </span>
+                          {task.filePath && (
+                            <a
+                              href={`${API_BASE_URL}/${task.filePath}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="proof-link"
+                            >
+                              Інструкція ↗
+                            </a>
+                          )}
+                        </div>
+
+                        <Link to={`/tasks/${task._id}`} className="task-button">
+                          Деталі →
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+            </div>
           </div>
         </AnimatedPage>
       </main>

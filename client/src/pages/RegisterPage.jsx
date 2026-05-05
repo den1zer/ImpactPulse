@@ -1,86 +1,135 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../api/authService';
-import { motion } from 'framer-motion'; 
-
-const pageVariants = {
-  initial: { opacity: 0, y: 20 },
-  in: { opacity: 1, y: 0 },
-  out: { opacity: 0, y: -20 }
-};
-const pageTransition = {
-  type: 'tween',
-  ease: 'anticipate',
-  duration: 0.5
-};
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [formData, setFormData]   = useState({ username: '', email: '', password: '' });
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg]   = useState('');
+  const [loading, setLoading]     = useState(false);
   const navigate = useNavigate();
   const { username, email, password } = formData;
-  const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleGuestLogin = () => {
+  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleGuest = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userId');
     localStorage.setItem('userRole', 'guest');
     navigate('/dashboard');
   };
 
-  const onRegisterSubmit = async (e) => {
+  const onSubmit = async e => {
     e.preventDefault();
+    setErrorMsg(''); setSuccessMsg('');
+    setLoading(true);
     try {
       await authService.register({ username, email, password });
-      alert('Реєстрація успішна! Тепер увійдіть.');
-      navigate('/login'); 
+      setSuccessMsg(
+        'Реєстрацію завершено! Перевірте вашу пошту (та папку "Спам") для підтвердження акаунту.',
+      );
+      setFormData({ username: '', email: '', password: '' });
     } catch (error) {
-      alert('Помилка реєстрації: ' + (error.response?.data?.msg || 'Невідома помилка'));
+      setErrorMsg('Помилка реєстрації: ' + (error.response?.data?.msg || 'Невідома помилка'));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <motion.div 
-      className="auth-page"
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      transition={pageTransition}
-    >
+    <div className="auth-page">
       <div className="auth-main-container">
+
+        {/* ── Left: promo ── */}
         <div className="auth-right-panel">
-          <div className="circle-decoration top-right"></div>
-          <div className="circle-decoration bottom-left"></div>
-          <h2 className="auth-title">Hello Friend!</h2>
-          <p>Enter your personal details and start journey with us</p>
-          <Link to="/login" className="auth-button">SIGN IN</Link>
+          <h2>Вже з нами?</h2>
+          <p>
+            Якщо у вас вже є акаунт — увійдіть, щоб продовжити відстежувати внески та нагороди.
+          </p>
+          <Link to="/login" className="auth-button ghost">
+            Увійти
+          </Link>
         </div>
 
+        {/* ── Right: form ── */}
         <div className="auth-left-panel">
-          <h2 className="auth-title">Create Account</h2>
-          <div className="social-icons">
-            <img className='social-icon' src="/assets/images/icon-facebook.png" alt="facebook_logo" />
-            <img className='social-icon' src="/assets/images/icon-instagram.png" alt="instagram_logo" /> 
-            <img className='social-icon' src="/assets/images/icon-telegram.png" alt="telegram_logo" /> 
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 6,
+              background: 'var(--accent)', display: 'grid', placeItems: 'center',
+              color: '#fff', fontWeight: 700, fontSize: '0.8rem',
+            }}>IP</div>
+            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+              ImpactPulse
+            </span>
           </div>
-          <p className="divider">or use your email for registration</p>
 
-          <form onSubmit={onRegisterSubmit} className="auth-form">
+          <h1 className="auth-title">Створити акаунт</h1>
+          <p className="auth-subtitle">Приєднуйтесь до волонтерської спільноти</p>
+
+          {successMsg && <div className="success-message">{successMsg}</div>}
+          {errorMsg   && <div className="error-message">{errorMsg}</div>}
+
+          <form onSubmit={onSubmit} className="auth-form">
             <div className="form-group">
-              <input type="text" name="username" value={username} onChange={onChange} placeholder="Username" required />
+              <label htmlFor="reg-username">Ім'я користувача</label>
+              <input
+                id="reg-username"
+                type="text"
+                name="username"
+                value={username}
+                onChange={onChange}
+                placeholder="volunteer123"
+                required
+              />
             </div>
+
             <div className="form-group">
-              <input type="email" name="email" value={email} onChange={onChange} placeholder="Email" required />
+              <label htmlFor="reg-email">Email</label>
+              <input
+                id="reg-email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={onChange}
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+              />
             </div>
+
             <div className="form-group">
-              <input type="password" name="password" value={password} onChange={onChange} placeholder="Password" required minLength="6" />
+              <label htmlFor="reg-password">Пароль</label>
+              <input
+                id="reg-password"
+                type="password"
+                name="password"
+                value={password}
+                onChange={onChange}
+                placeholder="мінімум 6 символів"
+                required
+                minLength="6"
+                autoComplete="new-password"
+              />
             </div>
-            <button type="submit" className="auth-button">ЗАРЕЄСТРУВАТИСЬ</button>
-            <button type="button" className="auth-button guest-button" onClick={handleGuestLogin} style={{ marginTop: '10px', backgroundColor: 'transparent', border: '1px solid var(--accent-blue)', color: 'var(--text-color)' }}>ПРОДОВЖИТИ ЯК ГІСТЬ</button>
+
+            <button type="submit" className="auth-button" disabled={loading}>
+              {loading ? 'Реєстрація…' : 'Зареєструватись'}
+            </button>
+
+            <button type="button" className="auth-button secondary" onClick={handleGuest}>
+              Продовжити як гість
+            </button>
           </form>
+
+          <p className="auth-toggle">
+            Вже є акаунт? <Link to="/login">Увійти</Link>
+          </p>
         </div>
+
       </div>
-    </motion.div>
+    </div>
   );
 };
 
