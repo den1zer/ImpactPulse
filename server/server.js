@@ -34,16 +34,12 @@ app.use('/api/fundraisers', require('./routes/fundraiserRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/skins', require('./routes/skinRoutes'));            // Фіксить /api/skins 404
 
-// Підключення ES-модуля payment.js та wheel.js через динамічний import, оскільки весь проект на CommonJS
-Promise.all([
-  import('./routes/payment.js'),
-  import('./routes/wheel.js')
-])
-  .then(([paymentRouter, wheelRouter]) => {
+// Підключення ES-модуля payment.js через динамічний import, оскільки весь проект на CommonJS
+import('./routes/payment.js')
+  .then((paymentRouter) => {
     app.use('/api/payment', paymentRouter.default);
-    app.use('/api/wheel', wheelRouter.default);
   })
-  .catch(err => console.error('Помилка завантаження ES-модулів:', err));
+  .catch(err => console.error('Помилка завантаження payment роута:', err));
 
 // --- START SERVER ---
 app.listen(PORT, () => {
