@@ -15,15 +15,10 @@ import InstructionsPage from './pages/InstructionsPage';
 import FundraisersPage from './pages/FundraisersPage';
 import TasksPage from './pages/TasksPage';
 import TaskDetailPage from './pages/TaskDetailPage';
+import VerifyEmail from './pages/VerifyEmail';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import Footer from './components/Footer/Footer';
-
-
-const ForgotPasswordPage = () => (
-  <div className="auth-page"> 
-    <h1 style={{ padding: '50px' }}>Сторінка відновлення паролю</h1>
-    <Link to="/login">Повернутись до логіну</Link>
-  </div>
-);
 
 const ProtectedRoute = ({ children }) => {
   const isGuest = localStorage.getItem('userRole') === 'guest';
@@ -65,7 +60,9 @@ function App() {
           <Route path="/add-help" element={<ProtectedRoute><AddHelpPage /></ProtectedRoute>} /> 
           <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="/my-contributions" element={<ProtectedRoute><MyContributionsPage /></ProtectedRoute>} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/instructions" element={<InstructionsPage />} />

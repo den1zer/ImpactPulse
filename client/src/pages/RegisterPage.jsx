@@ -16,6 +16,8 @@ const pageTransition = {
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
   const { username, email, password } = formData;
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,12 +31,14 @@ const RegisterPage = () => {
 
   const onRegisterSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
     try {
       await authService.register({ username, email, password });
-      alert('Реєстрація успішна! Тепер увійдіть.');
-      navigate('/login'); 
+      setSuccessMsg('Реєстрація успішна! На вашу пошту відправлено лист із посиланням для підтвердження. Будь ласка, перевірте скриньку (та папку Спам).');
+      setFormData({ username: '', email: '', password: '' });
     } catch (error) {
-      alert('Помилка реєстрації: ' + (error.response?.data?.msg || 'Невідома помилка'));
+      setErrorMsg('Помилка реєстрації: ' + (error.response?.data?.msg || 'Невідома помилка'));
     }
   };
 
@@ -64,6 +68,9 @@ const RegisterPage = () => {
             <img className='social-icon' src="/assets/images/icon-telegram.png" alt="telegram_logo" /> 
           </div>
           <p className="divider">or use your email for registration</p>
+
+          {successMsg && <div style={{ color: '#155724', backgroundColor: '#d4edda', borderColor: '#c3e6cb', padding: '10px', marginBottom: '15px', borderRadius: '5px' }}>{successMsg}</div>}
+          {errorMsg && <div style={{ color: '#721c24', backgroundColor: '#f8d7da', borderColor: '#f5c6cb', padding: '10px', marginBottom: '15px', borderRadius: '5px' }}>{errorMsg}</div>}
 
           <form onSubmit={onRegisterSubmit} className="auth-form">
             <div className="form-group">

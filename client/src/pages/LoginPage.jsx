@@ -16,6 +16,7 @@ const pageTransition = {
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
   const { email, password } = formData;
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,16 +30,20 @@ const LoginPage = () => {
 
   const onLoginSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
     try {
       const { role } = await authService.login({ email, password });
-      alert('Вхід успішний!');
       if (role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/dashboard');
       }
     } catch (error) {
-      alert('Помилка входу: ' + (error.response?.data?.msg || 'Невідома помилка'));
+      if (error.response?.status === 401 && error.response?.data?.msg === 'Please verify your email before logging in.') {
+        setErrorMsg('Будь ласка, підтвердіть вашу пошту (перевірте email) перед входом.');
+      } else {
+        setErrorMsg('Помилка входу: ' + (error.response?.data?.msg || 'Невідома помилка'));
+      }
     }
   };
 
@@ -60,6 +65,8 @@ const LoginPage = () => {
             <img className='social-icon' src="/assets/images/icon-telegram.png" alt="telegram_logo" /> 
           </div>
           <p className="divider">or use your email account</p>
+
+          {errorMsg && <div style={{ color: '#721c24', backgroundColor: '#f8d7da', borderColor: '#f5c6cb', padding: '10px', marginBottom: '15px', borderRadius: '5px' }}>{errorMsg}</div>}
 
           <form onSubmit={onLoginSubmit} className="auth-form">
             <div className="form-group">
