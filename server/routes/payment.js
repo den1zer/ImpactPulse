@@ -144,6 +144,20 @@ router.post('/callback', async (req, res) => {
                   await updateDailyQuestProgress(user._id, 'donation', 1);
                 }
 
+                // Badge: "Швидка реакція"
+                if (fundraiser && (Date.now() - new Date(fundraiser.createdAt).getTime() < 60 * 60 * 1000)) {
+                  const hasQuickBadge = user.badges.some(b => b.badgeId === 'quick_reaction');
+                  if (!hasQuickBadge) {
+                    user.badges.push({
+                      badgeId: 'quick_reaction',
+                      level: 1,
+                      name: 'Швидка реакція',
+                      icon: '⚡',
+                      date: new Date()
+                    });
+                  }
+                }
+
               } catch (err) {
                 console.error('Error awarding badges or updating quests/streaks:', err);
               }

@@ -120,6 +120,20 @@ exports.approveContribution = async (req, res) => {
     const questType = contribution.type === 'volunteering' ? 'volunteer' : contribution.type;
     await updateDailyQuestProgress(user._id, questType, 1);
 
+    // Badge: Командний гравець
+    if (user.stats.hasDonation && user.stats.hasVolunteering && user.stats.hasAid) {
+      const hasTeamBadge = user.badges.some(b => b.badgeId === 'team_player');
+      if (!hasTeamBadge) {
+        user.badges.push({
+          badgeId: 'team_player',
+          level: 1,
+          name: 'Командний гравець',
+          icon: '🤝',
+          date: new Date()
+        });
+      }
+    }
+
     await user.save();
     res.json({ msg: 'Заявку схвалено, бали нараховано!' });
   } catch (err) {

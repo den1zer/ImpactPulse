@@ -127,12 +127,32 @@ exports.updateUserRole = async (req, res) => {
 
 exports.getLeaderboard = async (req, res) => {
   try {
-    const leaderboard = await User.find({ role: 'user' })
+    const topAllTime = await User.find({ role: 'user' })
       .sort({ points: -1 })
       .limit(10)
       .select('username avatar points level selectedBadge profileCustomization');
 
-    res.json(leaderboard);
+    const topWeekly = await User.find({ role: 'user' })
+      .sort({ 'weeklyPoints.amount': -1 })
+      .limit(10)
+      .select('username avatar weeklyPoints level selectedBadge profileCustomization');
+
+    const topDonors = await User.find({ role: 'user' })
+      .sort({ 'stats.totalDonations': -1 })
+      .limit(10)
+      .select('username avatar stats level selectedBadge profileCustomization');
+
+    const topStreaks = await User.find({ role: 'user' })
+      .sort({ 'streak.longest': -1 })
+      .limit(10)
+      .select('username avatar streak level selectedBadge profileCustomization');
+
+    res.json({
+      topAllTime,
+      topWeekly,
+      topDonors,
+      topStreaks
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Помилка на сервері');
