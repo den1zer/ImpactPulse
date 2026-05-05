@@ -1,31 +1,31 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const DonationSchema = new mongoose.Schema({
   collectionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Fundraiser', // ref to collection model
-    required: true
+    type:     mongoose.Schema.Types.ObjectId,
+    ref:      'Fundraiser',
+    required: true,
   },
   amount: {
-    type: Number,
-    required: true
+    type:     Number,
+    required: true,
   },
   currency: {
-    type: String,
-    default: 'UAH'
+    type:    String,
+    default: 'UAH',
   },
   orderId: {
-    type: String,
+    type:     String,
     required: true,
-    unique: true
+    unique:   true,
   },
   status: {
-    type: String,
-    required: true
+    type:     String,
+    required: true,
   },
   payerEmail: {
-    type: String
-  }
-}, { timestamps: true }); // includes createdAt
+    type: String,
+  },
+}, { timestamps: true });
 
-export default mongoose.model('Donation', DonationSchema);
+module.exports = mongoose.model('Donation', DonationSchema);

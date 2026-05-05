@@ -24,7 +24,12 @@ const DashboardPage = () => {
         if (!isGuest) reqs.push(axios.get(`${API_BASE_URL}/api/contributions/my`, config));
 
         const [lbRes, contribRes] = await Promise.all(reqs);
-        setLeaderboard(lbRes.data);
+        // getLeaderboard returns either an array (old) or {topAllTime,...} (new)
+        const lbData = lbRes.data;
+        const leaderboardList = Array.isArray(lbData)
+          ? lbData
+          : (lbData?.topAllTime || []);
+        setLeaderboard(leaderboardList);
         if (!isGuest && contribRes) setContributions(contribRes.data);
       } catch (err) {
         console.error(err);

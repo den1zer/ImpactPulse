@@ -46,13 +46,13 @@ const DashboardHeader = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      const token = localStorage.getItem('userToken');
+      if (!token) {
+        setUserData({ username: 'Гість', points: 0 });
+        setIsLoading(false);
+        return;
+      }
       try {
-        const token = localStorage.getItem('userToken');
-        if (!token) {
-          setUserData({ username: 'Гість', points: 0 });
-          setIsLoading(false);
-          return;
-        }
         const res = await axios.get(`${API_BASE_URL}/api/users/me`, {
           headers: { 'x-auth-token': token },
         });
@@ -68,9 +68,9 @@ const DashboardHeader = () => {
 
         setCurrentLevel(achieved || { name: 'Рекрут' });
 
-        const start  = achieved ? achieved.value : 0;
-        const end    = next ? next.value : (achieved ? achieved.value : 500);
-        const pct    = Math.min(((points - start) / Math.max(end - start, 1)) * 100, 100);
+        const start = achieved ? achieved.value : 0;
+        const end   = next ? next.value : (achieved ? achieved.value : 500);
+        const pct   = Math.min(((points - start) / Math.max(end - start, 1)) * 100, 100);
         setProgress(Math.round(pct));
         setIsLoading(false);
       } catch {

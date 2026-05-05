@@ -1,7 +1,7 @@
-import crypto from 'crypto';
+const crypto = require('crypto');
 
-export const generateLiqPayData = ({ amount, currency = 'UAH', description, orderId }) => {
-  const publicKey = process.env.LIQPAY_PUBLIC_KEY;
+const generateLiqPayData = ({ amount, currency = 'UAH', description, orderId }) => {
+  const publicKey  = process.env.LIQPAY_PUBLIC_KEY;
   const privateKey = process.env.LIQPAY_PRIVATE_KEY;
 
   if (!publicKey || !privateKey) {
@@ -10,19 +10,19 @@ export const generateLiqPayData = ({ amount, currency = 'UAH', description, orde
 
   const params = {
     public_key: publicKey,
-    version: 3,
-    action: 'pay',
+    version:    3,
+    action:     'pay',
     amount,
     currency,
     description,
-    order_id: orderId,
+    order_id:   orderId,
     server_url: `${process.env.BASE_URL || 'http://localhost:5000'}/api/payment/callback`,
-    result_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/fundraisers`
+    result_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/fundraisers`,
   };
 
   const jsonString = JSON.stringify(params);
-  const data = Buffer.from(jsonString).toString('base64');
-  
+  const data       = Buffer.from(jsonString).toString('base64');
+
   const signature = crypto
     .createHash('sha1')
     .update(privateKey + data + privateKey)
@@ -31,17 +31,18 @@ export const generateLiqPayData = ({ amount, currency = 'UAH', description, orde
   return { data, signature };
 };
 
-export const verifyLiqPaySignature = (data, signature) => {
+const verifyLiqPaySignature = (data, signature) => {
   const privateKey = process.env.LIQPAY_PRIVATE_KEY;
-  const expectedSignature = crypto
+  const expected   = crypto
     .createHash('sha1')
     .update(privateKey + data + privateKey)
     .digest('base64');
-    
-  return expectedSignature === signature;
+  return expected === signature;
 };
 
-export const decodeLiqPayData = (data) => {
+const decodeLiqPayData = (data) => {
   const jsonString = Buffer.from(data, 'base64').toString('utf-8');
   return JSON.parse(jsonString);
 };
+
+module.exports = { generateLiqPayData, verifyLiqPaySignature, decodeLiqPayData };
