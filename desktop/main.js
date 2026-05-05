@@ -75,10 +75,14 @@ app.whenReady().then(async () => {
     // startServer();
     createWindow();
 
-    // Wait for the window to finish loading HTML and JS before sending IPC events
-    mainWindow.webContents.once('did-finish-load', () => {
-        // Immediately notify renderer that the server is assumed ready.
-        if (mainWindow) mainWindow.webContents.send('server-ready');
+    // Wait for the DOM to be ready, then give renderer scripts a moment
+    // to register their IPC listeners before we fire 'server-ready'.
+    // 'did-finish-load' can fire before async <script> tags are evaluated,
+    // so we use 'dom-ready' + a small delay as a safer alternative.
+    mainWindow.webContents.once('dom-ready', () => {
+        setTimeout(() => {
+            if (mainWindow) mainWindow.webContents.send('server-ready');
+        }, 300);
     });
 });
 

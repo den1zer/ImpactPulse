@@ -29,6 +29,17 @@ function hideLoginError() {
   document.getElementById('login-error').classList.add('hidden');
 }
 
+// ── Called once the server is known to be reachable ────────
+function onServerReadyHandler() {
+  if (_serverReady) return;   // guard against double-call
+  _serverReady = true;
+  showSplash('Сервер готовий!');
+  setTimeout(() => {
+    if (getToken()) { hideSplash(); showApp(); loadCurrentTab(); }
+    else showLogin();
+  }, 600);
+}
+
 // Login action
 async function doLogin() {
   const email    = document.getElementById('login-email').value.trim();
@@ -71,15 +82,20 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 });
 
 // Server events from main process
-window.electron.onServerReady(() => {
-  _serverReady = true;
-  showSplash('Сервер готовий!');
-  setTimeout(() => {
-    // Auto-login if token exists
-    if (getToken()) { hideSplash(); showApp(); loadCurrentTab(); }
-    else showLogin();
-  }, 600);
-});
+// NOTE: there is a race condition — 'server-ready' may fire from main before
+// this script registers the listener (IPC events are NOT buffered/replayed).
+// We register the listener first, then set a safety fallback timeout so the
+// splash never blocks the UI indefinitely.
+window.electron.onServerReady(onServerReadyHandler);
 window.electron.onServerError((msg) => {
   showSplash('❌ Помилка сервера: ' + msg);
 });
+
+// Safety fallback: if server-ready was never received within 2 s
+// (e.g. event already fired before this script loaded), proceed anyway.
+setTimeout(() => {
+  if (!_serverReady) {
+    console.warn('[login.js] server-ready not received – proceeding anyway');
+    onServerReadyHandler();
+  }
+}, 2000);
