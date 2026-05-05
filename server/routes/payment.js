@@ -131,8 +131,21 @@ router.post('/callback', async (req, res) => {
                 if (typeof checkAndAwardBadges === 'function') {
                   await checkAndAwardBadges(user);
                 }
+
+                // Process streak and quest for donation
+                const gameLogic = await import('../utils/gameLogic.js');
+                const handleStreak = gameLogic.default?.handleStreak || gameLogic.handleStreak;
+                const updateDailyQuestProgress = gameLogic.default?.updateDailyQuestProgress || gameLogic.updateDailyQuestProgress;
+                
+                if (typeof handleStreak === 'function') {
+                  await handleStreak(user);
+                }
+                if (typeof updateDailyQuestProgress === 'function') {
+                  await updateDailyQuestProgress(user._id, 'donation', 1);
+                }
+
               } catch (err) {
-                console.error('Error awarding badges:', err);
+                console.error('Error awarding badges or updating quests/streaks:', err);
               }
               
               await user.save();

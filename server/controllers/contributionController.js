@@ -2,6 +2,7 @@ const Contribution = require('../models/Contribution');
 const User = require('../models/User');
 const Badge = require('../models/Badge');
 const Task = require('../models/Task');
+const { handleStreak, updateDailyQuestProgress } = require('../utils/gameLogic');
 
 exports.addContribution = async (req, res) => {
   
@@ -113,6 +114,12 @@ exports.approveContribution = async (req, res) => {
       user.stats.highRoller = true;
     }
     await checkAndAwardBadges(user);
+    
+    // Process streak and daily quests
+    await handleStreak(user);
+    const questType = contribution.type === 'volunteering' ? 'volunteer' : contribution.type;
+    await updateDailyQuestProgress(user._id, questType, 1);
+
     await user.save();
     res.json({ msg: 'Заявку схвалено, бали нараховано!' });
   } catch (err) {
