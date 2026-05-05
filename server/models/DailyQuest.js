@@ -18,6 +18,10 @@ const QuestItemSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  claimed: {
+    type: Boolean,
+    default: false
+  },
   xpReward: {
     type: Number,
     required: true

@@ -1,160 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AnimatedPage from '../components/AnimatedPage';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
+import { getQuests, claimQuest, getLeaderboards, getBadges } from '../api/gameApi';
+import API_BASE_URL from '../config/api.js';
 import '../styles/Dashboard.css';
 import '../styles/RewardsPage.css';
-import API_BASE_URL from '../config/api.js';
 
-
-const BADGE_DICTIONARY = [
-  {
-    badgeId: 'points_master', triggerType: 'POINTS',
-    description: 'Видається за досягнення певної кількості балів.',
-    levels: [
-      { level: 1, name: 'Новачок', value: 500, icon: '🥉' },
-      { level: 2, name: 'Спеціаліст', value: 1000, icon: '🥈' },
-      { level: 3, name: 'Профі', value: 3000, icon: '🥇' },
-      { level: 4, name: 'Експерт', value: 5000, icon: '⭐' },
-      { level: 5, name: 'Майстер', value: 10000, icon: '🏆' },
-      { level: 6, name: 'Грандмайстер', value: 15000, icon: '💎' },
-      { level: 7, name: 'Легенда', value: 20000, icon: '🔥' },
-      { level: 8, name: 'Semigod', value: 30000, icon: '👑' },
-    ],
-    lockedIcon: '🔒',
-  },
-  {
-    badgeId: 'donator', triggerType: 'DONATION_COUNT',
-    description: 'Видається за загальну кількість схвалених донатів.',
-    levels: [
-      { level: 1, name: 'Перший Донат', value: 1, icon: '❤️' },
-      { level: 2, name: 'Щедрий Донатор', value: 5, icon: '💰' },
-      { level: 3, name: 'Меценат', value: 10, icon: '🏦' },
-      { level: 4, name: 'Інвестор Перемоги', value: 25, icon: '💎' },
-    ],
-    lockedIcon: '💸',
-  },
-  {
-    badgeId: 'volunteer', triggerType: 'VOLUNTEER_COUNT',
-    description: 'Видається за кількість виконаних волонтерських завдань.',
-    levels: [
-      { level: 1, name: 'Перша Справа', value: 1, icon: '💪' },
-      { level: 2, name: 'Активіст', value: 5, icon: '🛠️' },
-      { level: 3, name: 'Лідер Руху', value: 10, icon: '🚀' },
-    ],
-    lockedIcon: '👤',
-  },
-  {
-    badgeId: 'aid_worker', triggerType: 'AID_COUNT',
-    description: 'Видається за кількість передач гуманітарної допомоги.',
-    levels: [
-      { level: 1, name: 'Перша Посилка', value: 1, icon: '📦' },
-      { level: 2, name: 'Надійний Тип', value: 5, icon: '🚚' },
-      { level: 3, name: 'Ангел Логістики', value: 10, icon: '✈️' },
-    ],
-    lockedIcon: '🤷',
-  },
-  {
-    badgeId: 'versatile', triggerType: 'VERSATILE',
-    description: 'Видається за 1 донат, 1 волонтерство і 1 гум. допомогу.',
-    levels: [{ level: 1, name: 'Майстер на всі руки', value: 1, icon: '🧑‍🔧' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'profile_complete', triggerType: 'PROFILE',
-    description: 'Заповніть свій профіль (Аватар, Місто, Вік).',
-    levels: [{ level: 1, name: 'Представся!', value: 1, icon: '🆔' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'streak_3_days', triggerType: 'STREAK',
-    description: 'Зробіть 3 внески протягом 3 днів.',
-    levels: [{ level: 1, name: 'Ударник', value: 3, icon: '⚡' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'high_roller', triggerType: 'HIGH_POINTS',
-    description: 'Отримайте 1000+ балів за ОДНУ заявку.',
-    levels: [{ level: 1, name: 'Хайролер', value: 1, icon: '💥' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'geo_tagger', triggerType: 'GEO',
-    description: 'Додайте 5 заявок з геолокацією.',
-    levels: [{ level: 1, name: 'Картограф', value: 5, icon: '🗺️' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'first_rejection', triggerType: 'REJECTED',
-    description: 'Вашу заявку було відхилено. Не здавайтесь!',
-    levels: [{ level: 1, name: 'Не здавайся!', value: 1, icon: '🤕' }],
-    lockedIcon: '❓',
-  },
+const LEVELS = [
+  { level: 1, name: 'Новобранець', threshold: 0, icon: '🌱' },
+  { level: 2, name: 'Дослідник', threshold: 100, icon: '🔍' },
+  { level: 3, name: 'Ентузіаст', threshold: 300, icon: '🔥' },
+  { level: 4, name: 'Активіст', threshold: 600, icon: '⚡' },
+  { level: 5, name: 'Провідник', threshold: 1000, icon: '🧭' },
+  { level: 6, name: 'Лідер', threshold: 1500, icon: '👑' },
+  { level: 7, name: 'Герой', threshold: 2500, icon: '🦸' }
 ];
 
-const BadgeDisplay = ({ user, definition }) => {
-  const [isFlipped, setIsFlipped] = useState(false); 
-  let currentValue = 0;
-  if (definition.triggerType === 'POINTS') currentValue = user.points;
-  if (definition.triggerType === 'DONATION_COUNT') currentValue = user.stats.totalDonations;
-  if (definition.triggerType === 'VOLUNTEER_COUNT') currentValue = user.stats.totalVolunteering;
-  if (definition.triggerType === 'AID_COUNT') currentValue = user.stats.totalAid;
-  if (definition.triggerType === 'GEO') currentValue = user.stats.totalGeo;
-  if (definition.triggerType === 'REJECTED') currentValue = user.stats.totalRejections;
-  if (definition.triggerType === 'VERSATILE' && user.stats.hasDonation && user.stats.hasVolunteering && user.stats.hasAid) currentValue = 1;
-  if (definition.triggerType === 'PROFILE' && user.stats.profileComplete) currentValue = 1;
-  if (definition.triggerType === 'HIGH_ROLLER' && user.stats.highRoller) currentValue = 1;
-  let achievedLevel = null;
-  for (const level of definition.levels) {
-    if (currentValue >= level.value) {
-      achievedLevel = level;
+const getLevelData = (xp = 0) => {
+  let current = LEVELS[0];
+  let next = LEVELS[1];
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (xp >= LEVELS[i].threshold) {
+      current = LEVELS[i];
+      next = LEVELS[i + 1] || null;
     } else {
-      break; 
+      break;
     }
   }
-  let nextLevel = null;
-  if (achievedLevel) {
-    nextLevel = definition.levels.find(l => l.level === achievedLevel.level + 1);
-  } else {
-    nextLevel = definition.levels[0];
+  let progress = 100;
+  if (next) {
+    progress = ((xp - current.threshold) / (next.threshold - current.threshold)) * 100;
   }
-  let progress = 0;
-  let progressText = "Макс. рівень";
-  if (nextLevel) {
-    const startValue = achievedLevel ? achievedLevel.value : 0; 
-    const endValue = nextLevel.value; 
-    const currentProgressValue = Math.max(0, currentValue - startValue); 
-    const totalValue = endValue - startValue;
-    if (totalValue > 0) {
-      progress = Math.min((currentProgressValue / totalValue) * 100, 100);
-    } else if (currentValue >= endValue) {
-      progress = 100;
-    }
-    progressText = `${currentValue} / ${endValue}`;
-  } else if (achievedLevel) {
-    progress = 100;
-  }
-  const displayIcon = achievedLevel ? achievedLevel.icon : definition.lockedIcon;
-  const displayName = achievedLevel ? achievedLevel.name : definition.levels[0].name;
-  const isLocked = !achievedLevel;
+  return { current, next, progress };
+};
+
+const BadgeDisplay = ({ user, badge }) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const isUnlocked = user.badges?.some(b => b.badgeId === badge.id);
+  
   return (
     <motion.div className="badge-card" onClick={() => setIsFlipped(f => !f)}>
       <motion.div className="badge-inner" animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.6 }}>
-        <div className={`badge-front ${isLocked ? 'badge-locked' : ''}`}>
-          <div className="badge-icon">{displayIcon}</div>
-          <h3 className="badge-name">{displayName}</h3>
-          <div className="progress-bar-container">
-            <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
-          </div>
-          <span className="progress-text">{progressText}</span>
+        <div className={`badge-front ${!isUnlocked ? 'badge-locked' : ''}`}>
+          <div className="badge-icon">{isUnlocked ? badge.icon : '🔒'}</div>
+          <h3 className="badge-name">{badge.name}</h3>
         </div>
         <div className="badge-back">
-          <h3 className="badge-name">{achievedLevel ? achievedLevel.name : definition.levels[0].name}</h3>
-          <p className="badge-description">{definition.description}</p>
-          <p className="badge-description">
-            {achievedLevel ? `Ваш рівень: ${achievedLevel.level}` : (nextLevel ? `Наступна ціль: ${nextLevel.value}` : 'Почніть!')}
+          <h3 className="badge-name">{badge.name}</h3>
+          <p className="badge-description">{badge.description}</p>
+          <p className="badge-status">
+            {isUnlocked ? '✅ Отримано!' : '❌ Заблоковано'}
           </p>
         </div>
       </motion.div>
@@ -164,19 +63,89 @@ const BadgeDisplay = ({ user, definition }) => {
 
 const RewardsPage = () => {
   const [user, setUser] = useState(null);
+  const [questsData, setQuestsData] = useState(null);
+  const [leaderboards, setLeaderboards] = useState(null);
+  const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('allTime');
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('userToken');
+      const config = { headers: { 'x-auth-token': token } };
+      
+      const [userRes, questsRes, leaderboardsRes, badgesRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/users/me`, config),
+        getQuests(),
+        getLeaderboards(),
+        getBadges()
+      ]);
+
+      setUser(userRes.data);
+      setQuestsData(questsRes);
+      setLeaderboards(leaderboardsRes);
+      setBadges(badgesRes);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem('userToken');
-        const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
-        setUser(res.data);
-        setLoading(false);
-      } catch (err) { console.error(err); setLoading(false); }
-    };
-    fetchUserData();
+    fetchData();
   }, []);
+
+  const handleClaim = async (questId) => {
+    try {
+      await claimQuest(questId);
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      fetchData(); // Refresh data
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.msg || 'Помилка при отриманні нагороди');
+    }
+  };
+
+  if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Завантаження...</div>;
+
+  const levelData = user ? getLevelData(user.xp || user.points || 0) : null;
+
+  const renderLeaderboardList = () => {
+    let list = [];
+    if (activeTab === 'allTime') list = leaderboards.topAllTime;
+    if (activeTab === 'weekly') list = leaderboards.topWeekly;
+    if (activeTab === 'donors') list = leaderboards.topDonors;
+    if (activeTab === 'streaks') list = leaderboards.topStreaks;
+
+    return (
+      <div className="leaderboard-list">
+        {list?.map((u, i) => (
+          <motion.div 
+            key={u._id} 
+            className="leaderboard-item"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+          >
+            <span className="rank">#{i + 1}</span>
+            <img src={u.avatar?.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`} alt="avatar" className="lb-avatar" />
+            <span className="lb-username">{u.profileCustomization?.nicknameIcon} {u.username}</span>
+            <span className="lb-score">
+              {activeTab === 'allTime' && `${u.points} балів`}
+              {activeTab === 'weekly' && `${u.weeklyPoints?.amount || 0} балів`}
+              {activeTab === 'donors' && `${u.stats?.totalDonations || 0} донатів`}
+              {activeTab === 'streaks' && `${u.streak?.longest || 0} днів`}
+            </span>
+          </motion.div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="dashboard-layout">
@@ -187,35 +156,71 @@ const RewardsPage = () => {
           <div className="rewards-container">
             <h2>Центр Нагород</h2>
             
-            {loading && <p>Завантаження вашого прогресу...</p>}
-            
             {user && (
-              <div className="rewards-grid">
-                {BADGE_DICTIONARY.map(def => (
-                  <BadgeDisplay key={def.badgeId} user={user} definition={def} />
-                ))}
-              </div>
+              <>
+                <section className="level-section">
+                  <div className="level-header">
+                    <h3>{levelData.current.icon} {levelData.current.name} (Рівень {levelData.current.level})</h3>
+                    <span>{user.xp || user.points || 0} XP</span>
+                  </div>
+                  <div className="xp-bar-container">
+                    <motion.div 
+                      className="xp-bar-fill" 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${levelData.progress}%` }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                    ></motion.div>
+                  </div>
+                  {levelData.next && (
+                    <p className="xp-subtext">Залишилося {(levelData.next.threshold - (user.xp || user.points || 0))} XP до {levelData.next.name}</p>
+                  )}
+                </section>
+
+                <section className="quests-section">
+                  <h3>Щоденні Квести</h3>
+                  <div className="quests-grid">
+                    {questsData?.quests?.map(quest => (
+                      <motion.div key={quest._id} className="quest-card" whileHover={{ scale: 1.02 }}>
+                        <h4>{quest.type.toUpperCase()}</h4>
+                        <p>Нагорода: +{quest.xpReward} XP</p>
+                        <div className="quest-progress">
+                          <span>{quest.current} / {quest.target}</span>
+                          <progress value={quest.current} max={quest.target}></progress>
+                        </div>
+                        <button 
+                          className="claim-btn" 
+                          disabled={!quest.completed || quest.claimed}
+                          onClick={() => handleClaim(quest._id)}
+                        >
+                          {quest.claimed ? 'Отримано' : (quest.completed ? 'Забрати нагороду' : 'В процесі')}
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="leaderboards-section">
+                  <h3>Таблиця Лідерів</h3>
+                  <div className="tabs">
+                    <button className={activeTab === 'allTime' ? 'active' : ''} onClick={() => setActiveTab('allTime')}>Всі часи</button>
+                    <button className={activeTab === 'weekly' ? 'active' : ''} onClick={() => setActiveTab('weekly')}>Тиждень</button>
+                    <button className={activeTab === 'donors' ? 'active' : ''} onClick={() => setActiveTab('donors')}>Донатери</button>
+                    <button className={activeTab === 'streaks' ? 'active' : ''} onClick={() => setActiveTab('streaks')}>Streaks</button>
+                  </div>
+                  {leaderboards && renderLeaderboardList()}
+                </section>
+
+                <section className="badges-section">
+                  <h3>Колекція Бейджів</h3>
+                  <div className="rewards-grid">
+                    {badges.map(def => (
+                      <BadgeDisplay key={def.id} user={user} badge={def} />
+                    ))}
+                  </div>
+                </section>
+              </>
             )}
             
-            {user && user.rewards && user.rewards.length > 0 && (
-              <div style={{ marginTop: '50px' }}>
-                <h3 style={{ marginBottom: '20px', color: 'var(--text-primary)' }}>🎁 Ваші Промокоди та Бонуси</h3>
-                <div className="rewards-grid">
-                  {user.rewards.map((reward, i) => (
-                    <motion.div key={i} className="badge-card" style={{ padding: '20px', background: 'var(--panel)', borderRadius: '15px', border: '1px solid var(--panel-border)', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                      <div>
-                        <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>🎟️</div>
-                        <h4 style={{ margin: '0 0 10px', color: 'var(--accent-primary)' }}>{reward.name}</h4>
-                        <p style={{ margin: '0 0 15px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Збір: {reward.source}</p>
-                      </div>
-                      <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '1.2rem', letterSpacing: '2px', color: 'var(--text-primary)', border: '1px dashed var(--accent-secondary)' }}>
-                        {reward.code}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </AnimatedPage>
       </main>

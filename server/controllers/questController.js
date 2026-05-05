@@ -26,11 +26,12 @@ exports.getTodayQuests = async (req, res) => {
 };
 
 /**
- * Claim rewards for completed quests
+ * Claim reward for a specific completed quest
  */
 exports.claimRewards = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { questId } = req.body;
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -40,17 +41,19 @@ exports.claimRewards = async (req, res) => {
       return res.status(404).json({ msg: 'Квести на сьогодні не знайдені' });
     }
 
-    if (dailyQuest.claimed) {
-      return res.status(400).json({ msg: 'Нагороди вже отримані' });
-    }
-
-    const completedQuests = dailyQuest.quests.filter(q => q.completed);
+    const quest = dailyQuest.quests.id(questId);
     
-    if (completedQuests.length === 0) {
-      return res.status(400).json({ msg: 'Немає виконаних квестів для отримання нагороди' });
+    if (!quest) {
+      return res.status(404).json({ msg: 'Квест не знайдено' });
     }
 
-    const totalXpReward = completedQuests.reduce((sum, quest) => sum + quest.xpReward, 0);
+    if (!quest.completed) {
+      return res.status(400).json({ msg: 'Квест ще не виконано' });
+    }
+
+    if (quest.claimed) {
+      return res.status(400).json({ msg: 'Нагороду за цей квест вже отримано' });
+    }
 
     const user = await User.findById(userId);
     if (!user) {
@@ -58,36 +61,28 @@ exports.claimRewards = async (req, res) => {
     }
 
     // Add XP and update level
-    user.xp = (user.xp || 0) + totalXpReward;
-    user.points = (user.points || 0) + totalXpReward; // Optional: depending on if points & xp are parallel
+    user.xp = (user.xp || 0) + quest.xpReward;
+    user.points = (user.points || 0) + quest.xpReward; 
     
     updateUserLevel(user);
     await user.save();
 
-    // Mark as claimed. Note: could be partially claimed if we allow claiming individually.
-    // Based on requirements, it seems we claim all completed ones at once, or claim the whole day.
-    // If we mark claimed=true for the day, they can't claim any more today even if they complete more later.
-    // Let's assume claimed=true applies to the dailyQuest document.
-    // To allow partial claims, we could mark individual quests as claimed. 
-    // The instructions say: "ставить claimed: true", referring to the model field.
+    // Mark specific quest as claimed
+    quest.claimed = true;
     
-    // Actually, if we set claimed: true, we should make sure all quests are completed, 
-    // or we just mark the day as claimed.
-    // Let's check if ALL quests are completed, if so set claimed = true.
-    // If not, we might still reward them and need a way to track which ones were claimed.
-    // But the DailyQuestSchema only has a global `claimed` boolean.
-    // So let's assume they claim at the end of the day or when all are done, 
-    // OR we just mark it claimed once they click claim and they get whatever is done.
+    // Check if all quests are claimed, then mark dailyQuest as claimed
+    if (dailyQuest.quests.every(q => q.claimed)) {
+      dailyQuest.claimed = true;
+    }
     
-    // I will set it to true so they can only claim once per day
-    dailyQuest.claimed = true;
     await dailyQuest.save();
 
     res.json({ 
-      msg: 'Нагороди успішно отримані!', 
-      xpAdded: totalXpReward,
+      msg: 'Нагороду успішно отримано!', 
+      xpAdded: quest.xpReward,
       currentXp: user.xp,
-      level: user.level
+      level: user.level,
+      dailyQuest
     });
 
   } catch (err) {
