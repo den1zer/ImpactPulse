@@ -82,7 +82,7 @@ const AddHelpPage = () => {
     data.append('proofFile', file);
     
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = {
         headers: { 'Content-Type': 'multipart/form-data', 'x-auth-token': token }
       };

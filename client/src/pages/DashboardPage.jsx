@@ -17,7 +17,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken')) || '';
+        const token = localStorage.getItem('userToken') || '';
         const config = { headers: { 'x-auth-token': token } };
         const isGuest = localStorage.getItem('userRole') === 'guest';
 

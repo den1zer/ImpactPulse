@@ -52,7 +52,7 @@ const Sidebar = () => {
   useEffect(() => {
     const fetchUserAvatar = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken');
         if (!token) return;
 
         const config = { headers: { 'x-auth-token': token } };

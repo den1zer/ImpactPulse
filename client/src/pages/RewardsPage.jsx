@@ -169,7 +169,7 @@ const RewardsPage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken');
         const config = { headers: { 'x-auth-token': token } };
         const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
         setUser(res.data);
@@ -191,7 +191,7 @@ const RewardsPage = () => {
             <WheelOfFortune onPrizeWon={(prize) => {
               const fetchUserData = async () => {
                 try {
-                  const token = JSON.parse(localStorage.getItem('userToken'));
+                  const token = localStorage.getItem('userToken');
                   const config = { headers: { 'x-auth-token': token } };
                   const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
                   setUser(res.data);

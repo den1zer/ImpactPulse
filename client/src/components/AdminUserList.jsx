@@ -8,7 +8,7 @@ const AdminUserList = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchUsers = async () => {
-    const token = JSON.parse(localStorage.getItem('userToken'));
+    const token = localStorage.getItem('userToken');
     const config = { headers: { 'x-auth-token': token } };
     try {
       const res = await axios.get(`${API_BASE_URL}/api/users`, config);
@@ -29,7 +29,7 @@ const AdminUserList = () => {
       return;
     }
     
-    const token = JSON.parse(localStorage.getItem('userToken'));
+    const token = localStorage.getItem('userToken');
     const config = { headers: { 'x-auth-token': token } };
     try {
       await axios.put(`${API_BASE_URL}/api/users/role/${id}`, { role: newRole }, config);

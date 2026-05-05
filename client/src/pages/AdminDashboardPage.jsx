@@ -21,7 +21,7 @@ const PendingContributions = () => {
   const fetchPending = async () => {
     setLoading(true);
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = {
         headers: { 'x-auth-token': token },
         params: { type: filterType }
@@ -45,7 +45,7 @@ const PendingContributions = () => {
     if (pointsInput === null) return;
     const points = parseInt(pointsInput) || 100;
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.put(`${API_BASE_URL}/api/contributions/approve/${id}`, { points: points }, config);
       setContributions(contributions.filter(c => c._id !== id));
@@ -60,7 +60,7 @@ const PendingContributions = () => {
       return;
     }
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.put(`${API_BASE_URL}/api/contributions/reject/${id}`, { comment: comment }, config);
       setContributions(contributions.filter(c => c._id !== id));
@@ -168,7 +168,7 @@ const AdminUserList = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token }, params: { role: filterRole } };
       try {
         const res = await axios.get(`${API_BASE_URL}/api/users`, config);
@@ -183,7 +183,7 @@ const AdminUserList = () => {
   const handleRoleChange = async (id, newRole) => {
     if (!window.confirm(`Змінити роль на ${newRole}?`)) return;
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.put(`${API_BASE_URL}/api/users/role/${id}`, { role: newRole }, config);
       setUsers(users.map(user => user._id === id ? { ...user, role: newRole } : user));
@@ -289,7 +289,7 @@ const AdminTicketList = () => {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken');
         const config = { headers: { 'x-auth-token': token } };
         const res = await axios.get(`${API_BASE_URL}/api/support/tickets`, config);
         setTickets(res.data);
@@ -391,7 +391,7 @@ const AdminFeedbackList = () => {
     const fetchFeedback = async () => {
       setLoading(true);
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken');
         const config = { headers: { 'x-auth-token': token }, params: { rating: filterRating } };
         const res = await axios.get(`${API_BASE_URL}/api/support/feedback`, config);
         setFeedback(res.data);
@@ -487,7 +487,7 @@ const AdminStatistics = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken');
         const config = { headers: { 'x-auth-token': token } };
         const res = await axios.get(`${API_BASE_URL}/api/users/stats`, config);
         setStats(res.data);
@@ -555,7 +555,7 @@ const AdminManageTasks = () => {
 
   const fetchTasks = async () => {
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.get(`${API_BASE_URL}/api/tasks/admin/all`, config);
       setTasks(res.data);
@@ -577,7 +577,7 @@ const AdminManageTasks = () => {
 
   const handleSaveEdit = async () => {
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.put(`${API_BASE_URL}/api/tasks/${editingTask}/admin`, editForm, config);
       setEditingTask(null);
@@ -588,7 +588,7 @@ const AdminManageTasks = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Видалити завдання?')) return;
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.delete(`${API_BASE_URL}/api/tasks/${id}/admin`, config);
       fetchTasks();
@@ -666,7 +666,7 @@ const AdminManageFundraisers = () => {
 
   const fetchFundraisers = async () => {
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.get(`${API_BASE_URL}/api/fundraisers/admin/all`, config);
       setFundraisers(res.data);
@@ -688,7 +688,7 @@ const AdminManageFundraisers = () => {
 
   const handleSaveEdit = async () => {
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.put(`${API_BASE_URL}/api/fundraisers/${editingFundraiser}/admin`, editForm, config);
       setEditingFundraiser(null);
@@ -699,7 +699,7 @@ const AdminManageFundraisers = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Видалити збір?')) return;
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.delete(`${API_BASE_URL}/api/fundraisers/${id}/admin`, config);
       fetchFundraisers();
@@ -765,7 +765,7 @@ const CreateFundraiser = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.post(`${API_BASE_URL}/api/fundraisers`, formData, config);
       setMessage('Збір успішно створено!');
@@ -830,7 +830,7 @@ const CreateTask = () => {
     }
 
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = {
         headers: {
           'x-auth-token': token,

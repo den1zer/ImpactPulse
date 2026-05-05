@@ -29,7 +29,7 @@ const TaskDetailPage = () => {
   const fetchTask = async () => {
     try {
       setLoading(true); 
-      const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
+      const token = localStorage.getItem('userToken') || '';
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.get(`${API_BASE_URL}/api/tasks/${id}`, config);
       setTask(res.data);
@@ -44,7 +44,7 @@ const TaskDetailPage = () => {
 
   const handleClaim = async () => {
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.put(`${API_BASE_URL}/api/tasks/${id}/claim`, {}, config);
       alert('Завдання "взято в опрацювання"!');
@@ -62,7 +62,7 @@ const TaskDetailPage = () => {
     }
     
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       await axios.put(`${API_BASE_URL}/api/tasks/${id}/abandon`, { reason }, config);
       alert('Ви відхилили завдання.');
