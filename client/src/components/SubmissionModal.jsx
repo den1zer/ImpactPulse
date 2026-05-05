@@ -17,7 +17,7 @@ const SubmissionModal = ({ task, onClose, onSuccess }) => {
 
     setLoading(true);
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } }; 
 
       const data = new FormData();

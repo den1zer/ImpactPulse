@@ -34,7 +34,7 @@ const DashboardHeader = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken');
         if (!token) {
           setUserData({ username: 'Гість', points: 0 });
           setIsLoading(false);

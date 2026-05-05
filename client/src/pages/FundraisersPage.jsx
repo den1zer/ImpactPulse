@@ -21,7 +21,7 @@ const LiqPayPaymentForm = ({ fundraiser, onDonation }) => {
     }
     
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       
       const res = await axios.post(
@@ -91,7 +91,7 @@ const FundraisersPage = () => {
   const fetchFundraisers = async () => {
     setLoading(true); 
     try {
-      const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
+      const token = localStorage.getItem('userToken') || '';
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.get(`${API_BASE_URL}/api/fundraisers`, config);
       setFundraisers(res.data);

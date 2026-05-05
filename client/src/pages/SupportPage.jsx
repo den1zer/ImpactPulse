@@ -75,7 +75,7 @@ const FeedbackForm = () => {
     if (rating === 0) return alert('Будь ласка, оберіть рейтинг.');
     
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.post(`${API_BASE_URL}/api/support/feedback`, { rating, comment }, config);
       setMessage(res.data.msg); 

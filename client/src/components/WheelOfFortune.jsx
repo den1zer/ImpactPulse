@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import confetti from 'canvas-confetti';
+import API_BASE_URL from '../config/api.js';
 import '../styles/WheelOfFortune.css';
 
 const PRIZES = [
@@ -21,7 +22,7 @@ const WheelOfFortune = ({ onPrizeWon }) => {
   const [rotation, setRotation] = useState(0);
   const [prizeModal, setPrizeModal] = useState(null);
   
-  const token = localStorage.getItem('userToken') ? JSON.parse(localStorage.getItem('userToken')) : '';
+  const token = localStorage.getItem('userToken') || '';
   const isGuest = localStorage.getItem('userRole') === 'guest';
 
   useEffect(() => {

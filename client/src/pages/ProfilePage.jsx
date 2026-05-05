@@ -110,7 +110,7 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken');
         const config = { headers: { 'x-auth-token': token } };
         const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
         setFormData({
@@ -166,7 +166,7 @@ const ProfilePage = () => {
     if (avatar) data.append('avatar', avatar);
 
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'Content-Type': 'multipart/form-data', 'x-auth-token': token } };
       const res = await axios.put(`${API_BASE_URL}/api/users/me`, data, config);
       showAlert('Профіль оновлено!');
@@ -188,7 +188,7 @@ const ProfilePage = () => {
     }
 
     try {
-      const token = JSON.parse(localStorage.getItem('userToken'));
+      const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
       const res = await axios.put(`${API_BASE_URL}/api/users/selected-badge`, {
         badgeId: selected ? selected.badgeId : null,

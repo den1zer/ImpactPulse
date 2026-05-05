@@ -22,7 +22,7 @@ const MyContributionsPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = JSON.parse(localStorage.getItem('userToken'));
+        const token = localStorage.getItem('userToken');
         const config = { headers: { 'x-auth-token': token } };
         
         const [contribRes, tasksRes] = await Promise.all([
