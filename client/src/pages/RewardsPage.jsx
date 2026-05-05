@@ -4,7 +4,6 @@ import AnimatedPage from '../components/AnimatedPage';
 import { motion } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
-import WheelOfFortune from '../components/WheelOfFortune';
 import '../styles/Dashboard.css';
 import '../styles/RewardsPage.css';
 import API_BASE_URL from '../config/api.js';
@@ -187,18 +186,6 @@ const RewardsPage = () => {
         <AnimatedPage>
           <div className="rewards-container">
             <h2>Центр Нагород</h2>
-            
-            <WheelOfFortune onPrizeWon={(prize) => {
-              const fetchUserData = async () => {
-                try {
-                  const token = localStorage.getItem('userToken');
-                  const config = { headers: { 'x-auth-token': token } };
-                  const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
-                  setUser(res.data);
-                } catch (err) { console.error(err); }
-              };
-              fetchUserData();
-            }} />
             
             {loading && <p>Завантаження вашого прогресу...</p>}
             

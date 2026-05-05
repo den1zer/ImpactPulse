@@ -105,10 +105,6 @@ const UserSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
   }],
 
-  wheelLastSpun: {
-    type: Date,
-    default: null
-  }
 
 }, { timestamps: true });
 
