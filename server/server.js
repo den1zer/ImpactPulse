@@ -33,6 +33,11 @@ app.use('/api/support', require('./routes/supportRoutes'));
 app.use('/api/fundraisers', require('./routes/fundraiserRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/skins', require('./routes/skinRoutes'));            // Фіксить /api/skins 404
+app.use('/api/badges', require('./routes/badgeRoutes'));          // Роут для бейджів
+app.use('/api/quests', require('./routes/questRoutes'));          // Роут для квестів
+
+// --- CRON JOBS ---
+require('./cron/resetWeekly');
 
 // Підключення ES-модуля payment.js через динамічний import, оскільки весь проект на CommonJS
 import('./routes/payment.js')

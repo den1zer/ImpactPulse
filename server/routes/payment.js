@@ -131,8 +131,35 @@ router.post('/callback', async (req, res) => {
                 if (typeof checkAndAwardBadges === 'function') {
                   await checkAndAwardBadges(user);
                 }
+
+                // Process streak and quest for donation
+                const gameLogic = await import('../utils/gameLogic.js');
+                const handleStreak = gameLogic.default?.handleStreak || gameLogic.handleStreak;
+                const updateDailyQuestProgress = gameLogic.default?.updateDailyQuestProgress || gameLogic.updateDailyQuestProgress;
+                
+                if (typeof handleStreak === 'function') {
+                  await handleStreak(user);
+                }
+                if (typeof updateDailyQuestProgress === 'function') {
+                  await updateDailyQuestProgress(user._id, 'donation', 1);
+                }
+
+                // Badge: "Швидка реакція"
+                if (fundraiser && (Date.now() - new Date(fundraiser.createdAt).getTime() < 60 * 60 * 1000)) {
+                  const hasQuickBadge = user.badges.some(b => b.badgeId === 'quick_reaction');
+                  if (!hasQuickBadge) {
+                    user.badges.push({
+                      badgeId: 'quick_reaction',
+                      level: 1,
+                      name: 'Швидка реакція',
+                      icon: '⚡',
+                      date: new Date()
+                    });
+                  }
+                }
+
               } catch (err) {
-                console.error('Error awarding badges:', err);
+                console.error('Error awarding badges or updating quests/streaks:', err);
               }
               
               await user.save();

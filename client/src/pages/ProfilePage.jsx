@@ -3,101 +3,17 @@ import axios from 'axios';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
+import { getBadges } from '../api/gameApi';
 import '../styles/Dashboard.css';
 import '../styles/AddHelpPage.css';
 import '../styles/ProfilePage.css';
 import API_BASE_URL from '../config/api.js';
 
-
-const BADGE_DICTIONARY = [
-  {
-    badgeId: 'points_master', triggerType: 'POINTS',
-    description: 'Видається за досягнення певної кількості балів.',
-    levels: [
-      { level: 1, name: 'Новачок', value: 500, icon: '🥉' },
-      { level: 2, name: 'Спеціаліст', value: 1000, icon: '🥈' },
-      { level: 3, name: 'Профі', value: 3000, icon: '🥇' },
-      { level: 4, name: 'Експерт', value: 5000, icon: '⭐' },
-      { level: 5, name: 'Майстер', value: 10000, icon: '🏆' },
-      { level: 6, name: 'Грандмайстер', value: 15000, icon: '💎' },
-      { level: 7, name: 'Легенда', value: 20000, icon: '🔥' },
-      { level: 8, name: 'Semigod', value: 30000, icon: '👑' },
-    ],
-    lockedIcon: '🔒',
-  },
-  {
-    badgeId: 'donator', triggerType: 'DONATION_COUNT',
-    description: 'Видається за загальну кількість схвалених донатів.',
-    levels: [
-      { level: 1, name: 'Перший Донат', value: 1, icon: '❤️' },
-      { level: 2, name: 'Щедрий Донатор', value: 5, icon: '💰' },
-      { level: 3, name: 'Меценат', value: 10, icon: '🏦' },
-      { level: 4, name: 'Інвестор Перемоги', value: 25, icon: '💎' },
-    ],
-    lockedIcon: '💸',
-  },
-  {
-    badgeId: 'volunteer', triggerType: 'VOLUNTEER_COUNT',
-    description: 'Видається за кількість виконаних волонтерських завдань.',
-    levels: [
-      { level: 1, name: 'Перша Справа', value: 1, icon: '💪' },
-      { level: 2, name: 'Активіст', value: 5, icon: '🛠️' },
-      { level: 3, name: 'Лідер Руху', value: 10, icon: '🚀' },
-    ],
-    lockedIcon: '👤',
-  },
-  {
-    badgeId: 'aid_worker', triggerType: 'AID_COUNT',
-    description: 'Видається за кількість передач гуманітарної допомоги.',
-    levels: [
-      { level: 1, name: 'Перша Посилка', value: 1, icon: '📦' },
-      { level: 2, name: 'Надійний Тип', value: 5, icon: '🚚' },
-      { level: 3, name: 'Ангел Логістики', value: 10, icon: '✈️' },
-    ],
-    lockedIcon: '🤷',
-  },
-  {
-    badgeId: 'versatile', triggerType: 'VERSATILE',
-    description: 'Видається за 1 донат, 1 волонтерство і 1 гум. допомогу.',
-    levels: [{ level: 1, name: 'Майстер на всі руки', value: 1, icon: '🧑‍🔧' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'profile_complete', triggerType: 'PROFILE',
-    description: 'Заповніть свій профіль (Аватар, Місто, Вік).',
-    levels: [{ level: 1, name: 'Представся!', value: 1, icon: '🆔' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'streak_3_days', triggerType: 'STREAK',
-    description: 'Зробіть 3 внески протягом 3 днів.',
-    levels: [{ level: 1, name: 'Ударник', value: 3, icon: '⚡' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'high_roller', triggerType: 'HIGH_POINTS',
-    description: 'Отримайте 1000+ балів за ОДНУ заявку.',
-    levels: [{ level: 1, name: 'Хайролер', value: 1, icon: '💥' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'geo_tagger', triggerType: 'GEO',
-    description: 'Додайте 5 заявок з геолокацією.',
-    levels: [{ level: 1, name: 'Картограф', value: 5, icon: '🗺️' }],
-    lockedIcon: '❓',
-  },
-  {
-    badgeId: 'first_rejection', triggerType: 'REJECTED',
-    description: 'Вашу заявку було відхилено. Не здавайтесь!',
-    levels: [{ level: 1, name: 'Не здавайся!', value: 1, icon: '🤕' }],
-    lockedIcon: '❓',
-  },
-];
-
 const useAlertHook = () => ({ showAlert: (message) => { alert(message); } });
 
 const ProfilePage = () => {
   const { showAlert } = useAlertHook();
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({ username: '', email: '', backupEmail: '', age: '', city: '', gender: 'unspecified' });
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -112,36 +28,41 @@ const ProfilePage = () => {
       try {
         const token = localStorage.getItem('userToken');
         const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get(`${API_BASE_URL}/api/users/me`, config);
+        
+        const [res, badgesData] = await Promise.all([
+          axios.get(`${API_BASE_URL}/api/users/me`, config),
+          getBadges()
+        ]);
+        
+        const userData = res.data;
+        setUser(userData);
         setFormData({
-          username: res.data.username || '', email: res.data.email || '',
-          backupEmail: res.data.backupEmail || '', age: res.data.age || '',
-          city: res.data.city || '', gender: res.data.gender || 'unspecified',
+          username: userData.username || '', email: userData.email || '',
+          backupEmail: userData.backupEmail || '', age: userData.age || '',
+          city: userData.city || '', gender: userData.gender || 'unspecified',
         });
-        setCurrentAvatar(res.data.avatar);
+        setCurrentAvatar(userData.avatar);
         setProfileCustomization({
-          nicknameIcon: res.data.profileCustomization?.nicknameIcon || '',
-          avatarFrame: res.data.profileCustomization?.avatarFrame || 'none',
-          profileTheme: res.data.profileCustomization?.profileTheme || 'default'
+          nicknameIcon: userData.profileCustomization?.nicknameIcon || '',
+          avatarFrame: userData.profileCustomization?.avatarFrame || 'none',
+          profileTheme: userData.profileCustomization?.profileTheme || 'default'
         });
-        const earned = res.data.badges || [];
-
-        const merged = [];
-        BADGE_DICTIONARY.forEach(def => {
-          def.levels.forEach(l => {
-            const has = earned.some(b => b.badgeId === def.badgeId && b.level === l.level);
-            merged.push({
-              badgeId: def.badgeId,
-              level: l.level,
-              name: l.name,
-              icon: has ? (l.icon || def.lockedIcon) : def.lockedIcon || '🔒',
-              unlocked: has
-            });
-          });
+        
+        const earned = userData.badges || [];
+        const merged = badgesData.map(def => {
+          const has = earned.some(b => b.badgeId === def.id);
+          return {
+            badgeId: def.id,
+            level: 1, // Flattened
+            name: def.name,
+            icon: def.icon,
+            unlocked: has
+          };
         });
+        
         setBadges(merged);
-        setSelectedBadge(res.data.selectedBadge || null);
-        if (res.data.createdAt) setCreatedAt(new Date(res.data.createdAt).toLocaleDateString('uk-UA'));
+        setSelectedBadge(userData.selectedBadge || null);
+        if (userData.createdAt) setCreatedAt(new Date(userData.createdAt).toLocaleDateString('uk-UA'));
       } catch (err) { showAlert('Помилка завантаження профілю'); }
     };
     fetchProfileData();
@@ -182,9 +103,8 @@ const ProfilePage = () => {
     const value = e.target.value;
     let selected = null;
     if (value) {
-      const [badgeId, levelStr] = value.split('-');
-      const level = parseInt(levelStr);
-      selected = badges.find(b => b.badgeId === badgeId && b.level === level);
+      const badgeId = value;
+      selected = badges.find(b => b.badgeId === badgeId);
     }
 
     try {
@@ -212,10 +132,18 @@ const ProfilePage = () => {
         <AnimatedPage>
           <div className={`profile-container theme-${profileCustomization.profileTheme}`}>
             <form className="profile-form" onSubmit={onSubmit}>
-              <h2>Налаштування Профілю</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2>Налаштування Профілю</h2>
+                {user && (
+                  <div className="streak-badge" style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--panel)', padding: '5px 15px', borderRadius: '20px', border: '1px solid var(--accent-primary)' }}>
+                    🔥 {user.streak?.current || 0} Днів поспіль
+                  </div>
+                )}
+              </div>
+              
               {createdAt && <p style={{fontSize: '0.9em', color: '#777', marginBottom: '20px'}}>📅 Акаунт створено: <strong>{createdAt}</strong></p>}
               <div className="avatar-section">
-                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `${API_BASE_URL}/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '👤'}</div>
+                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar preview" /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `${API_BASE_URL}/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar" /> : '👤'}</div>
                 <label htmlFor="avatar" className="avatar-change-btn">Змінити фото<input type="file" id="avatar" accept="image/*" onChange={onFileChange} /></label>
               </div>
               <div className="form-grid">
@@ -225,21 +153,24 @@ const ProfilePage = () => {
                 <div className="form-group"><label>Вік</label><input type="number" name="age" className="neumorph-input" value={formData.age} onChange={onChange} /></div>
                 <div className="form-group full-width"><label>Місто</label><input type="text" name="city" className="neumorph-input" value={formData.city} onChange={onChange} /></div>
                 <div className="form-group full-width"><label>Стать</label><select name="gender" className="neumorph-select" value={formData.gender} onChange={onChange}><option value="unspecified">Не вказано</option><option value="male">Чоловік</option><option value="female">Жінка</option><option value="other">Інше</option></select></div>
+                
                 <div className="form-group full-width">
                   <label>Вибрати бейдж для відображення</label>
-                  <select className="neumorph-select" value={selectedBadge ? `${selectedBadge.badgeId}-${selectedBadge.level}` : ''} onChange={onBadgeChange}>
+                  <select className="neumorph-select" value={selectedBadge ? selectedBadge.badgeId : ''} onChange={onBadgeChange}>
                     <option value="">Без бейджа</option>
                     {badges.map(badge => (
                       <option
-                        key={`${badge.badgeId}-${badge.level}`}
-                        value={`${badge.badgeId}-${badge.level}`}
+                        key={badge.badgeId}
+                        value={badge.badgeId}
                         disabled={!badge.unlocked}
+                        style={{ color: badge.unlocked ? 'inherit' : 'gray' }}
                       >
-                        {badge.unlocked ? `${badge.icon} ${badge.name}` : `${badge.icon} ${badge.name} (заблоковано)`}
+                        {badge.unlocked ? `${badge.icon} ${badge.name}` : `🔒 ${badge.name} (заблоковано)`}
                       </option>
                     ))}
                   </select>
                 </div>
+                
                 <div className="form-group full-width">
                   <label>Іконка біля нікнейму (наприклад: 👑, 🦄, 🚀)</label>
                   <select name="nicknameIcon" className="neumorph-select" value={profileCustomization.nicknameIcon} onChange={onCustomizationChange}>
@@ -276,7 +207,7 @@ const ProfilePage = () => {
                   </select>
                 </div>
               </div>
-              <hr style={{ margin: '30px 0', border: 'none', borderTop: '1px solid #ccc' }} />
+              <hr style={{ margin: '30px 0', border: 'none', borderTop: '1px solid var(--panel-border)' }} />
               <button type="submit" className="neumorph-button">Зберегти зміни</button>
             </form>
           </div>
