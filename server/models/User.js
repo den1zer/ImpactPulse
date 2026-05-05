@@ -29,9 +29,22 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  xp: {
+    type: Number,
+    default: 0,
+  },
   level: {
     type: Number,
     default: 1,
+  },
+  weeklyPoints: {
+    amount: { type: Number, default: 0 },
+    lastReset: { type: Date, default: Date.now }
+  },
+  streak: {
+    current: { type: Number, default: 0 },
+    longest: { type: Number, default: 0 },
+    lastActivityDate: { type: Date }
   },
   role: {
     type: String,
