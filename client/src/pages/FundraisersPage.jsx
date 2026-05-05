@@ -3,108 +3,92 @@ import axios from 'axios';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
-import '../styles/Dashboard.css'; 
-import '../styles/AddHelpPage.css'; 
-import '../styles/FundraisersPage.css'; 
+import '../styles/Dashboard.css';
+import '../styles/FundraisersPage.css';
 import API_BASE_URL from '../config/api.js';
 
-
-const LiqPayPaymentForm = ({ fundraiser, onDonation }) => {
+/* ── Payment sub-form ── */
+const LiqPayPaymentForm = ({ fundraiser }) => {
   const [amount, setAmount] = useState('');
-  const [card, setCard] = useState('');
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!amount || amount <= 0) {
-      alert('Вкажіть суму');
-      return;
-    }
-    
-    try {
-      const token = localStorage.getItem('userToken');
-      const config = { headers: { 'x-auth-token': token } };
-      
-      const res = await axios.post(
-        `${API_BASE_URL}/api/payment/create`, 
-        { amount, collectionId: fundraiser._id, description: fundraiser.title }, 
-        config
-      );
-      
-      const { data, signature } = res.data;
 
-      // Створюємо приховану форму для редіректу на сторінку оплати LiqPay
+  const handleSubmit = async e => {
+    e.preventDefault();
+    if (!amount || amount <= 0) { alert('Вкажіть суму'); return; }
+    try {
+      const token  = localStorage.getItem('userToken');
+      const config = { headers: { 'x-auth-token': token } };
+      const res    = await axios.post(
+        `${API_BASE_URL}/api/payment/create`,
+        { amount, collectionId: fundraiser._id, description: fundraiser.title },
+        config,
+      );
+      const { data, signature } = res.data;
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = 'https://www.liqpay.ua/api/3/checkout';
       form.acceptCharset = 'utf-8';
-      
-      const dataInput = document.createElement('input');
-      dataInput.type = 'hidden';
-      dataInput.name = 'data';
-      dataInput.value = data;
-      form.appendChild(dataInput);
-      
-      const signatureInput = document.createElement('input');
-      signatureInput.type = 'hidden';
-      signatureInput.name = 'signature';
-      signatureInput.value = signature;
-      form.appendChild(signatureInput);
-      
+      ['data', 'signature'].forEach((name, i) => {
+        const inp = document.createElement('input');
+        inp.type  = 'hidden';
+        inp.name  = name;
+        inp.value = [data, signature][i];
+        form.appendChild(inp);
+      });
       document.body.appendChild(form);
       form.submit();
-      
       setAmount('');
-      setCard('');
     } catch (err) {
-      alert('Помилка ініціалізації платежу: ' + (err.response?.data?.msg || err.message));
+      alert('Помилка: ' + (err.response?.data?.msg || err.message));
     }
   };
 
   return (
     <form className="fundraiser-form" onSubmit={handleSubmit}>
-      <hr style={{ margin: '20px 0', border: '1px solid #ccc' }}/>
-      <div className="form-group">
-        <label>Реквізити (Карта):</label>
-        <input type="text" className="neumorph-input" value={fundraiser.cardNumber} disabled />
+      <div className="card-sep" />
+
+      <div>
+        <label>Реквізити картки</label>
+        <input className="neumorph-input" type="text" value={fundraiser.cardNumber} disabled />
       </div>
-      <div className="form-group">
-        <label>Сума (UAH):</label>
-        <input 
-          type="number" 
-          className="neumorph-input" 
-          value={amount} 
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="500" 
+
+      <div>
+        <label>Сума (грн)</label>
+        <input
+          className="neumorph-input"
+          type="number"
+          value={amount}
+          onChange={e => setAmount(e.target.value)}
+          placeholder="500"
+          min="1"
         />
       </div>
-      <button type="submit" className="neumorph-button">
-        Підтримати 
-      </button>
+
+      <button type="submit" className="neumorph-button">Підтримати →</button>
     </form>
   );
 };
 
+/* ── Main page ── */
 const FundraisersPage = () => {
   const [fundraisers, setFundraisers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]         = useState(true);
+  const isGuest = localStorage.getItem('userRole') === 'guest';
 
   const fetchFundraisers = async () => {
-    setLoading(true); 
+    setLoading(true);
     try {
-      const token = localStorage.getItem('userToken') || '';
+      const token  = localStorage.getItem('userToken') || '';
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.get(`${API_BASE_URL}/api/fundraisers`, config);
+      const res    = await axios.get(`${API_BASE_URL}/api/fundraisers`, config);
       setFundraisers(res.data);
-      setLoading(false);
     } catch (err) {
       console.error(err);
+    } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchFundraisers();
-  }, []);
+  useEffect(() => { fetchFundraisers(); }, []);
 
   return (
     <div className="dashboard-layout">
@@ -112,46 +96,62 @@ const FundraisersPage = () => {
       <main className="dashboard-main">
         <DashboardHeader />
         <AnimatedPage>
-          <div className="fundraisers-container">
-            <h2>Актуальні Збори</h2>
-            
-            {loading && <p>Завантаження...</p>}
-            
-            <div className="fundraisers-grid">
-              {!loading && fundraisers.map(item => (
-                <div key={item._id} className="fundraiser-card">
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
-                  <p style={{fontSize: '0.85em', color: '#999', marginBottom: '15px'}}>
-                    📅 Збір стартував: {new Date(item.createdAt).toLocaleDateString('uk-UA')}
-                  </p>
-                  
-                  <div className="progress-stats">
-                    <span>Зібрано: <strong className="amount">{item.collectedAmount} грн</strong></span>
-                    <span>Ціль: {item.goalAmount} грн</span>
-                  </div>
-                  <div className="progress-bar-container">
-                    <div 
-                      className="progress-bar-fill" 
-                      style={{ width: `${(item.collectedAmount / item.goalAmount) * 100}%` }}
-                    ></div>
-                  </div>
-                  
-                  {item.status === 'open' ? (
-                    localStorage.getItem('userRole') !== 'guest' ? (
-                      <LiqPayPaymentForm fundraiser={item} onDonation={fetchFundraisers} />
-                    ) : (
-                      <p style={{marginTop: '20px', fontWeight: 600, color: '#ffc107', textAlign: 'center'}}>
-                        Увійдіть, щоб підтримати збір.
-                      </p>
-                    )
-                  ) : (
-                    <p style={{marginTop: '20px', fontWeight: 600, color: '#28a745', textAlign: 'center'}}>
-                      ✅ ЗБІР ЗАКРИТО! ({new Date(item.updatedAt).toLocaleDateString('uk-UA')})
-                    </p>
-                  )}
+          <div className="dashboard-content-wrapper">
+            <div className="fundraisers-container">
+
+              <div className="fundraisers-header">
+                <h2>
+                  Актуальні збори{' '}
+                  <span className="text-muted" style={{ fontWeight: 400 }}>
+                    ({fundraisers.length})
+                  </span>
+                </h2>
+              </div>
+
+              {loading && <div className="fundraisers-empty">Завантаження…</div>}
+
+              {!loading && fundraisers.length === 0 && (
+                <div className="fundraisers-empty">Активних зборів немає.</div>
+              )}
+
+              {!loading && fundraisers.length > 0 && (
+                <div className="fundraisers-grid">
+                  {fundraisers.map(item => {
+                    const pct = Math.min((item.collectedAmount / item.goalAmount) * 100, 100);
+                    return (
+                      <div key={item._id} className="fundraiser-card">
+                        <h3>{item.title}</h3>
+                        <p>{item.description}</p>
+                        <p className="fundraiser-date">
+                          📅 Стартував: {new Date(item.createdAt).toLocaleDateString('uk-UA')}
+                        </p>
+
+                        <div>
+                          <div className="progress-stats">
+                            <span>Зібрано: <strong className="amount">{item.collectedAmount} грн</strong></span>
+                            <span>Ціль: {item.goalAmount} грн</span>
+                          </div>
+                          <div className="progress-bar-container">
+                            <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+
+                        {item.status === 'open' ? (
+                          isGuest ? (
+                            <p className="fundraiser-guest-msg">Увійдіть, щоб підтримати збір.</p>
+                          ) : (
+                            <LiqPayPaymentForm fundraiser={item} onDonation={fetchFundraisers} />
+                          )
+                        ) : (
+                          <p className="fundraiser-closed">
+                            ✓ Збір закрито — {new Date(item.updatedAt).toLocaleDateString('uk-UA')}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </AnimatedPage>
