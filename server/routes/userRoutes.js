@@ -12,7 +12,12 @@ const {
   getLeaderboard,
   updateSelectedBadge,
   getUserStats,
-  updateAvatar
+  updateAvatar,
+  getPublicProfile,
+  searchUsers,
+  getFriends,
+  addFriend,
+  removeFriend
 } = require('../controllers/userController');
 
 const multer = require('multer');
@@ -43,5 +48,12 @@ router.put('/selected-badge', isAuthenticated, updateSelectedBadge);
 router.get('/', [isAuthenticated, isAdmin], getAllUsers);
 router.put('/role/:id', [isAuthenticated, isAdmin], updateUserRole);
 router.get('/stats', [isAuthenticated, isAdmin], getUserStats);
+
+// Public profile and friends
+router.get('/search', isAuthenticated, searchUsers);
+router.get('/friends', isAuthenticated, getFriends);
+router.post('/friends/add/:id', isAuthenticated, addFriend);
+router.post('/friends/remove/:id', isAuthenticated, removeFriend);
+router.get('/profile/:id', isAuthenticated, getPublicProfile);
 
 module.exports = router;

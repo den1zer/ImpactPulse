@@ -160,13 +160,15 @@ const RewardsPage = () => {
         {list?.map((u, i) => (
           <motion.div 
             key={u._id} 
-            className="leaderboard-item"
+            className="leaderboard-item panel-card-hover"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
+            onClick={() => navigate(`/user/${u._id}`)}
+            style={{ cursor: 'pointer' }}
           >
             <span className="leaderboard-rank">#{i + 1}</span>
-            <img src={u.avatar?.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`} alt="avatar" className="leaderboard-avatar" />
+            <img src={u.avatar?.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`} alt="avatar" className={`leaderboard-avatar frame-${u.profileCustomization?.avatarFrame || 'none'}`} />
             <span className="leaderboard-name">{u.profileCustomization?.nicknameIcon} {u.username}</span>
             <strong className="leaderboard-points">
               {activeTab === 'allTime' && `${u.points} балів`}

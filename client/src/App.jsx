@@ -13,6 +13,8 @@ import RewardsPage from './pages/RewardsPage';
 import ShopPage from './pages/ShopPage';
 import SupportPage from './pages/SupportPage'; 
 import InstructionsPage from './pages/InstructionsPage';
+import CommunityPage from './pages/CommunityPage';
+import PublicProfilePage from './pages/PublicProfilePage';
 import FundraisersPage from './pages/FundraisersPage';
 import TasksPage from './pages/TasksPage';
 import TaskDetailPage from './pages/TaskDetailPage';
@@ -61,6 +63,8 @@ function App() {
           <Route path="/add-help" element={<ProtectedRoute><AddHelpPage /></ProtectedRoute>} /> 
           <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
           <Route path="/shop" element={<ProtectedRoute><ShopPage /></ProtectedRoute>} />
+          <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+          <Route path="/user/:id" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />

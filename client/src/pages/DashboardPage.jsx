@@ -129,7 +129,7 @@ const DashboardPage = () => {
                     <li className="leaderboard-loading">Завантаження…</li>
                   ) : leaderboard.length > 0 ? (
                     leaderboard.slice(0, 10).map((user, i) => (
-                      <li key={user._id} className="leaderboard-item">
+                      <Link to={`/user/${user._id}`} key={user._id} className="leaderboard-item" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', transition: 'background 0.2s', padding: '8px', borderRadius: '8px' }}>
                         <span className="leaderboard-rank">#{i + 1}</span>
                         <img
                           className={`leaderboard-avatar frame-${user.profileCustomization?.avatarFrame || 'none'}`}
@@ -146,8 +146,8 @@ const DashboardPage = () => {
                           {user.profileCustomization?.nicknameIcon ? ` ${user.profileCustomization.nicknameIcon}` : ''}
                           {user.selectedBadge?.icon ? ` ${user.selectedBadge.icon}` : ''}
                         </span>
-                        <strong className="leaderboard-points">{user.points}</strong>
-                      </li>
+                        <strong className="leaderboard-points" style={{ marginLeft: 'auto' }}>{user.points}</strong>
+                      </Link>
                     ))
                   ) : (
                     <li className="leaderboard-empty">Немає активних учасників</li>

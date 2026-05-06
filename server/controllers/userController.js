@@ -249,3 +249,106 @@ exports.getUserStats = async (req, res) => {
     res.status(500).send('Помилка на сервері');
   }
 };
+
+exports.getPublicProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('username avatar avatarUrl city age points xp level badges selectedBadge profileCustomization stats streak createdAt friends');
+    
+    if (!user) {
+      return res.status(404).json({ msg: 'Користувача не знайдено' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error('Error fetching public profile:', err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Користувача не знайдено' });
+    }
+    res.status(500).send('Помилка сервера');
+  }
+};
+
+exports.searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.json([]);
+    }
+
+    const users = await User.find({
+      username: { $regex: q, $options: 'i' },
+      role: 'user'
+    }).select('username avatar avatarUrl city level points xp selectedBadge');
+
+    res.json(users);
+  } catch (err) {
+    console.error('Error searching users:', err.message);
+    res.status(500).send('Помилка сервера');
+  }
+};
+
+exports.getFriends = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate('friends', 'username avatar avatarUrl city level points xp selectedBadge profileCustomization');
+    res.json(user.friends);
+  } catch (err) {
+    console.error('Error getting friends:', err.message);
+    res.status(500).send('Помилка сервера');
+  }
+};
+
+exports.addFriend = async (req, res) => {
+  try {
+    const friendId = req.params.id;
+    if (friendId === req.user.id) {
+      return res.status(400).json({ msg: 'Ви не можете додати себе в друзі' });
+    }
+
+    const user = await User.findById(req.user.id);
+    const friend = await User.findById(friendId);
+
+    if (!friend) {
+      return res.status(404).json({ msg: 'Користувача не знайдено' });
+    }
+
+    if (user.friends.includes(friendId)) {
+      return res.status(400).json({ msg: 'Користувач вже у друзях' });
+    }
+
+    user.friends.push(friendId);
+    await user.save();
+
+    // Optionally also add the user to the friend's friend list
+    if (!friend.friends.includes(req.user.id)) {
+      friend.friends.push(req.user.id);
+      await friend.save();
+    }
+
+    res.json({ msg: 'Користувача додано у друзі', friends: user.friends });
+  } catch (err) {
+    console.error('Error adding friend:', err.message);
+    res.status(500).send('Помилка сервера');
+  }
+};
+
+exports.removeFriend = async (req, res) => {
+  try {
+    const friendId = req.params.id;
+    const user = await User.findById(req.user.id);
+    const friend = await User.findById(friendId);
+
+    user.friends = user.friends.filter(id => id.toString() !== friendId);
+    await user.save();
+
+    if (friend) {
+      friend.friends = friend.friends.filter(id => id.toString() !== req.user.id);
+      await friend.save();
+    }
+
+    res.json({ msg: 'Користувача видалено з друзів', friends: user.friends });
+  } catch (err) {
+    console.error('Error removing friend:', err.message);
+    res.status(500).send('Помилка сервера');
+  }
+};
