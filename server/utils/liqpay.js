@@ -16,8 +16,8 @@ const generateLiqPayData = ({ amount, currency = 'UAH', description, orderId }) 
     currency,
     description,
     order_id:   orderId,
-    server_url: `${process.env.BASE_URL || 'http://localhost:5000'}/api/payment/callback`,
-    result_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/fundraisers`,
+    server_url: `${process.env.BASE_URL || 'https://impactpulse-backend.onrender.com'}/api/payment/callback`,
+    result_url: `${process.env.FRONTEND_URL || 'https://impact-pulse.vercel.app'}/fundraisers`,
   };
 
   const jsonString = JSON.stringify(params);
