@@ -1,148 +1,449 @@
 const Task = require('../models/Task');
+const User = require('../models/User');
+const Guild = require('../models/Guild');
+const { checkAndAwardBadges } = require('./contributionController');
+const { updateUserLevel } = require('../utils/levelSystem');
 
+// ── helpers ─────────────────────────────────────────────────────────────────
+const POPULATE_CREATED_BY = { path: 'createdBy', select: 'username avatar avatarUrl xp level' };
+const POPULATE_PARTICIPANTS = {
+  path: 'participants.user',
+  select: 'username avatar avatarUrl xp level',
+};
+const POPULATE_COMMENTS = {
+  path: 'comments.author',
+  select: 'username avatar avatarUrl',
+};
+const POPULATE_GUILD = { path: 'targetGuild', select: 'name logo' };
+
+// ── CREATE TASK (any authenticated user) ──────────────────────────────────────
 exports.createTask = async (req, res) => {
   try {
-    const { title, description, category, points, endDate } = req.body;
-    
-    const pointsAsNumber = parseInt(points);
-    if (isNaN(pointsAsNumber)) {
-      return res.status(400).json({ msg: 'Бали мають бути цілим числом' });
+    const {
+      title, description, category, points, endDate,
+      guildOnly, targetGuild, maxParticipants, coverEmoji,
+    } = req.body;
+
+    const pointsNum = parseInt(points);
+    if (isNaN(pointsNum) || pointsNum <= 0) {
+      return res.status(400).json({ msg: 'Бали мають бути додатнім числом' });
     }
 
-    const newTask = new Task({
-      title,
-      description,
+    const task = new Task({
+      title: title?.trim(),
+      description: description?.trim(),
       category,
-      points: pointsAsNumber, 
+      points: pointsNum,
       endDate: endDate || null,
+      filePath: req.file ? req.file.path : null,
       createdBy: req.user.id,
-      filePath: req.file ? req.file.path : null 
+      coverEmoji: coverEmoji || '📋',
+      guildOnly: guildOnly === true || guildOnly === 'true',
+      targetGuild: targetGuild || null,
+      maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+      status: 'open',
     });
-    
-    await newTask.save();
-    res.status(201).json(newTask);
+
+    await task.save();
+    await task.populate([POPULATE_CREATED_BY, POPULATE_GUILD]);
+    res.status(201).json(task);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Помилка на сервері (ймовірно, "забув" "обов\'язкове" "поле")');
+    console.error('createTask:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
 
+// ── GET ALL OPEN TASKS ────────────────────────────────────────────────────────
 exports.getOpenTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({ status: 'open' })
-                             .populate('createdBy', 'username') 
-                             .sort({ createdAt: -1 });
+    const { status, category, search } = req.query;
+    const filter = {};
+
+    if (status && status !== 'all') filter.status = status;
+    if (category && category !== 'all') filter.category = category;
+    if (search) filter.title = { $regex: search, $options: 'i' };
+
+    const tasks = await Task.find(filter)
+      .populate(POPULATE_CREATED_BY)
+      .populate(POPULATE_GUILD)
+      .sort({ createdAt: -1 });
+
     res.json(tasks);
   } catch (err) {
-    res.status(500).send('Помилка на сервері');
+    console.error('getOpenTasks:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
+
+// ── GET TASK BY ID ────────────────────────────────────────────────────────────
 exports.getTaskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
-                           .populate('createdBy', 'username');
-    if (!task) {
-      return res.status(404).json({ msg: 'Завдання не знайдено' });
-    }
+      .populate(POPULATE_CREATED_BY)
+      .populate(POPULATE_PARTICIPANTS)
+      .populate(POPULATE_COMMENTS)
+      .populate(POPULATE_GUILD);
+
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
     res.json(task);
   } catch (err) {
-    res.status(500).send('Помилка на сервері');
+    console.error('getTaskById:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
 
-exports.claimTask = async (req, res) => {
+// ── JOIN TASK ─────────────────────────────────────────────────────────────────
+exports.joinTask = async (req, res) => {
   try {
+    const { joinMode, guildId } = req.body;   // joinMode: 'solo' | 'guild'
+    const userId  = req.user.id;
+    const task    = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+
+    if (task.status === 'closed') {
+      return res.status(400).json({ msg: 'Це завдання вже закрите' });
+    }
+
+    // Already a participant?
+    const already = task.participants.find(p => p.user.toString() === userId);
+    if (already) return res.status(400).json({ msg: 'Ви вже берете участь у цьому завданні' });
+
+    // Max participants check
+    if (task.maxParticipants && task.participants.length >= task.maxParticipants) {
+      return res.status(400).json({ msg: 'Досягнуто максимальну кількість учасників' });
+    }
+
+    // Guild-mode validation
+    let resolvedGuild = null;
+    if (joinMode === 'guild') {
+      if (!guildId) return res.status(400).json({ msg: 'Вкажіть guildId для командного вступу' });
+      const guild = await Guild.findById(guildId);
+      if (!guild) return res.status(404).json({ msg: 'Гільдію не знайдено' });
+      if (!guild.members.some(m => m.toString() === userId)) {
+        return res.status(403).json({ msg: 'Ви не є членом цієї гільдії' });
+      }
+      resolvedGuild = guildId;
+    }
+
+    // Guild-only check
+    if (task.guildOnly && joinMode !== 'guild') {
+      return res.status(403).json({ msg: 'Це завдання доступне лише для команд' });
+    }
+
+    task.participants.push({
+      user: userId,
+      joinMode: joinMode || 'solo',
+      guild: resolvedGuild,
+      status: 'working',
+    });
+
+    if (task.status === 'open') task.status = 'in_progress';
+    await task.save();
+
+    await task.populate([POPULATE_CREATED_BY, POPULATE_PARTICIPANTS, POPULATE_COMMENTS, POPULATE_GUILD]);
+    res.json(task);
+  } catch (err) {
+    console.error('joinTask:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+// ── LEAVE TASK ────────────────────────────────────────────────────────────────
+exports.leaveTask = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const task   = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+
+    const idx = task.participants.findIndex(p => p.user.toString() === userId);
+    if (idx === -1) return res.status(400).json({ msg: 'Ви не є учасником цього завдання' });
+
+    const participant = task.participants[idx];
+    if (participant.status === 'approved') {
+      return res.status(400).json({ msg: 'Не можна покинути вже підтверджене завдання' });
+    }
+
+    task.participants.splice(idx, 1);
+
+    if (task.participants.length === 0) task.status = 'open';
+    await task.save();
+
+    res.json({ msg: 'Ви покинули завдання' });
+  } catch (err) {
+    console.error('leaveTask:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+// ── SUBMIT PROOF (participant marks as ready for review) ──────────────────────
+exports.submitProof = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { proofText } = req.body;
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
-    if (task.status !== 'open') return res.status(400).json({ msg: 'Завдання вже "в роботі" або "закрите"' });
 
-    task.status = 'in_progress';
-    task.assignedTo = req.user.id; 
+    const participant = task.participants.find(p => p.user.toString() === userId);
+    if (!participant) return res.status(403).json({ msg: 'Ви не є учасником' });
+    if (participant.status === 'approved') {
+      return res.status(400).json({ msg: 'Ваше виконання вже підтверджено' });
+    }
+
+    participant.proofText   = proofText || '';
+    participant.proofFile   = req.file ? req.file.path : participant.proofFile;
+    participant.submittedAt = new Date();
+    participant.status      = 'review';
+
     await task.save();
+    await task.populate([POPULATE_CREATED_BY, POPULATE_PARTICIPANTS, POPULATE_COMMENTS]);
     res.json(task);
   } catch (err) {
-    res.status(500).send('Помилка на сервері');
+    console.error('submitProof:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
 
-exports.abandonTask = async (req, res) => {
+// ── APPROVE / REJECT participant (only task creator can do this) ───────────────
+exports.reviewParticipant = async (req, res) => {
   try {
-    const { reason } = req.body;
-    if (!reason) {
-      return res.status(400).json({ msg: '"Причина" 100% "обов\'язкова"' });
-    }
+    const creatorId = req.user.id;
+    const { participantUserId, action, reviewComment } = req.body;
+    // action: 'approve' | 'reject'
 
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
-    
-    if (task.assignedTo.toString() !== req.user.id) {
-      return res.status(403).json({ msg: 'Це "не" "твоє" "чотке" "завдання"' });
+
+    if (task.createdBy.toString() !== creatorId) {
+      return res.status(403).json({ msg: 'Тільки автор завдання може підтверджувати виконання' });
     }
 
-    task.status = 'open'; 
-    task.assignedTo = null;
-    task.abandonReason = reason; 
+    const participant = task.participants.find(p => p.user.toString() === participantUserId);
+    if (!participant) return res.status(404).json({ msg: 'Учасника не знайдено' });
+    if (participant.status !== 'review') {
+      return res.status(400).json({ msg: 'Учасник ще не подав звіт або вже оброблений' });
+    }
+
+    participant.reviewComment = reviewComment || '';
+    participant.reviewedAt    = new Date();
+
+    if (action === 'approve') {
+      participant.status = 'approved';
+
+      // Award points & XP to the participant
+      const user = await User.findById(participantUserId);
+      if (user) {
+        user.points = (user.points || 0) + task.points;
+        user.xp     = (user.xp || 0) + task.points;
+        updateUserLevel(user);
+        await checkAndAwardBadges(user);
+        await user.save();
+
+        // Propagate XP to guild if joined in guild mode
+        if (participant.joinMode === 'guild' && participant.guild) {
+          await Guild.findByIdAndUpdate(participant.guild, {
+            $inc: { totalXP: task.points },
+          });
+          // recompute level
+          const guild = await Guild.findById(participant.guild);
+          if (guild) { guild.recomputeLevel(); await guild.save(); }
+        }
+      }
+    } else {
+      participant.status = 'rejected';
+    }
+
     await task.save();
+    await task.populate([POPULATE_CREATED_BY, POPULATE_PARTICIPANTS, POPULATE_COMMENTS]);
     res.json(task);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Помилка на сервері');
+    console.error('reviewParticipant:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
+
+// ── ADD COMMENT ───────────────────────────────────────────────────────────────
+exports.addComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text?.trim()) return res.status(400).json({ msg: 'Коментар не може бути порожнім' });
+
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+
+    task.comments.push({ author: req.user.id, text: text.trim() });
+    await task.save();
+    await task.populate(POPULATE_COMMENTS);
+    res.json(task.comments[task.comments.length - 1]);
+  } catch (err) {
+    console.error('addComment:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+// ── DELETE COMMENT ────────────────────────────────────────────────────────────
+exports.deleteComment = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user.id;
+
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+
+    const comment = task.comments.id(commentId);
+    if (!comment) return res.status(404).json({ msg: 'Коментар не знайдено' });
+
+    const isOwner   = comment.author.toString() === userId;
+    const isCreator = task.createdBy.toString() === userId;
+    if (!isOwner && !isCreator) {
+      return res.status(403).json({ msg: 'Немає дозволу видалити цей коментар' });
+    }
+
+    task.comments.pull(commentId);
+    await task.save();
+    res.json({ msg: 'Коментар видалено', commentId });
+  } catch (err) {
+    console.error('deleteComment:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+// ── LIKE COMMENT ──────────────────────────────────────────────────────────────
+exports.likeComment = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user.id;
+
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+
+    const comment = task.comments.id(commentId);
+    if (!comment) return res.status(404).json({ msg: 'Коментар не знайдено' });
+
+    const likedIdx = comment.likes.findIndex(l => l.toString() === userId);
+    if (likedIdx > -1) {
+      comment.likes.splice(likedIdx, 1); // unlike
+    } else {
+      comment.likes.push(userId);        // like
+    }
+
+    await task.save();
+    res.json({ likes: comment.likes.length, liked: likedIdx === -1 });
+  } catch (err) {
+    console.error('likeComment:', err.message);
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+// ── GET MY TASKS ──────────────────────────────────────────────────────────────
 exports.getMyTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({
-      assignedTo: req.user.id,
-      status: 'in_progress'
-    }).sort({ createdAt: -1 });
+    const userId = req.user.id;
+    const tasks = await Task.find({ 'participants.user': userId })
+      .populate(POPULATE_CREATED_BY)
+      .sort({ createdAt: -1 });
     res.json(tasks);
   } catch (err) {
-    res.status(500).send('Помилка на сервері');
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
 
+// ── CLOSE TASK (creator only) ─────────────────────────────────────────────────
+exports.closeTask = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+    if (task.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ msg: 'Тільки автор може закрити завдання' });
+    }
+    task.status = 'closed';
+    await task.save();
+    res.json({ msg: 'Завдання закрито' });
+  } catch (err) {
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+// ── ADMIN: GET ALL ────────────────────────────────────────────────────────────
 exports.getAllTasksAdmin = async (req, res) => {
   try {
     const tasks = await Task.find({})
-                             .populate('createdBy', 'username')
-                             .populate('assignedTo', 'username')
-                             .sort({ createdAt: -1 });
+      .populate(POPULATE_CREATED_BY)
+      .populate(POPULATE_PARTICIPANTS)
+      .sort({ createdAt: -1 });
     res.json(tasks);
   } catch (err) {
-    res.status(500).send('Помилка на сервері');
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
 
+// ── ADMIN: UPDATE ─────────────────────────────────────────────────────────────
 exports.updateTask = async (req, res) => {
   try {
     const { title, description, category, points, status, endDate } = req.body;
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
 
-    task.title = title || task.title;
-    task.description = description || task.description;
-    task.category = category || task.category;
-    task.points = points !== undefined ? parseInt(points) : task.points;
-    task.status = status || task.status;
-    task.endDate = endDate || task.endDate;
+    if (title)       task.title       = title;
+    if (description) task.description = description;
+    if (category)    task.category    = category;
+    if (points)      task.points      = parseInt(points);
+    if (status)      task.status      = status;
+    if (endDate)     task.endDate     = endDate;
 
     await task.save();
     res.json(task);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Помилка на сервері');
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
 
+// ── ADMIN: DELETE ─────────────────────────────────────────────────────────────
 exports.deleteTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
-
     await Task.findByIdAndDelete(req.params.id);
     res.json({ msg: 'Завдання видалено' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Помилка на сервері');
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+// ── Legacy: claimTask / abandonTask (kept for compat) ────────────────────────
+exports.claimTask = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+    if (task.status === 'closed') return res.status(400).json({ msg: 'Завдання закрите' });
+
+    const already = task.participants.find(p => p.user.toString() === req.user.id);
+    if (already) return res.status(400).json({ msg: 'Ви вже берете участь' });
+
+    task.participants.push({ user: req.user.id, joinMode: 'solo', status: 'working' });
+    task.assignedTo = req.user.id;
+    if (task.status === 'open') task.status = 'in_progress';
+    await task.save();
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+exports.abandonTask = async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+
+    const idx = task.participants.findIndex(p => p.user.toString() === req.user.id);
+    if (idx > -1) task.participants.splice(idx, 1);
+
+    task.assignedTo    = null;
+    task.abandonReason = reason || '';
+    if (task.participants.length === 0) task.status = 'open';
+    await task.save();
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ msg: 'Помилка сервера' });
   }
 };

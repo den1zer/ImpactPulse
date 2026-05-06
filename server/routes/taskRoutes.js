@@ -1,54 +1,67 @@
 const express = require('express');
-const router = express.Router();
-const { body } = require('express-validator');
-const { validate } = require('../middleware/validation');
+const router  = express.Router();
 const { isAuthenticated, isAdmin } = require('../middleware/authMiddleware');
-const uploadMiddleware = require('../middleware/uploadMiddleware'); 
+const uploadMiddleware = require('../middleware/uploadMiddleware');
+
 const {
   createTask,
   getOpenTasks,
   getTaskById,
-  claimTask,
-  abandonTask,
+  joinTask,
+  leaveTask,
+  submitProof,
+  reviewParticipant,
+  addComment,
+  deleteComment,
+  likeComment,
   getMyTasks,
+  closeTask,
   getAllTasksAdmin,
   updateTask,
-  deleteTask
+  deleteTask,
+  claimTask,
+  abandonTask,
 } = require('../controllers/taskController');
 
+// ── Public ──────────────────────────────────────────────────────────────────
+router.get('/',             getOpenTasks);
+router.get('/my',           isAuthenticated, getMyTasks);
+router.get('/admin/all',    [isAuthenticated, isAdmin], getAllTasksAdmin);
+router.get('/:id',          getTaskById);
+
+// ── Create (any authenticated user) ─────────────────────────────────────────
 router.post(
-  '/', 
-  [ 
-    isAuthenticated, 
-    isAdmin, 
-    uploadMiddleware.single('taskFile'),
-    body('title', 'Назва є обов\'язковою').not().isEmpty(),
-    body('description', 'Опис є обов\'язковим').not().isEmpty(),
-    body('category', 'Категорія є обов\'язковою').isIn(['volunteering', 'aid', 'other']),
-    body('points', 'Бали мають бути числом').isInt({ gt: 0 }),
-    body('endDate').optional().isISO8601().withMessage('Дата має бути у форматі YYYY-MM-DD'),
-  ], 
-  validate,
+  '/',
+  [isAuthenticated, uploadMiddleware.single('taskFile')],
   createTask
 );
 
-router.get('/', getOpenTasks);
-router.get('/my', isAuthenticated, getMyTasks);
-router.get('/:id', getTaskById);
-router.put('/:id/claim', isAuthenticated, claimTask);
+// ── Participation ────────────────────────────────────────────────────────────
+router.post('/:id/join',    isAuthenticated, joinTask);
+router.post('/:id/leave',   isAuthenticated, leaveTask);
 
-router.put(
-  '/:id/abandon',
-  [
-    isAuthenticated,
-    body('reason', 'Причина є обов\'язковою').not().isEmpty()
-  ],
-  validate,
-  abandonTask
+// ── Proof submission ─────────────────────────────────────────────────────────
+router.post(
+  '/:id/submit-proof',
+  [isAuthenticated, uploadMiddleware.single('proofFile')],
+  submitProof
 );
 
-router.get('/admin/all', [isAuthenticated, isAdmin], getAllTasksAdmin);
-router.put('/:id/admin', [isAuthenticated, isAdmin], updateTask);
+// ── Creator review ───────────────────────────────────────────────────────────
+router.post('/:id/review',  isAuthenticated, reviewParticipant);
+router.post('/:id/close',   isAuthenticated, closeTask);
+
+// ── Comments ─────────────────────────────────────────────────────────────────
+router.post('/:id/comments',                    isAuthenticated, addComment);
+router.delete('/:id/comments/:commentId',        isAuthenticated, deleteComment);
+router.post('/:id/comments/:commentId/like',     isAuthenticated, likeComment);
+
+// ── Admin ────────────────────────────────────────────────────────────────────
+router.put('/:id/admin',    [isAuthenticated, isAdmin], updateTask);
 router.delete('/:id/admin', [isAuthenticated, isAdmin], deleteTask);
+
+// ── Legacy (backward compat) ─────────────────────────────────────────────────
+router.put('/:id/claim',    isAuthenticated, claimTask);
+router.put('/:id/abandon',  isAuthenticated, abandonTask);
 
 module.exports = router;
