@@ -5,7 +5,7 @@ import API_BASE_URL from '../config/api.js';
 import {
   FiGrid, FiAward, FiPlus, FiUser, FiLogOut,
   FiHelpCircle, FiBookOpen, FiDollarSign,
-  FiClipboard, FiMenu, FiX, FiChevronLeft,
+  FiClipboard, FiMenu, FiX, FiChevronLeft, FiShoppingBag
 } from 'react-icons/fi';
 
 /* ── Navigation items ─────────────────────────────── */
@@ -14,6 +14,7 @@ const NAV_MAIN = [
   { to: '/my-contributions', icon: <FiClipboard />, label: 'Мої заявки',    authOnly: true },
   { to: '/add-help',  icon: <FiPlus />,      label: 'Додати допомогу', authOnly: true },
   { to: '/rewards',   icon: <FiAward />,     label: 'Нагороди',      authOnly: true },
+  { to: '/shop',      icon: <FiShoppingBag />, label: 'Магазин',     authOnly: true },
   { to: '/fundraisers', icon: <FiDollarSign />, label: 'Збори',       alwaysVisible: true },
   { to: '/tasks',     icon: <FiClipboard />, label: 'Завдання',      alwaysVisible: true },
 ];

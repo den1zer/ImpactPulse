@@ -42,13 +42,17 @@ async function handleStreak(user) {
   user.streak.lastActivityDate = now;
 
   // Badge logic for streak
-  // E.g., if streak is 7 or 30 days, we could check and award them.
-  // For simplicity we just add xp right now, but a full badge check could be here
   if (user.streak.current === 7) {
-    user.xp = (user.xp || 0) + 100; // Bonus XP for 7 days
+    const oldXp = user.xp || 0;
+    user.xp = oldXp + 100; // Bonus XP for 7 days
+    const coinsToAdd = Math.floor(user.xp / 10) - Math.floor(oldXp / 10);
+    if (coinsToAdd > 0) user.coins = (user.coins || 0) + coinsToAdd;
     awardBadgeToUser(user, 'streak_7_days', 'Полум\'я', '🔥');
   } else if (user.streak.current === 30) {
-    user.xp = (user.xp || 0) + 500; // Bonus XP for 30 days
+    const oldXp = user.xp || 0;
+    user.xp = oldXp + 500; // Bonus XP for 30 days
+    const coinsToAdd = Math.floor(user.xp / 10) - Math.floor(oldXp / 10);
+    if (coinsToAdd > 0) user.coins = (user.coins || 0) + coinsToAdd;
     awardBadgeToUser(user, 'streak_30_days', 'Незламний', '🛡️');
   }
 
