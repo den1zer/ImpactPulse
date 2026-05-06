@@ -61,9 +61,16 @@ exports.claimRewards = async (req, res) => {
     }
 
     // Add XP and update level
-    user.xp = (user.xp || 0) + quest.xpReward;
+    const oldXp = user.xp || 0;
+    user.xp = oldXp + quest.xpReward;
     user.points = (user.points || 0) + quest.xpReward; 
     
+    // ImpactCoin reward: 1 coin per 10 XP
+    const coinsToAdd = Math.floor(user.xp / 10) - Math.floor(oldXp / 10);
+    if (coinsToAdd > 0) {
+      user.coins = (user.coins || 0) + coinsToAdd;
+    }
+
     updateUserLevel(user);
     await user.save();
 
@@ -81,6 +88,8 @@ exports.claimRewards = async (req, res) => {
       msg: 'Нагороду успішно отримано!', 
       xpAdded: quest.xpReward,
       currentXp: user.xp,
+      coinsAdded: coinsToAdd,
+      currentCoins: user.coins,
       level: user.level,
       dailyQuest
     });

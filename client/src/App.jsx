@@ -10,6 +10,7 @@ import AddHelpPage from './pages/AddHelpPage';
 import MyContributionsPage from './pages/MyContributionsPage';
 import ProfilePage from './pages/ProfilePage';
 import RewardsPage from './pages/RewardsPage';
+import ShopPage from './pages/ShopPage';
 import SupportPage from './pages/SupportPage'; 
 import InstructionsPage from './pages/InstructionsPage';
 import FundraisersPage from './pages/FundraisersPage';
@@ -59,6 +60,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/add-help" element={<ProtectedRoute><AddHelpPage /></ProtectedRoute>} /> 
           <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
+          <Route path="/shop" element={<ProtectedRoute><ShopPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
