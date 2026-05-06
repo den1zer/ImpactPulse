@@ -27,6 +27,7 @@ const LABELS = {
   '/instructions':     'Інструкція',
   '/support':          'Підтримка',
   '/admin/dashboard':  'Адмін-панель',
+  '/guilds':           'Гільдії',
 };
 
 const DashboardHeader = () => {

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Header from '../components/Header/Header';
-import { API_BASE_URL } from '../config/api';
+import AnimatedPage from '../components/AnimatedPage';
+import Sidebar from '../components/Sidebar';
+import DashboardHeader from '../components/DashboardHeader';
+import { FiTag, FiAward, FiImage } from 'react-icons/fi';
+import API_BASE_URL from '../config/api.js';
 import './ShopPage.css';
 
 const ShopPage = () => {
@@ -23,7 +26,7 @@ const ShopPage = () => {
     if (!token) return;
     try {
       const res = await axios.get(`${API_BASE_URL}/api/users/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 'x-auth-token': token }
       });
       setCoins(res.data.coins || 0);
     } catch (err) {
@@ -34,7 +37,7 @@ const ShopPage = () => {
   const fetchShopItems = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/shop`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 'x-auth-token': token }
       });
       // Filter out items that are out of stock
       const availableItems = res.data.filter(item => item.stock !== 0);
@@ -56,7 +59,7 @@ const ShopPage = () => {
     try {
       const res = await axios.post(`${API_BASE_URL}/api/shop/buy`, 
         { itemId: item._id },
-        { headers: { Authorization: `Bearer ${token}` }}
+        { headers: { 'x-auth-token': token } }
       );
       
       // Animate deduction
@@ -91,23 +94,29 @@ const ShopPage = () => {
   ];
 
   return (
-    <div className="shop-page-wrapper">
-      <Header />
-      <div className="shop-container">
-        
-        <header className="shop-header">
-          <div className="shop-title-section">
-            <h1>Impact Shop</h1>
-            <p>Обмінюйте ваші ImpactCoins на реальні винагороди та знижки від наших партнерів.</p>
-          </div>
-          <div className={`shop-balance ${animatingCoin ? 'pulse-deduct' : ''}`}>
-            <span className="balance-label">Ваш баланс:</span>
-            <div className="coin-display">
-              <span className="coin-amount">{coins}</span>
-              <img src="/impact-coin.svg" alt="ImpactCoin" className="coin-icon" onError={(e) => {e.target.onerror = null; e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v12m-3-6h6' stroke='%23B8860B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"}} />
+    <div className="dashboard-layout">
+      <Sidebar />
+      <main className="dashboard-main">
+        <DashboardHeader />
+        <AnimatedPage>
+          <div className="dashboard-content-wrapper">
+            <div className="dashboard-hero">
+              <div className="hero-summary-card">
+                <div>
+                  <p className="small-title">Impact Shop</p>
+                  <h2>Обмін балів на нагороди</h2>
+                  <p className="hero-description">Обмінюйте ваші ImpactCoins на реальні винагороди та знижки від партнерів.</p>
+                </div>
+                <div className={`shop-balance ${animatingCoin ? 'pulse-deduct' : ''}`}>
+                  <span className="balance-label">Ваш баланс:</span>
+                  <div className="coin-display">
+                    <span className="coin-amount">{coins}</span>
+                    <img src="/impact-coin.svg" alt="ImpactCoin" className="coin-icon" onError={(e) => {e.target.onerror = null; e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v12m-3-6h6' stroke='%23B8860B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"}} />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </header>
+
 
         <AnimatePresence>
           {purchaseMessage && (
@@ -137,7 +146,9 @@ const ShopPage = () => {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
                 <div className="card-image-placeholder">
-                  {item.type === 'partner_coupon' ? '🎫' : item.type === 'badge' ? '🏅' : '🖼️'}
+                  {item.type === 'partner_coupon' ? <FiTag size={48} color="var(--text-secondary)" /> : 
+                   item.type === 'badge' ? <FiAward size={48} color="var(--text-secondary)" /> : 
+                   <FiImage size={48} color="var(--text-secondary)" />}
                 </div>
                 <div className="card-content">
                   <div className="card-badge">{item.type === 'partner_coupon' ? 'Знижка' : 'Ексклюзив'}</div>
@@ -162,7 +173,9 @@ const ShopPage = () => {
             ))}
           </div>
         )}
-      </div>
+              </div>
+        </AnimatedPage>
+      </main>
     </div>
   );
 };

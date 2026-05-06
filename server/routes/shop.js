@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const shopController = require('../controllers/shopController');
-const { protect } = require('../middleware/auth');
+const { isAuthenticated } = require('../middleware/authMiddleware');
 
-router.get('/', protect, shopController.getAllItems);
-router.post('/buy', protect, shopController.buyItem);
+router.get('/', isAuthenticated, shopController.getAllItems);
+router.post('/buy', isAuthenticated, shopController.buyItem);
 
 module.exports = router;

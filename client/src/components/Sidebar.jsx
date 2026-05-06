@@ -3,9 +3,9 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../config/api.js';
 import {
-  FiGrid, FiAward, FiPlus, FiUser, FiLogOut,
+  FiGrid, FiAward, FiPlus, FiUser, FiLogOut, FiUsers,
   FiHelpCircle, FiBookOpen, FiDollarSign,
-  FiClipboard, FiMenu, FiX, FiChevronLeft, FiShoppingBag
+  FiClipboard, FiMenu, FiX, FiChevronLeft, FiShoppingBag, FiShield
 } from 'react-icons/fi';
 
 /* ── Navigation items ─────────────────────────────── */
@@ -15,8 +15,10 @@ const NAV_MAIN = [
   { to: '/add-help',  icon: <FiPlus />,      label: 'Додати допомогу', authOnly: true },
   { to: '/rewards',   icon: <FiAward />,     label: 'Нагороди',      authOnly: true },
   { to: '/shop',      icon: <FiShoppingBag />, label: 'Магазин',     authOnly: true },
+  { to: '/community', icon: <FiUsers />,     label: 'Ком\'юніті',     authOnly: true },
   { to: '/fundraisers', icon: <FiDollarSign />, label: 'Збори',       alwaysVisible: true },
   { to: '/tasks',     icon: <FiClipboard />, label: 'Завдання',      alwaysVisible: true },
+  { to: '/guilds',    icon: <FiShield />,    label: 'Гільдії',       authOnly: true },
 ];
 
 const NAV_BOTTOM = [
