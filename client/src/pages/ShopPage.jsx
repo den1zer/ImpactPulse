@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Header from '../components/Header/Header';
-import { API_BASE_URL } from '../config/api';
+import AnimatedPage from '../components/AnimatedPage';
+import Sidebar from '../components/Sidebar';
+import DashboardHeader from '../components/DashboardHeader';
+import API_BASE_URL from '../config/api.js';
 import './ShopPage.css';
 
 const ShopPage = () => {
@@ -23,7 +25,7 @@ const ShopPage = () => {
     if (!token) return;
     try {
       const res = await axios.get(`${API_BASE_URL}/api/users/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 'x-auth-token': token }
       });
       setCoins(res.data.coins || 0);
     } catch (err) {
@@ -34,7 +36,7 @@ const ShopPage = () => {
   const fetchShopItems = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/shop`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 'x-auth-token': token }
       });
       // Filter out items that are out of stock
       const availableItems = res.data.filter(item => item.stock !== 0);
@@ -56,7 +58,7 @@ const ShopPage = () => {
     try {
       const res = await axios.post(`${API_BASE_URL}/api/shop/buy`, 
         { itemId: item._id },
-        { headers: { Authorization: `Bearer ${token}` }}
+        { headers: { 'x-auth-token': token } }
       );
       
       // Animate deduction
@@ -91,11 +93,15 @@ const ShopPage = () => {
   ];
 
   return (
-    <div className="shop-page-wrapper">
-      <Header />
-      <div className="shop-container">
-        
-        <header className="shop-header">
+    <div className="dashboard-layout">
+      <Sidebar />
+      <main className="dashboard-main">
+        <DashboardHeader />
+        <AnimatedPage>
+          <div className="shop-page-wrapper">
+            <div className="shop-container">
+              
+              <header className="shop-header">
           <div className="shop-title-section">
             <h1>Impact Shop</h1>
             <p>Обмінюйте ваші ImpactCoins на реальні винагороди та знижки від наших партнерів.</p>
@@ -162,7 +168,10 @@ const ShopPage = () => {
             ))}
           </div>
         )}
-      </div>
+              </div>
+            </div>
+        </AnimatedPage>
+      </main>
     </div>
   );
 };
