@@ -132,15 +132,15 @@ const RewardsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
           >
-            <span className="rank">#{i + 1}</span>
-            <img src={u.avatar?.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`} alt="avatar" className="lb-avatar" />
-            <span className="lb-username">{u.profileCustomization?.nicknameIcon} {u.username}</span>
-            <span className="lb-score">
+            <span className="leaderboard-rank">#{i + 1}</span>
+            <img src={u.avatar?.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`} alt="avatar" className="leaderboard-avatar" />
+            <span className="leaderboard-name">{u.profileCustomization?.nicknameIcon} {u.username}</span>
+            <strong className="leaderboard-points">
               {activeTab === 'allTime' && `${u.points} балів`}
               {activeTab === 'weekly' && `${u.weeklyPoints?.amount || 0} балів`}
               {activeTab === 'donors' && `${u.stats?.totalDonations || 0} донатів`}
               {activeTab === 'streaks' && `${u.streak?.longest || 0} днів`}
-            </span>
+            </strong>
           </motion.div>
         ))}
       </div>
@@ -153,44 +153,58 @@ const RewardsPage = () => {
       <main className="dashboard-main">
         <DashboardHeader />
         <AnimatedPage>
-          <div className="rewards-container">
-            <h2>Центр Нагород</h2>
+          <div className="dashboard-content-wrapper">
+            <div className="dashboard-hero">
+              <div className="hero-summary-card">
+                <div>
+                  <p className="small-title">Центр нагород</p>
+                  <h2>Ваші досягнення та бейджі</h2>
+                  <p className="hero-description">Слідкуйте за своїм прогресом, виконуйте щоденні квести та колекціонуйте унікальні бейджі.</p>
+                </div>
+              </div>
+            </div>
             
             {user && (
               <>
-                <section className="level-section">
-                  <div className="level-header">
-                    <h3>{levelData.current.icon} {levelData.current.name} (Рівень {levelData.current.level})</h3>
-                    <span>{user.xp || user.points || 0} XP</span>
+                <section className="panel-card level-progress-card" style={{ marginBottom: '20px' }}>
+                  <div className="level-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <h3 style={{ margin: 0 }}>{levelData.current.icon} {levelData.current.name} (Рівень {levelData.current.level})</h3>
+                    <span style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{user.xp || user.points || 0} XP</span>
                   </div>
-                  <div className="xp-bar-container">
+                  <div className="progress-bar-container">
                     <motion.div 
-                      className="xp-bar-fill" 
+                      className="progress-bar-fill" 
                       initial={{ width: 0 }}
                       animate={{ width: `${levelData.progress}%` }}
                       transition={{ duration: 1, ease: 'easeOut' }}
                     ></motion.div>
                   </div>
                   {levelData.next && (
-                    <p className="xp-subtext">Залишилося {(levelData.next.threshold - (user.xp || user.points || 0))} XP до {levelData.next.name}</p>
+                    <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '10px' }}>Залишилося {(levelData.next.threshold - (user.xp || user.points || 0))} XP до {levelData.next.name}</p>
                   )}
                 </section>
 
-                <section className="quests-section">
-                  <h3>Щоденні Квести</h3>
-                  <div className="quests-grid">
+                <section className="panel-card quests-section" style={{ marginBottom: '20px' }}>
+                  <div className="panel-heading" style={{ marginBottom: '16px' }}>
+                    <h3>Щоденні Квести</h3>
+                    <p>Виконуйте завдання для отримання додаткового XP</p>
+                  </div>
+                  <div className="quests-grid-container">
                     {questsData?.quests?.map(quest => (
                       <motion.div key={quest._id} className="quest-card" whileHover={{ scale: 1.02 }}>
-                        <h4>{quest.type.toUpperCase()}</h4>
-                        <p>Нагорода: +{quest.xpReward} XP</p>
+                        <div className="quest-card-header">
+                          <h4>{quest.type.toUpperCase()}</h4>
+                          <span className="badge badge-accent">+{quest.xpReward} XP</span>
+                        </div>
                         <div className="quest-progress">
                           <span>{quest.current} / {quest.target}</span>
                           <progress value={quest.current} max={quest.target}></progress>
                         </div>
                         <button 
-                          className="claim-btn" 
+                          className={`btn ${quest.completed && !quest.claimed ? 'btn-primary' : 'btn-secondary'}`} 
                           disabled={!quest.completed || quest.claimed}
                           onClick={() => handleClaim(quest._id)}
+                          style={{ width: '100%', marginTop: '10px' }}
                         >
                           {quest.claimed ? 'Отримано' : (quest.completed ? 'Забрати нагороду' : 'В процесі')}
                         </button>
@@ -199,25 +213,31 @@ const RewardsPage = () => {
                   </div>
                 </section>
 
-                <section className="leaderboards-section">
-                  <h3>Таблиця Лідерів</h3>
-                  <div className="tabs">
-                    <button className={activeTab === 'allTime' ? 'active' : ''} onClick={() => setActiveTab('allTime')}>Всі часи</button>
-                    <button className={activeTab === 'weekly' ? 'active' : ''} onClick={() => setActiveTab('weekly')}>Тиждень</button>
-                    <button className={activeTab === 'donors' ? 'active' : ''} onClick={() => setActiveTab('donors')}>Донатери</button>
-                    <button className={activeTab === 'streaks' ? 'active' : ''} onClick={() => setActiveTab('streaks')}>Streaks</button>
-                  </div>
-                  {leaderboards && renderLeaderboardList()}
-                </section>
+                <div className="dashboard-grid">
+                  <section className="panel-card badges-section">
+                    <div className="panel-heading" style={{ marginBottom: '16px' }}>
+                      <h3>Колекція Бейджів</h3>
+                    </div>
+                    <div className="rewards-grid">
+                      {badges.map(def => (
+                        <BadgeDisplay key={def.id} user={user} badge={def} />
+                      ))}
+                    </div>
+                  </section>
 
-                <section className="badges-section">
-                  <h3>Колекція Бейджів</h3>
-                  <div className="rewards-grid">
-                    {badges.map(def => (
-                      <BadgeDisplay key={def.id} user={user} badge={def} />
-                    ))}
-                  </div>
-                </section>
+                  <section className="panel-card leaderboards-section">
+                    <div className="panel-heading" style={{ marginBottom: '16px' }}>
+                      <h3>Таблиця Лідерів</h3>
+                    </div>
+                    <div className="tabs" style={{ display: 'flex', gap: '4px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
+                      <button className={`btn btn-sm ${activeTab === 'allTime' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('allTime')}>Всі часи</button>
+                      <button className={`btn btn-sm ${activeTab === 'weekly' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('weekly')}>Тиждень</button>
+                      <button className={`btn btn-sm ${activeTab === 'donors' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('donors')}>Донати</button>
+                      <button className={`btn btn-sm ${activeTab === 'streaks' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('streaks')}>Streaks</button>
+                    </div>
+                    {leaderboards && renderLeaderboardList()}
+                  </section>
+                </div>
               </>
             )}
             

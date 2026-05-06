@@ -1,167 +1,168 @@
-/* RewardsPage.css — SaaS redesign */
+/* ════════════════════════════════
+   Rewards Page Styles
+   ════════════════════════════════ */
 
-.rewards-container {
-  max-width: 1000px;
+.quests-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
 }
 
-.rewards-header {
-  margin-bottom: 20px;
+.quest-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--t-fast), border-color var(--t-fast);
 }
 
-.rewards-header h2 {
-  font-size: 1rem;
+.quest-card:hover {
+  border-color: var(--accent);
+}
+
+.quest-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.quest-card-header h4 {
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 2px;
+  margin: 0;
 }
 
-.rewards-header p {
-  font-size: 0.83rem;
-  color: var(--text-muted);
+.quest-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: auto;
 }
 
-/* Rewards grid */
+.quest-progress span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: right;
+  font-weight: 600;
+}
+
+.quest-progress progress {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-raised);
+  overflow: hidden;
+  border: none;
+}
+
+.quest-progress progress::-webkit-progress-bar {
+  background: var(--bg-raised);
+}
+
+.quest-progress progress::-webkit-progress-value {
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+}
+
+/* ════════════════════════════════
+   Badges Grid (Compact)
+   ════════════════════════════════ */
 .rewards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   gap: 12px;
-  margin-bottom: 24px;
 }
 
-.reward-card {
-  padding: 18px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+.badge-card {
+  perspective: 1000px;
+  cursor: pointer;
+  aspect-ratio: 1; /* Perfect square */
+}
+
+.badge-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.badge-front, .badge-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
   text-align: center;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
   transition: border-color var(--t-fast);
 }
-.reward-card:hover { border-color: var(--border-medium); }
-.reward-card.unlocked { border-color: var(--accent); background: var(--accent-subtle); }
 
-.reward-icon { font-size: 2rem; margin-bottom: 8px; }
-
-.reward-name {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+.badge-card:hover .badge-front {
+  border-color: var(--accent);
 }
 
-.reward-description {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin-bottom: 10px;
+.badge-back {
+  transform: rotateY(180deg);
+  background: var(--bg-raised);
+  border-color: var(--accent);
 }
 
-.reward-points {
+.badge-locked {
+  opacity: 0.5;
+  filter: grayscale(100%);
+  border-style: dashed;
+}
+
+.badge-icon {
+  font-size: 2.2rem;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  line-height: 1;
+}
+
+.badge-name {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  padding: 3px 10px;
-  background: var(--accent-subtle);
-  border-radius: var(--radius-pill);
-  display: inline-block;
-  margin-bottom: 10px;
-}
-
-.reward-btn {
-  width: 100%;
-  padding: 7px 12px;
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-.reward-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
-.reward-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
-.reward-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* Leaderboard section */
-.rewards-section-title {
-  font-size: 0.88rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 12px;
+  margin: 0;
+  line-height: 1.2;
 }
 
-.rewards-leaderboard {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--border);
+.badge-description {
+  display: none; /* Hidden to keep compact */
 }
 
-.leaderboard-row {
-  display: grid;
-  grid-template-columns: 28px 36px 1fr auto;
-  gap: 10px;
-  align-items: center;
-  padding: 10px 14px;
-  background: var(--bg-surface);
-  transition: background var(--t-fast);
-}
-.leaderboard-row:hover { background: var(--bg-subtle); }
-.leaderboard-row.current-user { background: var(--accent-subtle); }
-
-.lb-rank   { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
-.lb-avatar { width: 32px; height: 32px; border-radius: var(--radius-md); object-fit: cover; }
-.lb-name   { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-points { font-size: 0.82rem; font-weight: 700; color: var(--accent); }
-
-/* Progress card */
-.level-progress-card {
-  padding: 18px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  margin-bottom: 16px;
+.badge-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 4px;
 }
 
-.level-progress-card h3 { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
-.level-info { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px; }
-.level-bar  { height: 6px; background: var(--bg-raised); border-radius: var(--radius-pill); overflow: hidden; margin-bottom: 6px; }
-.level-bar-fill { height: 100%; background: var(--accent); border-radius: var(--radius-pill); transition: width var(--t-slow); }
-.level-next { font-size: 0.78rem; color: var(--text-muted); }
-
-/* Quests */
-.quests-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--border);
-  margin-bottom: 24px;
-}
-
-.quest-item {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
-  padding: 12px 16px;
-  background: var(--bg-surface);
-  transition: background var(--t-fast);
-}
-.quest-item:hover { background: var(--bg-subtle); }
-.quest-item.completed { opacity: 0.6; }
-
-.quest-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
-.quest-desc  { font-size: 0.78rem; color: var(--text-muted); }
-.quest-reward { font-size: 0.8rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
-
-/* Mobile */
 @media (max-width: 768px) {
-  .rewards-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+  .quests-grid-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .rewards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+  }
+  
+  .badge-icon {
+    font-size: 1.8rem;
+  }
+  
+  .badge-name {
+    font-size: 0.65rem;
+  }
 }

@@ -98,22 +98,24 @@ const ShopPage = () => {
       <main className="dashboard-main">
         <DashboardHeader />
         <AnimatedPage>
-          <div className="shop-page-wrapper">
-            <div className="shop-container">
-              
-              <header className="shop-header">
-          <div className="shop-title-section">
-            <h1>Impact Shop</h1>
-            <p>Обмінюйте ваші ImpactCoins на реальні винагороди та знижки від наших партнерів.</p>
-          </div>
-          <div className={`shop-balance ${animatingCoin ? 'pulse-deduct' : ''}`}>
-            <span className="balance-label">Ваш баланс:</span>
-            <div className="coin-display">
-              <span className="coin-amount">{coins}</span>
-              <img src="/impact-coin.svg" alt="ImpactCoin" className="coin-icon" onError={(e) => {e.target.onerror = null; e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v12m-3-6h6' stroke='%23B8860B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"}} />
+          <div className="dashboard-content-wrapper">
+            <div className="dashboard-hero">
+              <div className="hero-summary-card">
+                <div>
+                  <p className="small-title">Impact Shop</p>
+                  <h2>Обмін балів на нагороди</h2>
+                  <p className="hero-description">Обмінюйте ваші ImpactCoins на реальні винагороди та знижки від партнерів.</p>
+                </div>
+                <div className={`shop-balance ${animatingCoin ? 'pulse-deduct' : ''}`}>
+                  <span className="balance-label">Ваш баланс:</span>
+                  <div className="coin-display">
+                    <span className="coin-amount">{coins}</span>
+                    <img src="/impact-coin.svg" alt="ImpactCoin" className="coin-icon" onError={(e) => {e.target.onerror = null; e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v12m-3-6h6' stroke='%23B8860B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"}} />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </header>
+
 
         <AnimatePresence>
           {purchaseMessage && (
@@ -169,7 +171,6 @@ const ShopPage = () => {
           </div>
         )}
               </div>
-            </div>
         </AnimatedPage>
       </main>
     </div>
