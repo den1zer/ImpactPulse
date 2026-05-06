@@ -1,5 +1,6 @@
 const DailyQuest = require('../models/DailyQuest');
 const User = require('../models/User');
+const Guild = require('../models/Guild');
 const { generateDailyQuests } = require('../utils/gameLogic');
 const { updateUserLevel } = require('../utils/levelSystem');
 
@@ -73,6 +74,9 @@ exports.claimRewards = async (req, res) => {
 
     updateUserLevel(user);
     await user.save();
+
+    // Guild XP aggregation — propagate quest XP to the user's guild
+    await Guild.addXPForUser(userId, quest.xpReward);
 
     // Mark specific quest as claimed
     quest.claimed = true;

@@ -2,6 +2,7 @@ const Contribution = require('../models/Contribution');
 const User = require('../models/User');
 const Badge = require('../models/Badge');
 const Task = require('../models/Task');
+const Guild = require('../models/Guild');
 const { handleStreak, updateDailyQuestProgress } = require('../utils/gameLogic');
 
 exports.addContribution = async (req, res) => {
@@ -135,6 +136,11 @@ exports.approveContribution = async (req, res) => {
     }
 
     await user.save();
+
+    // ── Guild XP aggregation ──
+    // pointsToAward XP is added to the user's guild (if any)
+    await Guild.addXPForUser(user._id, pointsToAward);
+
     res.json({ msg: 'Заявку схвалено, бали нараховано!' });
   } catch (err) {
     console.error(err.message);

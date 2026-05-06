@@ -21,6 +21,7 @@ import TaskDetailPage from './pages/TaskDetailPage';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import GuildsPage from './pages/GuildsPage';
 import Footer from './components/Footer/Footer';
 
 const ProtectedRoute = ({ children }) => {
@@ -75,6 +76,7 @@ function App() {
           <Route path="/fundraisers" element={<FundraisersPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/tasks/:id" element={<TaskDetailPage />} />
+          <Route path="/guilds" element={<ProtectedRoute><GuildsPage /></ProtectedRoute>} />
         </Routes>
       </AnimatePresence>
       <Footer />
