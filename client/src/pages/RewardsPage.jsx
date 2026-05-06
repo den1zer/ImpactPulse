@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import AnimatedPage from '../components/AnimatedPage';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -61,7 +62,39 @@ const BadgeDisplay = ({ user, badge }) => {
   );
 };
 
+const getQuestInfo = (quest) => {
+  const info = {
+    login: {
+      title: 'Вхід у додаток',
+      description: 'Зайдіть у додаток сьогодні',
+      link: '/dashboard'
+    },
+    donation: {
+      title: 'Зробити донат',
+      description: `Зробіть донат на будь-який збір (${quest.target} раз)`,
+      link: '/fundraisers'
+    },
+    volunteer: {
+      title: 'Волонтерство',
+      description: `Долучіться до волонтерської ініціативи (${quest.target} раз)`,
+      link: '/tasks'
+    },
+    comment: {
+      title: 'Спілкування',
+      description: `Залиште коментар під проєктом (${quest.target} раз)`,
+      link: '/tasks'
+    }
+  };
+
+  return info[quest.type] || { 
+    title: quest.type.toUpperCase(), 
+    description: `Виконайте завдання (${quest.target} раз)`,
+    link: '/dashboard'
+  };
+};
+
 const RewardsPage = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [questsData, setQuestsData] = useState(null);
   const [leaderboards, setLeaderboards] = useState(null);
@@ -190,26 +223,44 @@ const RewardsPage = () => {
                     <p>Виконуйте завдання для отримання додаткового XP</p>
                   </div>
                   <div className="quests-grid-container">
-                    {questsData?.quests?.map(quest => (
-                      <motion.div key={quest._id} className="quest-card" whileHover={{ scale: 1.02 }}>
-                        <div className="quest-card-header">
-                          <h4>{quest.type.toUpperCase()}</h4>
-                          <span className="badge badge-accent">+{quest.xpReward} XP</span>
-                        </div>
-                        <div className="quest-progress">
-                          <span>{quest.current} / {quest.target}</span>
-                          <progress value={quest.current} max={quest.target}></progress>
-                        </div>
+                    {questsData?.quests?.map(quest => {
+                      const questInfo = getQuestInfo(quest);
+                      return (
+                        <motion.div 
+                          key={quest._id} 
+                          className="quest-card" 
+                          whileHover={{ scale: 1.02 }}
+                          style={{ cursor: (!quest.completed && questInfo.link) ? 'pointer' : 'default' }}
+                          onClick={() => {
+                            if (!quest.completed && questInfo.link) {
+                              navigate(questInfo.link);
+                            }
+                          }}
+                        >
+                          <div className="quest-card-header">
+                            <h4>{questInfo.title}</h4>
+                            <span className="badge badge-accent">+{quest.xpReward} XP</span>
+                          </div>
+                          <p className="quest-description" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 12px 0' }}>
+                            {questInfo.description}
+                          </p>
+                          <div className="quest-progress">
+                            <span>{quest.current} / {quest.target}</span>
+                            <progress value={quest.current} max={quest.target}></progress>
+                          </div>
                         <button 
                           className={`btn ${quest.completed && !quest.claimed ? 'btn-primary' : 'btn-secondary'}`} 
                           disabled={!quest.completed || quest.claimed}
-                          onClick={() => handleClaim(quest._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleClaim(quest._id);
+                          }}
                           style={{ width: '100%', marginTop: '10px' }}
                         >
-                          {quest.claimed ? 'Отримано' : (quest.completed ? 'Забрати нагороду' : 'В процесі')}
+                          {quest.claimed ? 'Отримано' : (quest.completed ? 'Забрати нагороду' : 'Виконати')}
                         </button>
                       </motion.div>
-                    ))}
+                    )})}
                   </div>
                 </section>
 

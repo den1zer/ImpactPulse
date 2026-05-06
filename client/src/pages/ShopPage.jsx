@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
+import { FiTag, FiAward, FiImage } from 'react-icons/fi';
 import API_BASE_URL from '../config/api.js';
 import './ShopPage.css';
 
@@ -145,7 +146,9 @@ const ShopPage = () => {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
                 <div className="card-image-placeholder">
-                  {item.type === 'partner_coupon' ? '🎫' : item.type === 'badge' ? '🏅' : '🖼️'}
+                  {item.type === 'partner_coupon' ? <FiTag size={48} color="var(--text-secondary)" /> : 
+                   item.type === 'badge' ? <FiAward size={48} color="var(--text-secondary)" /> : 
+                   <FiImage size={48} color="var(--text-secondary)" />}
                 </div>
                 <div className="card-content">
                   <div className="card-badge">{item.type === 'partner_coupon' ? 'Знижка' : 'Ексклюзив'}</div>
