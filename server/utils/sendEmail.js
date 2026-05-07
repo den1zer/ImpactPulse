@@ -11,16 +11,21 @@ const sendEmail = async (options) => {
 
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
+    port: 587,
+    secure: false, // false for port 587
     auth: {
       user: emailUser,
       pass: emailPass,
     },
-    family: 4, // Force IPv4 to avoid connection issues on Render
-    connectionTimeout: 20000, // 20 seconds
-    greetingTimeout: 20000,
-    socketTimeout: 20000,
+    logger: true, // Log SMTP traffic to console
+    debug: true,  // Include debug output
+    tls: {
+      rejectUnauthorized: false, // Avoid certificate issues
+    },
+    family: 4, // Force IPv4
+    connectionTimeout: 30000, // 30 seconds
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
   });
 
   const message = {
