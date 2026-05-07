@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import authService from '../api/authService';
 
 const RegisterPage = () => {
-  const [formData, setFormData]   = useState({ username: '', email: '', password: '' });
+  const [formData, setFormData]   = useState({ 
+    username: '', 
+    email: '', 
+    password: '',
+    confirmPassword: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg]   = useState('');
   const [loading, setLoading]     = useState(false);
   const navigate = useNavigate();
-  const { username, email, password } = formData;
+  const { username, email, password, confirmPassword } = formData;
 
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -19,16 +27,32 @@ const RegisterPage = () => {
     navigate('/dashboard');
   };
 
+  const validatePassword = (pass) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d\s]).{8,}$/;
+    return regex.test(pass);
+  };
+
   const onSubmit = async e => {
     e.preventDefault();
     setErrorMsg(''); setSuccessMsg('');
+
+    if (password !== confirmPassword) {
+      setErrorMsg('Паролі не співпадають');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setErrorMsg('Пароль має бути мін. 8 символів, містити велику та малу літери, цифру та спецсимвол');
+      return;
+    }
+
     setLoading(true);
     try {
       await authService.register({ username, email, password });
       setSuccessMsg(
         'Реєстрацію завершено! Перевірте вашу пошту (та папку "Спам") для підтвердження акаунту.',
       );
-      setFormData({ username: '', email: '', password: '' });
+      setFormData({ username: '', email: '', password: '', confirmPassword: '' });
     } catch (error) {
       setErrorMsg('Помилка реєстрації: ' + (error.response?.data?.msg || 'Невідома помилка'));
     } finally {
@@ -101,17 +125,51 @@ const RegisterPage = () => {
 
             <div className="form-group">
               <label htmlFor="reg-password">Пароль</label>
-              <input
-                id="reg-password"
-                type="password"
-                name="password"
-                value={password}
-                onChange={onChange}
-                placeholder="мінімум 6 символів"
-                required
-                minLength="6"
-                autoComplete="new-password"
-              />
+              <div className="password-input-wrapper">
+                <input
+                  id="reg-password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={password}
+                  onChange={onChange}
+                  placeholder="мінімум 8 символів"
+                  required
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              <small style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '4px', display: 'block' }}>
+                Мінімум 8 символів: A-z, 0-9, !@#$%...
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="reg-confirm-password">Підтвердіть пароль</label>
+              <div className="password-input-wrapper">
+                <input
+                  id="reg-confirm-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={onChange}
+                  placeholder="повторіть пароль"
+                  required
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="auth-button" disabled={loading}>
