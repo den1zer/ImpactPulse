@@ -17,9 +17,10 @@ const sendEmail = async (options) => {
       user: emailUser,
       pass: emailPass,
     },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+    family: 4, // Force IPv4 to avoid connection issues on Render
+    connectionTimeout: 20000, // 20 seconds
+    greetingTimeout: 20000,
+    socketTimeout: 20000,
   });
 
   const message = {
