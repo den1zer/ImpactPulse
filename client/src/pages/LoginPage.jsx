@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import authService from '../api/authService';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
@@ -77,16 +79,26 @@ const LoginPage = () => {
 
             <div className="form-group">
               <label htmlFor="login-password">Пароль</label>
-              <input
-                id="login-password"
-                type="password"
-                name="password"
-                value={password}
-                onChange={onChange}
-                placeholder="••••••••"
-                required
-                autoComplete="current-password"
-              />
+              <div className="password-input-wrapper">
+                <input
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={password}
+                  onChange={onChange}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
 
             <Link to="/forgot-password" className="forgot-password-link">

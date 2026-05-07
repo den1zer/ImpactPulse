@@ -9,7 +9,8 @@ router.post(
   [
     body('username', 'Username є обов\'язковим').not().isEmpty(),
     body('email', 'Введіть коректний email').isEmail(),
-    body('password', 'Пароль має бути мін. 6 символів').isLength({ min: 6 }),
+    body('password', 'Пароль має бути мін. 8 символів, містити велику та малу літери, цифру та спецсимвол')
+      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d\s]).{8,}$/),
   ],
   validate,
   registerUser
@@ -39,7 +40,8 @@ router.post(
 router.post(
   '/reset-password/:token',
   [
-    body('password', 'Пароль має бути мін. 6 символів').isLength({ min: 6 }),
+    body('password', 'Пароль має бути мін. 8 символів, містити велику та малу літери, цифру та спецсимвол')
+      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/),
   ],
   validate,
   resetPassword

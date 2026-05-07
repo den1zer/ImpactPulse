@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import API_BASE_URL from '../config/api';
 
 const ResetPasswordPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const validatePassword = (pass) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d\s]).{8,}$/;
+    return regex.test(pass);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMessage('');
     setError('');
 
+    if (!validatePassword(password)) {
+      setError('Пароль має бути мін. 8 символів, містити велику та малу літери, цифру та спецсимвол');
+      return;
+    }
+
+    setLoading(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/api/auth/reset-password/${token}`, { password });
       setMessage(res.data.msg);
@@ -31,36 +43,52 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
-      <div className="bg-gray-800 p-8 rounded-xl shadow-2xl max-w-md w-full border border-gray-700">
-        <h2 className="text-3xl font-bold mb-6 text-indigo-400 text-center">Встановіть новий пароль</h2>
-        {message && <div className="mb-4 p-3 bg-green-900/50 border border-green-500 text-green-300 rounded">{message}</div>}
-        {error && <div className="mb-4 p-3 bg-red-900/50 border border-red-500 text-red-300 rounded">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-300 mb-1">Новий пароль (мін. 6 символів)</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength="6"
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
-              placeholder="Введіть новий пароль"
-            />
+    <div className="auth-page">
+      <div className="auth-main-container" style={{ maxWidth: '440px' }}>
+        <div className="auth-left-panel" style={{ flex: '1', padding: '40px' }}>
+          <h1 className="auth-title">Новий пароль</h1>
+          <p className="auth-subtitle">Встановіть надійний пароль для вашого акаунту</p>
+
+          {message && <div className="success-message">{message}</div>}
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="reset-password">Новий пароль</label>
+              <div className="password-input-wrapper">
+                <input
+                  id="reset-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Введіть новий пароль"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              <small style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>
+                Мінімум 8 символів: A-z, 0-9, !@#$%...
+              </small>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="auth-button"
+            >
+              {loading ? 'Збереження...' : 'Оновити пароль'}
+            </button>
+          </form>
+
+          <div className="auth-toggle" style={{ marginTop: '24px' }}>
+            <Link to="/login">Повернутись до логіну</Link>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Збереження...' : 'Оновити пароль'}
-          </button>
-        </form>
-        <div className="mt-6 text-center">
-          <Link to="/login" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-            Повернутись до логіну
-          </Link>
         </div>
       </div>
     </div>
@@ -68,3 +96,5 @@ const ResetPasswordPage = () => {
 };
 
 export default ResetPasswordPage;
+
+
