@@ -10,6 +10,34 @@ import { handleStreak, updateDailyQuestProgress } from '../utils/gameLogic.js';
 const router = express.Router();
 
 // POST /api/payment/create
+/**
+ * @swagger
+ * /api/payment/create:
+ *   post:
+ *     summary: Create a LiqPay payment for a fundraiser
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - collectionId
+ *             properties:
+ *               amount:
+ *                 type: number
+ *               collectionId:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Payment data and signature
+ */
 router.post('/create', isAuthenticated, async (req, res) => {
   try {
     const { amount, collectionId, description } = req.body;
@@ -37,6 +65,29 @@ router.post('/create', isAuthenticated, async (req, res) => {
 });
 
 // POST /api/payment/support-project
+/**
+ * @swagger
+ * /api/payment/support-project:
+ *   post:
+ *     summary: Create a LiqPay payment to support the project
+ *     tags: [Payment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *             properties:
+ *               amount:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Payment data and signature
+ */
 router.post('/support-project', async (req, res) => {
   try {
     const { amount, description } = req.body;
@@ -62,6 +113,16 @@ router.post('/support-project', async (req, res) => {
 });
 
 // POST /api/payment/callback
+/**
+ * @swagger
+ * /api/payment/callback:
+ *   post:
+ *     summary: LiqPay callback handler
+ *     tags: [Payment]
+ *     responses:
+ *       200:
+ *         description: Callback processed successfully
+ */
 router.post('/callback', async (req, res) => {
   try {
     const { data, signature } = req.body;

@@ -12,6 +12,18 @@ import {
   getMyContributions
 } from '../controllers/contributionController.js';
 
+/**
+ * @swagger
+ * /api/contributions/add:
+ *   post:
+ *     summary: Add a new contribution
+ *     tags: [Contributions]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Contribution added successfully
+ */
 router.post(
   '/add', 
   [ 
@@ -26,9 +38,72 @@ router.post(
   addContribution
 );
 
+/**
+ * @swagger
+ * /api/contributions/pending:
+ *   get:
+ *     summary: Get pending contributions (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of pending contributions
+ */
 router.get('/pending', [ isAuthenticated, isAdmin ], getPendingContributions);
+
+/**
+ * @swagger
+ * /api/contributions/approve/{id}:
+ *   put:
+ *     summary: Approve a contribution (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Contribution approved
+ */
 router.put('/approve/:id', [ isAuthenticated, isAdmin ], approveContribution);
+
+/**
+ * @swagger
+ * /api/contributions/reject/{id}:
+ *   put:
+ *     summary: Reject a contribution (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Contribution rejected
+ */
 router.put('/reject/:id', [ isAuthenticated, isAdmin ], rejectContribution);
+
+/**
+ * @swagger
+ * /api/contributions/my:
+ *   get:
+ *     summary: Get current user's contributions
+ *     tags: [Contributions]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user's contributions
+ */
 router.get('/my', isAuthenticated, getMyContributions);
 
 export default router;

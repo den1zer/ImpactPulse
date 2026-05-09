@@ -16,6 +16,10 @@ import shopRoutes from './routes/shop.js';
 import guildRoutes from './routes/guildRoutes.js';
 import paymentRoutes from './routes/payment.js';
 
+// Swagger
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
+
 // Load cron jobs
 import './cron/resetWeekly.js';
 
@@ -43,6 +47,7 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error('MongoDB connection error:', err));
 
 // --- ROUTES ---
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contributions', contributionRoutes);

@@ -10,6 +10,16 @@ import {
   getAllFeedback
 } from '../controllers/supportController.js';
 
+/**
+ * @swagger
+ * /api/support/ticket:
+ *   post:
+ *     summary: Create a support ticket
+ *     tags: [Support]
+ *     responses:
+ *       201:
+ *         description: Ticket created successfully
+ */
 router.post(
   '/ticket', 
   [
@@ -21,6 +31,18 @@ router.post(
   createTicket
 );
 
+/**
+ * @swagger
+ * /api/support/feedback:
+ *   post:
+ *     summary: Create feedback
+ *     tags: [Support]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Feedback created successfully
+ */
 router.post(
   '/feedback', 
   isAuthenticated,
@@ -31,7 +53,32 @@ router.post(
   createFeedback
 );
 
+/**
+ * @swagger
+ * /api/support/tickets:
+ *   get:
+ *     summary: Get all open tickets (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of open tickets
+ */
 router.get('/tickets', [isAuthenticated, isAdmin], getOpenTickets);
+
+/**
+ * @swagger
+ * /api/support/feedback:
+ *   get:
+ *     summary: Get all feedback (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all feedback
+ */
 router.get('/feedback', [isAuthenticated, isAdmin], getAllFeedback);
 
 export default router;
