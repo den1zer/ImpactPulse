@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router  = express.Router();
-const { isAuthenticated } = require('../middleware/authMiddleware');
-const {
+import { isAuthenticated } from '../middleware/authMiddleware.js';
+import {
   createGuild,
   joinGuild,
   leaveGuild,
@@ -9,7 +9,7 @@ const {
   getGuildById,
   getMyGuild,
   getGuildLeaderboard,
-} = require('../controllers/guildController');
+} from '../controllers/guildController.js';
 
 // Public routes (order matters: specific before dynamic)
 router.get('/',              getAllGuilds);
@@ -26,4 +26,5 @@ router.get('/:id',           getGuildById);
 router.post('/:id/join',     isAuthenticated, joinGuild);
 router.post('/:id/leave',    isAuthenticated, leaveGuild);
 
-module.exports = router;
+export default router;
+

@@ -1,4 +1,4 @@
-const LEVELS = [
+export const LEVELS = [
   { level: 1, name: 'Новобранець', threshold: 0 },
   { level: 2, name: 'Дослідник', threshold: 100 },
   { level: 3, name: 'Ентузіаст', threshold: 300 },
@@ -13,7 +13,7 @@ const LEVELS = [
  * @param {number} points - The user's points (XP).
  * @returns {Object} - Object containing current level details and progress to next level.
  */
-function calculateLevelData(points) {
+export function calculateLevelData(points) {
   let currentLevel = LEVELS[0];
   let nextLevel = LEVELS[1] || null;
 
@@ -51,7 +51,7 @@ function calculateLevelData(points) {
  * @param {Object} user - The mongoose user document.
  * @returns {boolean} - Returns true if the level changed, false otherwise.
  */
-function updateUserLevel(user) {
+export function updateUserLevel(user) {
   // Use xp if available, otherwise fallback to points (assuming we are transitioning or using them interchangeably)
   const experiencePoints = user.xp !== undefined ? user.xp : user.points;
   const levelData = calculateLevelData(experiencePoints);
@@ -63,8 +63,3 @@ function updateUserLevel(user) {
   return false;
 }
 
-module.exports = {
-  LEVELS,
-  calculateLevelData,
-  updateUserLevel
-};

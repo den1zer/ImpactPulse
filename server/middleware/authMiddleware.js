@@ -1,9 +1,10 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config(); 
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const User = require('../models/User');
+import User from '../models/User.js';
 
-const isAuthenticated = async (req, res, next) => {
+export const isAuthenticated = async (req, res, next) => {
   const token = req.header('x-auth-token');
 
   if (!token) {
@@ -26,12 +27,10 @@ const isAuthenticated = async (req, res, next) => {
   }
 };
 
-const isAdmin = (req, res, next) => {
+export const isAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
     res.status(403).json({ message: 'Доступ заборонено. Потрібні права адміна.' });
   }
 };
-
-module.exports = { isAuthenticated, isAdmin };

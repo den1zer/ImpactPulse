@@ -1,4 +1,4 @@
-const BADGE_DICTIONARY = [
+export const BADGE_DICTIONARY = [
   // POINTS
   { id: 'points_1', name: 'Новачок', description: 'Отримайте 500 балів', icon: '🥉', requirements: { points: 500 } },
   { id: 'points_2', name: 'Спеціаліст', description: 'Отримайте 1000 балів', icon: '🥈', requirements: { points: 1000 } },
@@ -44,4 +44,3 @@ const BADGE_DICTIONARY = [
   { id: 'first_rejection_1', name: 'Не здавайся!', description: 'Отримайте першу відмову', icon: '🤕', requirements: { totalRejections: 1 } },
 ];
 
-module.exports = { BADGE_DICTIONARY };

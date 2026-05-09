@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const QuestItemSchema = new mongoose.Schema({
   type: {
@@ -45,4 +45,6 @@ const DailyQuestSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('DailyQuest', DailyQuestSchema);
+const DailyQuest = mongoose.model('DailyQuest', DailyQuestSchema);
+export default DailyQuest;
+

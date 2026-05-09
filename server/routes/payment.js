@@ -3,10 +3,9 @@ import { generateLiqPayData, verifyLiqPaySignature, decodeLiqPayData } from '../
 import Donation from '../models/Donation.js';
 import Fundraiser from '../models/Fundraiser.js';
 import User from '../models/User.js';
-import authModule from '../middleware/authMiddleware.js';
-
-// Витягуємо isAuthenticated з CommonJS модуля
-const { isAuthenticated } = authModule;
+import { isAuthenticated } from '../middleware/authMiddleware.js';
+import { checkAndAwardBadges } from '../controllers/contributionController.js';
+import { handleStreak, updateDailyQuestProgress } from '../utils/gameLogic.js';
 
 const router = express.Router();
 
@@ -63,7 +62,6 @@ router.post('/support-project', async (req, res) => {
 });
 
 // POST /api/payment/callback
-
 router.post('/callback', async (req, res) => {
   try {
     const { data, signature } = req.body;
@@ -123,26 +121,9 @@ router.post('/callback', async (req, res) => {
               user.points += pointsToAward;
               
               try {
-                // Dynamically import CommonJS module
-                const contributionController = await import('../controllers/contributionController.js');
-                // Handle different ways Babel/Node might expose the export
-                const checkAndAwardBadges = contributionController.default?.checkAndAwardBadges || contributionController.checkAndAwardBadges;
-                
-                if (typeof checkAndAwardBadges === 'function') {
-                  await checkAndAwardBadges(user);
-                }
-
-                // Process streak and quest for donation
-                const gameLogic = await import('../utils/gameLogic.js');
-                const handleStreak = gameLogic.default?.handleStreak || gameLogic.handleStreak;
-                const updateDailyQuestProgress = gameLogic.default?.updateDailyQuestProgress || gameLogic.updateDailyQuestProgress;
-                
-                if (typeof handleStreak === 'function') {
-                  await handleStreak(user);
-                }
-                if (typeof updateDailyQuestProgress === 'function') {
-                  await updateDailyQuestProgress(user._id, 'donation', 1);
-                }
+                await checkAndAwardBadges(user);
+                await handleStreak(user);
+                await updateDailyQuestProgress(user._id, 'donation', 1);
 
                 // Badge: "Швидка реакція"
                 if (fundraiser && (Date.now() - new Date(fundraiser.createdAt).getTime() < 60 * 60 * 1000)) {
@@ -178,3 +159,4 @@ router.post('/callback', async (req, res) => {
 });
 
 export default router;
+

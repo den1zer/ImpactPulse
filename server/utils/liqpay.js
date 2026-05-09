@@ -1,6 +1,6 @@
-const crypto = require('crypto');
+import crypto from 'crypto';
 
-const generateLiqPayData = ({ amount, currency = 'UAH', description, orderId }) => {
+export const generateLiqPayData = ({ amount, currency = 'UAH', description, orderId }) => {
   const publicKey  = process.env.LIQPAY_PUBLIC_KEY;
   const privateKey = process.env.LIQPAY_PRIVATE_KEY;
 
@@ -31,7 +31,7 @@ const generateLiqPayData = ({ amount, currency = 'UAH', description, orderId }) 
   return { data, signature };
 };
 
-const verifyLiqPaySignature = (data, signature) => {
+export const verifyLiqPaySignature = (data, signature) => {
   const privateKey = process.env.LIQPAY_PRIVATE_KEY;
   const expected   = crypto
     .createHash('sha1')
@@ -40,9 +40,8 @@ const verifyLiqPaySignature = (data, signature) => {
   return expected === signature;
 };
 
-const decodeLiqPayData = (data) => {
+export const decodeLiqPayData = (data) => {
   const jsonString = Buffer.from(data, 'base64').toString('utf-8');
   return JSON.parse(jsonString);
 };
 
-module.exports = { generateLiqPayData, verifyLiqPaySignature, decodeLiqPayData };

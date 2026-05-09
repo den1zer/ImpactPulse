@@ -1,12 +1,12 @@
-const DailyQuest = require('../models/DailyQuest');
-const { updateUserLevel } = require('./levelSystem');
-const { BADGE_DICTIONARY } = require('../constants/badges');
+import DailyQuest from '../models/DailyQuest.js';
+import { updateUserLevel } from './levelSystem.js';
+import { BADGE_DICTIONARY } from '../constants/badges.js';
 
 /**
  * Handle user streak update
  * @param {Object} user - User document
  */
-async function handleStreak(user) {
+export async function handleStreak(user) {
   const now = new Date();
   
   if (!user.streak) {
@@ -77,7 +77,7 @@ function awardBadgeToUser(user, badgeId, name, icon) {
  * Generate daily quests for a user
  * @param {ObjectId} userId 
  */
-async function generateDailyQuests(userId) {
+export async function generateDailyQuests(userId) {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
@@ -113,7 +113,7 @@ async function generateDailyQuests(userId) {
  * @param {String} type - Quest type
  * @param {Number} amount - Amount to add to current progress
  */
-async function updateDailyQuestProgress(userId, type, amount = 1) {
+export async function updateDailyQuestProgress(userId, type, amount = 1) {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
@@ -140,8 +140,3 @@ async function updateDailyQuestProgress(userId, type, amount = 1) {
   return dailyQuest;
 }
 
-module.exports = {
-  handleStreak,
-  generateDailyQuests,
-  updateDailyQuestProgress
-};

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const DonationSchema = new mongoose.Schema({
   collectionId: {
@@ -28,4 +28,6 @@ const DonationSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Donation', DonationSchema);
+const Donation = mongoose.model('Donation', DonationSchema);
+export default Donation;
+

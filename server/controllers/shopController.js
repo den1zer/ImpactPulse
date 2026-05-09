@@ -1,7 +1,7 @@
-const RewardItem = require('../models/RewardItem');
-const User = require('../models/User');
+import RewardItem from '../models/RewardItem.js';
+import User from '../models/User.js';
 
-exports.getAllItems = async (req, res) => {
+export const getAllItems = async (req, res) => {
   try {
     const items = await RewardItem.find({ isActive: true });
     res.json(items);
@@ -11,7 +11,7 @@ exports.getAllItems = async (req, res) => {
   }
 };
 
-exports.buyItem = async (req, res) => {
+export const buyItem = async (req, res) => {
   try {
     const { itemId } = req.body;
     const userId = req.user.id;
@@ -86,3 +86,4 @@ exports.buyItem = async (req, res) => {
     res.status(500).json({ msg: 'Помилка сервера при покупці' });
   }
 };
+

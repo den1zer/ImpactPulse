@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // ── Comment sub-schema ─────────────────────────────────────────
 const CommentSchema = new mongoose.Schema({
@@ -79,4 +79,5 @@ TaskSchema.virtual('participantCount').get(function () {
 TaskSchema.set('toJSON',   { virtuals: true });
 TaskSchema.set('toObject', { virtuals: true });
 
-module.exports = mongoose.model('Task', TaskSchema);
+const Task = mongoose.model('Task', TaskSchema);
+export default Task;

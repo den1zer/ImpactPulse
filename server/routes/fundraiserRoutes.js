@@ -1,16 +1,16 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { body } = require('express-validator');
-const { validate } = require('../middleware/validation');
-const { isAuthenticated, isAdmin } = require('../middleware/authMiddleware');
-const {
+import { body } from 'express-validator';
+import { validate } from '../middleware/validation.js';
+import { isAuthenticated, isAdmin } from '../middleware/authMiddleware.js';
+import {
   createFundraiser,
   getAllFundraisers,
   simulateDonation,
   getAllFundraisersAdmin,
   updateFundraiser,
   deleteFundraiser
-} = require('../controllers/fundraiserController');
+} from '../controllers/fundraiserController.js';
 
 router.post(
   '/',
@@ -42,4 +42,4 @@ router.get('/admin/all', [isAuthenticated, isAdmin], getAllFundraisersAdmin);
 router.put('/:id/admin', [isAuthenticated, isAdmin], updateFundraiser);
 router.delete('/:id/admin', [isAuthenticated, isAdmin], deleteFundraiser);
 
-module.exports = router;
+export default router;

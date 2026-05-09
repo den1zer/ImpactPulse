@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const shopController = require('../controllers/shopController');
-const { isAuthenticated } = require('../middleware/authMiddleware');
+import * as shopController from '../controllers/shopController.js';
+import { isAuthenticated } from '../middleware/authMiddleware.js';
 
 router.get('/', isAuthenticated, shopController.getAllItems);
 router.post('/buy', isAuthenticated, shopController.buyItem);
 
-module.exports = router;
+export default router;
+

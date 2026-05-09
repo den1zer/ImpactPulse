@@ -1,7 +1,7 @@
-const Ticket = require('../models/Ticket');
-const Feedback = require('../models/Feedback');
+import Ticket from '../models/Ticket.js';
+import Feedback from '../models/Feedback.js';
 
-exports.createTicket = async (req, res) => {
+export const createTicket = async (req, res) => {
   try {
     const { name, phone, email, question } = req.body;
     
@@ -20,7 +20,7 @@ exports.createTicket = async (req, res) => {
   }
 };
 
-exports.createFeedback = async (req, res) => {
+export const createFeedback = async (req, res) => {
   try {
     const { rating, comment } = req.body;
     
@@ -37,7 +37,7 @@ exports.createFeedback = async (req, res) => {
   }
 };
 
-exports.getOpenTickets = async (req, res) => {
+export const getOpenTickets = async (req, res) => {
   try {
     const tickets = await Ticket.find({ status: 'open' })
                                  .populate('user', 'username')
@@ -47,7 +47,8 @@ exports.getOpenTickets = async (req, res) => {
     res.status(500).send('Помилка на сервері');
   }
 };
-exports.getAllFeedback = async (req, res) => {
+
+export const getAllFeedback = async (req, res) => {
   try {
     const feedback = await Feedback.find()
                                    .populate('user', 'username email') 

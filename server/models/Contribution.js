@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const ContributionSchema = new mongoose.Schema({
   user: {
@@ -56,4 +56,5 @@ const ContributionSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Contribution', ContributionSchema);
+const Contribution = mongoose.model('Contribution', ContributionSchema);
+export default Contribution;

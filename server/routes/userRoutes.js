@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { body } = require('express-validator');
-const { validate } = require('../middleware/validation');
-const { isAuthenticated, isAdmin } = require('../middleware/authMiddleware');
-const uploadMiddleware = require('../middleware/uploadMiddleware'); 
-const {
+import { body } from 'express-validator';
+import { validate } from '../middleware/validation.js';
+import { isAuthenticated, isAdmin } from '../middleware/authMiddleware.js';
+import uploadMiddleware from '../middleware/uploadMiddleware.js'; 
+import {
   getUserProfile,
   getAllUsers,
   updateUserRole,
@@ -18,9 +18,9 @@ const {
   getFriends,
   addFriend,
   removeFriend
-} = require('../controllers/userController');
+} from '../controllers/userController.js';
 
-const multer = require('multer');
+import multer from 'multer';
 const uploadMemory = multer({ storage: multer.memoryStorage() });
 
 router.get('/me', isAuthenticated, getUserProfile);
@@ -42,7 +42,6 @@ router.put(
 
 router.patch('/avatar', isAuthenticated, uploadMemory.single('avatar'), updateAvatar);
 
-
 router.get('/leaderboard', getLeaderboard);
 router.put('/selected-badge', isAuthenticated, updateSelectedBadge);
 router.get('/', [isAuthenticated, isAdmin], getAllUsers);
@@ -56,4 +55,5 @@ router.post('/friends/add/:id', isAuthenticated, addFriend);
 router.post('/friends/remove/:id', isAuthenticated, removeFriend);
 router.get('/profile/:id', isAuthenticated, getPublicProfile);
 
-module.exports = router;
+export default router;
+

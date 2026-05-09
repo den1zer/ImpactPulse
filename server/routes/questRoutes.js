@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { isAuthenticated } = require('../middleware/authMiddleware');
-const { getTodayQuests, claimRewards } = require('../controllers/questController');
+import { isAuthenticated } from '../middleware/authMiddleware.js';
+import { getTodayQuests, claimRewards } from '../controllers/questController.js';
 
 // GET /api/quests/daily
 router.get('/daily', isAuthenticated, getTodayQuests);
@@ -9,4 +9,5 @@ router.get('/daily', isAuthenticated, getTodayQuests);
 // POST /api/quests/claim
 router.post('/claim', isAuthenticated, claimRewards);
 
-module.exports = router;
+export default router;
+

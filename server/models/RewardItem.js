@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const RewardItemSchema = new mongoose.Schema({
   name: {
@@ -30,4 +30,6 @@ const RewardItemSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('RewardItem', RewardItemSchema);
+const RewardItem = mongoose.model('RewardItem', RewardItemSchema);
+export default RewardItem;
+

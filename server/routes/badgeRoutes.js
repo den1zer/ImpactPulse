@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { BADGE_DICTIONARY } = require('../constants/badges');
+import { BADGE_DICTIONARY } from '../constants/badges.js';
 
 // GET /api/badges
 router.get('/', (req, res) => {
@@ -12,4 +12,5 @@ router.get('/', (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
+

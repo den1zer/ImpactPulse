@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { body } = require('express-validator');
-const { validate } = require('../middleware/validation');
-const { isAuthenticated, isAdmin } = require('../middleware/authMiddleware');
-const { 
+import { body } from 'express-validator';
+import { validate } from '../middleware/validation.js';
+import { isAuthenticated, isAdmin } from '../middleware/authMiddleware.js';
+import { 
   createTicket, 
   createFeedback, 
   getOpenTickets,
   getAllFeedback
-} = require('../controllers/supportController');
+} from '../controllers/supportController.js';
 
 router.post(
   '/ticket', 
@@ -34,4 +34,4 @@ router.post(
 router.get('/tickets', [isAuthenticated, isAdmin], getOpenTickets);
 router.get('/feedback', [isAuthenticated, isAdmin], getAllFeedback);
 
-module.exports = router;
+export default router;

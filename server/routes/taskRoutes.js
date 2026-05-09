@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router  = express.Router();
-const { isAuthenticated, isAdmin } = require('../middleware/authMiddleware');
-const uploadMiddleware = require('../middleware/uploadMiddleware');
+import { isAuthenticated, isAdmin } from '../middleware/authMiddleware.js';
+import uploadMiddleware from '../middleware/uploadMiddleware.js';
 
-const {
+import {
   createTask,
   getOpenTasks,
   getTaskById,
@@ -21,7 +21,7 @@ const {
   deleteTask,
   claimTask,
   abandonTask,
-} = require('../controllers/taskController');
+} from '../controllers/taskController.js';
 
 // ── Public ──────────────────────────────────────────────────────────────────
 router.get('/',             getOpenTasks);
@@ -64,4 +64,5 @@ router.delete('/:id/admin', [isAuthenticated, isAdmin], deleteTask);
 router.put('/:id/claim',    isAuthenticated, claimTask);
 router.put('/:id/abandon',  isAuthenticated, abandonTask);
 
-module.exports = router;
+export default router;
+

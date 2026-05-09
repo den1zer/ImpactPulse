@@ -1,5 +1,5 @@
+import mongoose from 'mongoose';
 
-const mongoose = require('mongoose');
 const SkinSchema = new mongoose.Schema({
   skinId: { type: String, required: true, unique: true }, 
   name: { type: String, required: true }, 
@@ -7,4 +7,6 @@ const SkinSchema = new mongoose.Schema({
   cssClass: { type: String, required: true }, 
   unlockedByBadge: { type: String, required: true, unique: true } 
 });
-module.exports = mongoose.model('Skin', SkinSchema);
+
+const Skin = mongoose.model('Skin', SkinSchema);
+export default Skin;

@@ -1,11 +1,11 @@
-const Guild = require('../models/Guild');
-const User  = require('../models/User');
+import Guild from '../models/Guild.js';
+import User from '../models/User.js';
 
 const MAX_MEMBERS      = 20;
 const MIN_LEADER_XP   = 100;
 
 // ─── CREATE GUILD ──────────────────────────────────────────────────────────────
-exports.createGuild = async (req, res) => {
+export const createGuild = async (req, res) => {
   try {
     const { name, description, logo } = req.body;
     const userId = req.user.id;
@@ -56,7 +56,7 @@ exports.createGuild = async (req, res) => {
 };
 
 // ─── JOIN GUILD ────────────────────────────────────────────────────────────────
-exports.joinGuild = async (req, res) => {
+export const joinGuild = async (req, res) => {
   try {
     const userId  = req.user.id;
     const guildId = req.params.id;
@@ -93,7 +93,7 @@ exports.joinGuild = async (req, res) => {
 };
 
 // ─── LEAVE GUILD ───────────────────────────────────────────────────────────────
-exports.leaveGuild = async (req, res) => {
+export const leaveGuild = async (req, res) => {
   try {
     const userId  = req.user.id;
     const guildId = req.params.id;
@@ -130,7 +130,7 @@ exports.leaveGuild = async (req, res) => {
 };
 
 // ─── GET ALL GUILDS ────────────────────────────────────────────────────────────
-exports.getAllGuilds = async (req, res) => {
+export const getAllGuilds = async (req, res) => {
   try {
     const guilds = await Guild.find()
       .populate('leader', 'username avatar avatarUrl xp level')
@@ -143,7 +143,7 @@ exports.getAllGuilds = async (req, res) => {
 };
 
 // ─── GET GUILD BY ID ───────────────────────────────────────────────────────────
-exports.getGuildById = async (req, res) => {
+export const getGuildById = async (req, res) => {
   try {
     const guild = await Guild.findById(req.params.id)
       .populate('leader', 'username avatar avatarUrl xp level')
@@ -157,7 +157,7 @@ exports.getGuildById = async (req, res) => {
 };
 
 // ─── GET MY GUILD ──────────────────────────────────────────────────────────────
-exports.getMyGuild = async (req, res) => {
+export const getMyGuild = async (req, res) => {
   try {
     const guild = await Guild.findOne({ members: req.user.id })
       .populate('leader', 'username avatar avatarUrl xp level')
@@ -171,7 +171,7 @@ exports.getMyGuild = async (req, res) => {
 };
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
-exports.getGuildLeaderboard = async (req, res) => {
+export const getGuildLeaderboard = async (req, res) => {
   try {
     const guilds = await Guild.find()
       .populate('leader', 'username avatar avatarUrl')
@@ -197,3 +197,4 @@ exports.getGuildLeaderboard = async (req, res) => {
     res.status(500).json({ msg: 'Помилка на сервері' });
   }
 };
+

@@ -1,5 +1,6 @@
-const Skin = require('../models/Skin');
-exports.getAllSkins = async (req, res) => {
+import Skin from '../models/Skin.js';
+
+export const getAllSkins = async (req, res) => {
   try {
     const skins = await Skin.find();
     res.json(skins);

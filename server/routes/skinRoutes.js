@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { isAuthenticated } = require('../middleware/authMiddleware');
-const { getAllSkins } = require('../controllers/skinController');
+import { isAuthenticated } from '../middleware/authMiddleware.js';
+import { getAllSkins } from '../controllers/skinController.js';
 
 router.get('/', isAuthenticated, getAllSkins);
 
-module.exports = router;
+export default router;
