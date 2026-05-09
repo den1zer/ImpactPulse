@@ -1,31 +1,35 @@
 import nodemailer from 'nodemailer';
 
-const sendEmail = async (options) => {
+export const sendEmail = async (options) => {
   const emailUser = (process.env.EMAIL_USER || '').trim();
   const emailPass = (process.env.EMAIL_PASS || '').trim();
 
   if (!emailUser || !emailPass) {
-    console.error('Email credentials are missing in .env');
-    throw new Error('Email configuration error');
+    console.error('[SendEmail] ❌ EMAIL_USER або EMAIL_PASS відсутні в .env');
+    throw new Error('Email configuration error: credentials missing');
   }
+
+  console.log(`[SendEmail] 📡 Спроба підключення до smtp.gmail.com:587 (IPv4)...`);
 
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // false for port 587
+    secure: false,
     auth: {
       user: emailUser,
       pass: emailPass,
     },
-    logger: true, // Log SMTP traffic to console
-    debug: true,  // Include debug output
+    // ── Render-critical settings ──
+    family: 4,                  // Force IPv4 — fixes ENETUNREACH on Render
+    connectionTimeout: 10000,   // 10 s — fail fast if port blocked
+    greetingTimeout: 5000,      // 5 s  — don't wait forever for EHLO
+    socketTimeout: 15000,       // 15 s — overall socket idle timeout
+    // ── Diagnostics ──
+    logger: true,
+    debug: true,
     tls: {
-      rejectUnauthorized: false, // Avoid certificate issues
+      rejectUnauthorized: false,
     },
-    family: 4, // Force IPv4 (Fixes ENETUNREACH on Render)
-    connectionTimeout: 30000, // 30 seconds
-    greetingTimeout: 30000,
-    socketTimeout: 30000,
   });
 
   const message = {
@@ -36,14 +40,20 @@ const sendEmail = async (options) => {
   };
 
   try {
+    console.log(`[SendEmail] 📤 Відправка листа на ${options.email}...`);
     const info = await transporter.sendMail(message);
-    console.log('Message sent: %s', info.messageId);
+    console.log(`[SendEmail] ✅ Успіх! messageId=${info.messageId}`);
     return info;
   } catch (error) {
-    console.error('Nodemailer Error:', error);
+    console.error('[SendEmail] ❌ Помилка відправки:');
+    console.error('  ├─ name   :', error.name);
+    console.error('  ├─ message:', error.message);
+    console.error('  ├─ code   :', error.code);
+    console.error('  ├─ command:', error.command);
+    console.error('  └─ stack  :', error.stack);
     throw error;
   }
 };
 
+// Default export kept for backward-compatibility with any other importers
 export default sendEmail;
-

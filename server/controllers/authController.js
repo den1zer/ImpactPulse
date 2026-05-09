@@ -2,7 +2,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import sendEmail from '../utils/sendEmail.js';
+import { sendEmail } from '../utils/sendEmail.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -36,19 +36,21 @@ export const registerUser = async (req, res) => {
 
     let emailSent = true;
     try {
+      console.log(`[Register] Відправка verification email на ${user.email}...`);
       await sendEmail({
         email: user.email,
         subject: 'Підтвердження реєстрації на ImpactPulse',
         html: message,
       });
+      console.log(`[Register] ✅ Email відправлено успішно`);
     } catch (err) {
-      console.error('Помилка відправки email:', err);
+      console.error('[Register] ❌ Email НЕ відправлено:', err.message);
       emailSent = false;
     }
 
     if (!emailSent) {
       return res.status(201).json({ 
-        msg: 'Акаунт створено, але виникла помилка з відправкою листа. Спробуйте пізніше' 
+        msg: 'Акаунт створено, але лист не надійшов, зверніться в підтримку' 
       });
     }
 
@@ -137,18 +139,20 @@ export const forgotPassword = async (req, res) => {
     `;
 
     try {
+      console.log(`[ForgotPassword] Відправка reset email на ${user.email}...`);
       await sendEmail({
         email: user.email,
         subject: 'Скидання пароля на ImpactPulse',
         html: message,
       });
+      console.log(`[ForgotPassword] ✅ Email відправлено успішно`);
       res.status(200).json({ msg: 'Лист для скидання пароля відправлено' });
     } catch (err) {
-      console.error(err);
+      console.error('[ForgotPassword] ❌ Email НЕ відправлено:', err.message);
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
       await user.save();
-      res.status(500).json({ msg: 'Помилка відправки email' });
+      res.status(500).json({ msg: 'Помилка відправки email. Спробуйте пізніше або зверніться в підтримку.' });
     }
   } catch (err) {
     console.error(err);
