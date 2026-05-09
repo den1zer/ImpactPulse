@@ -1,41 +1,49 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-/**
- * Sends an email using Resend REST API
- * @param {Object} options - Email options
- * @param {string} options.email - Recipient email
- * @param {string} options.subject - Email subject
- * @param {string} options.html - HTML content
- */
 const sendEmail = async (options) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error('RESEND_API_KEY is missing in .env');
-    throw new Error('Email configuration error: Missing API Key');
+  const emailUser = (process.env.EMAIL_USER || '').trim();
+  const emailPass = (process.env.EMAIL_PASS || '').trim();
+
+  if (!emailUser || !emailPass) {
+    console.error('Email credentials are missing in .env');
+    throw new Error('Email configuration error');
   }
 
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // false for port 587
+    auth: {
+      user: emailUser,
+      pass: emailPass,
+    },
+    logger: true, // Log SMTP traffic to console
+    debug: true,  // Include debug output
+    tls: {
+      rejectUnauthorized: false, // Avoid certificate issues
+    },
+    family: 4, // Force IPv4 (Fixes ENETUNREACH on Render)
+    connectionTimeout: 30000, // 30 seconds
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
+  });
+
+  const message = {
+    from: `${process.env.FROM_NAME || 'ImpactPulse'} <${emailUser}>`,
+    to: options.email,
+    subject: options.subject,
+    html: options.html,
+  };
+
   try {
-    const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'ImpactPulse <onboarding@resend.dev>',
-      to: options.email,
-      subject: options.subject,
-      html: options.html,
-    });
-
-    if (error) {
-      console.error('Resend API Error:', error);
-      throw new Error(error.message);
-    }
-
-    console.log('Email sent successfully:', data.id);
-    return data;
+    const info = await transporter.sendMail(message);
+    console.log('Message sent: %s', info.messageId);
+    return info;
   } catch (error) {
-    console.error('Resend SDK Error:', error);
+    console.error('Nodemailer Error:', error);
     throw error;
   }
 };
 
 export default sendEmail;
-
 
