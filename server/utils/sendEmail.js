@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 const sendEmail = async (options) => {
   const emailUser = (process.env.EMAIL_USER || '').trim();
@@ -22,7 +22,7 @@ const sendEmail = async (options) => {
     tls: {
       rejectUnauthorized: false, // Avoid certificate issues
     },
-    family: 4, // Force IPv4
+    family: 4, // Force IPv4 (Fixes ENETUNREACH on Render)
     connectionTimeout: 30000, // 30 seconds
     greetingTimeout: 30000,
     socketTimeout: 30000,
@@ -45,4 +45,5 @@ const sendEmail = async (options) => {
   }
 };
 
-module.exports = sendEmail;
+export default sendEmail;
+

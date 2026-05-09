@@ -1,11 +1,12 @@
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const sendEmail = require('../utils/sendEmail');
-require('dotenv').config();
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import sendEmail from '../utils/sendEmail.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   const { username, email, password } = req.body;
   try {
     let user = await User.findOne({ email });
@@ -33,6 +34,7 @@ exports.registerUser = async (req, res) => {
       </div>
     `;
 
+    let emailSent = true;
     try {
       await sendEmail({
         email: user.email,
@@ -40,7 +42,14 @@ exports.registerUser = async (req, res) => {
         html: message,
       });
     } catch (err) {
-      console.error('Помилка відправки email', err);
+      console.error('Помилка відправки email:', err);
+      emailSent = false;
+    }
+
+    if (!emailSent) {
+      return res.status(201).json({ 
+        msg: 'Акаунт створено, але виникла помилка з відправкою листа. Спробуйте пізніше' 
+      });
     }
 
     res.status(201).json({ msg: 'Реєстрація успішна! На вашу пошту відправлено лист із посиланням для підтвердження. Будь ласка, перевірте скриньку (та папку Спам).' });
@@ -50,7 +59,7 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     let user = await User.findOne({ email }).select('+password');
@@ -87,7 +96,7 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-exports.verifyEmail = async (req, res) => {
+export const verifyEmail = async (req, res) => {
   try {
     const user = await User.findOne({ verificationToken: req.params.token });
     if (!user) {
@@ -103,7 +112,7 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-exports.forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
@@ -147,7 +156,7 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-exports.resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
   try {
     const user = await User.findOne({
       resetPasswordToken: req.params.token,

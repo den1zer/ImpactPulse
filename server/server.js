@@ -1,7 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,24 +28,27 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// --- ROUTES (ПІДКЛЮЧЕННЯ ВСІХ РОУТІВ) ---
-// Ось тут була проблема - деяких рядків не вистачало
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/userRoutes'));            // Фіксить /api/users/me 404
+// --- ROUTES ---
+// Using dynamic import for the newly converted auth route
+import authRoutes from './routes/auth.js';
+app.use('/api/auth', authRoutes);
+
+// Other routes still use require via createRequire
+app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/contributions', require('./routes/contributionRoutes'));
 app.use('/api/support', require('./routes/supportRoutes'));
 app.use('/api/fundraisers', require('./routes/fundraiserRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
-app.use('/api/skins', require('./routes/skinRoutes'));            // Фіксить /api/skins 404
-app.use('/api/badges', require('./routes/badgeRoutes'));          // Роут для бейджів
-app.use('/api/quests', require('./routes/questRoutes'));          // Роут для квестів
+app.use('/api/skins', require('./routes/skinRoutes'));
+app.use('/api/badges', require('./routes/badgeRoutes'));
+app.use('/api/quests', require('./routes/questRoutes'));
 app.use('/api/shop', require('./routes/shop'));
-app.use('/api/guilds', require('./routes/guildRoutes'));  // Гільдії (командний XP)
+app.use('/api/guilds', require('./routes/guildRoutes'));
 
 // --- CRON JOBS ---
 require('./cron/resetWeekly');
 
-// Підключення ES-модуля payment.js через динамічний import, оскільки весь проект на CommonJS
+// Dynamic import for payment router
 import('./routes/payment.js')
   .then((paymentRouter) => {
     app.use('/api/payment', paymentRouter.default);
