@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const EarnedBadgeSchema = new mongoose.Schema({
-  badgeId: { type: String, required: true }, 
-  level: { type: Number, required: true },   
-  name: { type: String, required: true },    
-  icon: { type: String, required: true },    
+  badgeId: { type: String, required: true },
+  level: { type: Number, required: true },
+  name: { type: String, required: true },
+  icon: { type: String, required: true },
   date: { type: Date, default: Date.now }
 });
 
@@ -73,7 +73,7 @@ const UserSchema = new mongoose.Schema({
 
   avatar: {
     type: String,
-    default: '', 
+    default: '',
   },
   avatarUrl: {
     type: String,
@@ -100,12 +100,12 @@ const UserSchema = new mongoose.Schema({
     totalDonations: { type: Number, default: 0 },
     totalVolunteering: { type: Number, default: 0 },
     totalAid: { type: Number, default: 0 },
-    profileComplete: { type: Boolean, default: false }, 
-    totalGeo: { type: Number, default: 0 },           
-    highRoller: { type: Boolean, default: false },     
+    profileComplete: { type: Boolean, default: false },
+    totalGeo: { type: Number, default: 0 },
+    highRoller: { type: Boolean, default: false },
     totalRejections: { type: Number, default: 0 }
   },
-  
+
   badges: [EarnedBadgeSchema],
 
   selectedBadge: {
@@ -122,10 +122,10 @@ const UserSchema = new mongoose.Schema({
   },
 
   rewards: [{
-    type: { type: String }, 
-    name: { type: String }, 
-    code: { type: String }, 
-    source: { type: String }, 
+    type: { type: String },
+    name: { type: String },
+    code: { type: String },
+    source: { type: String },
     date: { type: Date, default: Date.now }
   }],
 

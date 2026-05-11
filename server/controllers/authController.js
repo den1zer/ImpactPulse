@@ -49,8 +49,8 @@ export const registerUser = async (req, res) => {
     }
 
     if (!emailSent) {
-      return res.status(201).json({ 
-        msg: 'Акаунт створено, але лист не надійшов, зверніться в підтримку' 
+      return res.status(201).json({
+        msg: 'Акаунт створено, але лист не надійшов, зверніться в підтримку'
       });
     }
 
@@ -120,12 +120,12 @@ export const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({ msg: 'Користувача з таким email не знайдено' });
     }
-    
+
     const resetToken = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hr
     await user.save();
-    
+
     const clientUrl = req.headers.origin || process.env.FRONTEND_URL;
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
     const message = `
@@ -166,18 +166,18 @@ export const resetPassword = async (req, res) => {
       resetPasswordToken: req.params.token,
       resetPasswordExpire: { $gt: Date.now() }
     });
-    
+
     if (!user) {
       return res.status(400).json({ msg: 'Невірний токен або його термін дії минув' });
     }
-    
+
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(req.body.password, salt);
-    
+
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
-    
+
     res.status(200).json({ msg: 'Пароль успішно оновлено' });
   } catch (err) {
     console.error(err);
