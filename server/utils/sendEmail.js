@@ -48,8 +48,8 @@ const getTransporter = async () => {
 
     // ── Timeouts ─────────────────────────────────────────────────────────────
     connectionTimeout: 10_000,   // 10 s — fail fast if port 587 is blocked
-    greetingTimeout:  8_000,     // 8 s  — wait for EHLO/HELO
-    socketTimeout:    15_000,    // 15 s — idle socket timeout
+    greetingTimeout: 8_000,     // 8 s  — wait for EHLO/HELO
+    socketTimeout: 15_000,    // 15 s — idle socket timeout
 
     // ── TLS ──────────────────────────────────────────────────────────────────
     tls: {
@@ -58,7 +58,7 @@ const getTransporter = async () => {
 
     // ── Diagnostics (disable in production if logs are too noisy) ───────────
     logger: process.env.NODE_ENV !== 'production',
-    debug:  process.env.NODE_ENV !== 'production',
+    debug: process.env.NODE_ENV !== 'production',
   });
 
   // Verify connection before caching as singleton
@@ -95,13 +95,13 @@ export const sendEmail = async (options, retries = 2) => {
   }
 
   const emailUser = (process.env.EMAIL_USER || '').trim();
-  const fromName  = (process.env.FROM_NAME  || 'ImpactPulse').trim();
+  const fromName = (process.env.FROM_NAME || 'ImpactPulse').trim();
 
   const message = {
-    from:    `${fromName} <${emailUser}>`,
-    to:      email,
+    from: `${fromName} <${emailUser}>`,
+    to: email,
     subject: subject,
-    html:    html,
+    html: html,
   };
 
   let lastError;
@@ -133,7 +133,7 @@ export const sendEmail = async (options, retries = 2) => {
 
       // Reset singleton on connection-level errors so next attempt re-creates it
       const isConnectionError = ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET',
-                                  'ENETUNREACH', 'ENOTFOUND'].includes(err.code);
+        'ENETUNREACH', 'ENOTFOUND'].includes(err.code);
       if (isConnectionError) {
         console.warn('[SendEmail] ⚠️  Connection error detected — скидання транспорту для наступної спроби...');
         _transporter = null;

@@ -19,11 +19,13 @@ import questRoutes from './routes/questRoutes.js';
 import shopRoutes from './routes/shop.js';
 import guildRoutes from './routes/guildRoutes.js';
 import paymentRoutes from './routes/payment.js';
-
+import dns from 'node:dns';
 // Swagger
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
 
+// Примусово змушуємо Node.js спочатку шукати IPv4 адреси
+dns.setDefaultResultOrder('ipv4first');
 // Load cron jobs
 import './cron/resetWeekly.js';
 
