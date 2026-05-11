@@ -7,6 +7,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const registerUser = async (req, res) => {
+  console.log('--- REGISTER START ---');
+  console.log('[Register] Body:', JSON.stringify(req.body));
   const { username, email, password } = req.body;
   try {
     let user = await User.findOne({ email });
