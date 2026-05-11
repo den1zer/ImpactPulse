@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import dns from 'node:dns';
 
 // ─── Singleton transporter (pool re-uses connections) ────────────────────────
 let _transporter = null;
@@ -36,6 +37,9 @@ const getTransporter = async () => {
 
     // ── Render-critical: force IPv4 ──────────────────────────────────────────
     family: 4,               // Prevents ENETUNREACH on Render's dual-stack infra
+    lookup: (hostname, options, callback) => {
+      dns.lookup(hostname, { family: 4 }, callback);
+    },
 
     // ── Connection pooling ───────────────────────────────────────────────────
     pool: true,              // Re-use TCP connections — avoids repeated TLS handshakes

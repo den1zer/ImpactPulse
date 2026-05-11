@@ -2,6 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import dns from 'node:dns';
+
+// Примусово змушуємо Node.js спочатку шукати IPv4 адреси (критично для Render)
+dns.setDefaultResultOrder('ipv4first');
 
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/userRoutes.js';
