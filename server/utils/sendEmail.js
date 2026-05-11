@@ -1,3 +1,8 @@
+// ── THREE-LEVEL IPv6 PROTECTION ────────────────────────────────────────────
+// Level 1: dns.setDefaultResultOrder('ipv4first') → server.js (global)
+// Level 2: custom lookup() below              → surgical Nodemailer fix
+// Level 3: port 465 + secure:true             → bypasses firewall STARTTLS blocks
+// ────────────────────────────────────────────────────────────────────────────
 import nodemailer from 'nodemailer';
 import dns from 'node:dns';
 
@@ -20,15 +25,15 @@ const getTransporter = async () => {
   }
 
   console.log('[SendEmail] 🔧 Ініціалізація SMTP транспорту...');
-  console.log(`[SendEmail]    host    : smtp.gmail.com:587`);
+  console.log(`[SendEmail]    host    : smtp.gmail.com:465 (SSL)`);
   console.log(`[SendEmail]    user    : ${emailUser}`);
   console.log(`[SendEmail]    pool    : true`);
   console.log(`[SendEmail]    family  : 4 (IPv4 forced — required on Render)`);
 
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,           // STARTTLS on port 587
+    port: 465,
+    secure: true,            // Implicit TLS on port 465 (Level 3: bypasses STARTTLS firewall blocks)
 
     auth: {
       user: emailUser,
