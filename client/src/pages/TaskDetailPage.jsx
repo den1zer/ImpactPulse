@@ -9,8 +9,9 @@ import API_BASE_URL from '../config/api.js';
 import {
   FiUsers, FiZap, FiClock, FiTag, FiShield, FiCheck,
   FiX, FiSend, FiHeart, FiTrash2, FiMessageCircle,
-  FiUpload, FiChevronLeft, FiAlertCircle,
+  FiUpload, FiChevronLeft, FiAlertCircle, FiStar,
 } from 'react-icons/fi';
+import confetti from 'canvas-confetti';
 import '../styles/TasksPage.css';
 import './TaskDetailPage2.css';
 
@@ -154,6 +155,34 @@ const CommentItem = ({ comment, currentUserId, isCreator, taskId, onDelete, onLi
   );
 };
 
+// ── Success Overlay ───────────────────────────────────────────
+const SuccessOverlay = ({ onClose, points }) => (
+  <motion.div 
+    className="success-overlay"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    <motion.div 
+      className="success-card"
+      initial={{ scale: 0.8, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.8, y: 20 }}
+    >
+      <div className="success-icon-wrap">
+        <FiStar className="success-star-icon" />
+      </div>
+      <h2>Дякуємо за допомогу! 💙💛</h2>
+      <p>Ваш звіт успішно відправлено на перевірку. Автор завдання перегляне його найближчим часом.</p>
+      <div className="success-reward">
+        <span>Ви отримаєте</span>
+        <strong>+{points} XP</strong>
+      </div>
+      <button className="btn-primary" style={{ width: '100%' }} onClick={onClose}>Чудово!</button>
+    </motion.div>
+  </motion.div>
+);
+
 // ── Proof submit form ─────────────────────────────────────────
 const ProofForm = ({ taskId, onSubmitted }) => {
   const [text, setText] = useState('');
@@ -258,6 +287,7 @@ const TaskDetailPage = () => {
   const [comment, setComment]   = useState('');
   const [postingComment, setPostingComment] = useState(false);
   const [toast, setToast]       = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const commentsEndRef = useRef(null);
 
   const token      = localStorage.getItem('userToken');
@@ -291,7 +321,13 @@ const TaskDetailPage = () => {
   const handleJoin = async (mode = 'solo', guildId = null) => {
     try {
       if (mode === 'submit') {
-          showToast('Звіт відправлено на перевірку!');
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#6366f1', '#22c55e', '#facc15']
+          });
+          setShowSuccess(true);
       } else {
           await axios.post(`${API_BASE_URL}/api/tasks/${id}/join`,
             { joinMode: mode, guildId },
@@ -406,6 +442,15 @@ const TaskDetailPage = () => {
         <DashboardHeader />
         <AnimatedPage>
           <div className="dashboard-content-wrapper td2-wrapper">
+            <AnimatePresence>
+              {showSuccess && (
+                <SuccessOverlay 
+                  points={task?.points || 0} 
+                  onClose={() => setShowSuccess(false)} 
+                />
+              )}
+            </AnimatePresence>
+
             {/* ── Toast ── */}
             {toast && (
               <div 
