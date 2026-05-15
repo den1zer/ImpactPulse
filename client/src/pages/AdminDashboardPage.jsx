@@ -119,7 +119,7 @@ const PendingContributions = () => {
                   <td>{item.type}</td>
                   <td>{item.title}</td>
                   <td style={{ fontSize: '0.85em', color: '#999' }}>{new Date(item.createdAt).toLocaleDateString('uk-UA')}</td>
-                  <td><a href={`${API_BASE_URL}/${item.filePath}`} target="_blank" rel="noopener noreferrer" className="proof-link">Подивитись</a></td>
+                  <td>{item.filePath ? <a href={item.filePath.startsWith('http') ? item.filePath : `${API_BASE_URL}/${item.filePath}`} target="_blank" rel="noopener noreferrer" className="proof-link">Подивитись</a> : 'Немає'}</td>
                   <td>
                     <button className="action-btn approve" onClick={() => handleApprove(item._id)}>Схвалити</button>
                     <button className="action-btn reject" onClick={() => handleReject(item._id)}>Відхилити</button>

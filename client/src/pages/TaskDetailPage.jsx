@@ -78,7 +78,7 @@ const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
           <p className="td2-proof-label">Звіт:</p>
           <p className="td2-proof-text">{p.proofText}</p>
           {p.proofFile && (
-            <a className="td2-proof-link" href={`${API_BASE_URL}/${p.proofFile}`} target="_blank" rel="noreferrer">
+            <a className="td2-proof-link" href={p.proofFile.startsWith('http') ? p.proofFile : `${API_BASE_URL}/${p.proofFile}`} target="_blank" rel="noreferrer">
               📎 Файл підтвердження
             </a>
           )}
@@ -432,7 +432,7 @@ const TaskDetailPage = () => {
                   <h3 className="td2-section-title">📝 Опис</h3>
                   <p className="td2-description">{task.description}</p>
                   {task.filePath && (
-                    <a className="td2-attachment" href={`${API_BASE_URL}/${task.filePath}`} target="_blank" rel="noreferrer">
+                    <a className="td2-attachment" href={task.filePath.startsWith('http') ? task.filePath : `${API_BASE_URL}/${task.filePath}`} target="_blank" rel="noreferrer">
                       📎 Завантажити інструкцію
                     </a>
                   )}
