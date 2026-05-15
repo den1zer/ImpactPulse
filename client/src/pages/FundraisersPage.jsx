@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
@@ -7,36 +8,27 @@ import '../styles/Dashboard.css';
 import '../styles/FundraisersPage.css';
 import API_BASE_URL from '../config/api.js';
 
-// true під час `npm run dev`, false після `npm run build` (production)
 const IS_DEV = import.meta.env.DEV;
-
-/* ── Auth helpers ── */
 const getToken = () => localStorage.getItem('userToken') || localStorage.getItem('token') || '';
 const authHeaders = () => ({
   'x-auth-token': getToken(),
   'Authorization': `Bearer ${getToken()}`,
 });
 
-/* ── Payment sub-form ── */
 const DonationForm = ({ fundraiser, onDonation }) => {
-  const [amount, setAmount]     = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [success, setSuccess]   = useState('');
-  const [error, setError]       = useState('');
+  const [amount,  setAmount]  = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error,   setError]   = useState('');
 
   const handleSubmit = async e => {
     e.preventDefault();
-    setSuccess('');
-    setError('');
-
+    setSuccess(''); setError('');
     const num = Number(amount);
     if (!num || num <= 0) { setError('Вкажіть суму'); return; }
-
     setLoading(true);
     try {
       if (IS_DEV) {
-        // ── DEV MODE: call simulate endpoint directly ──
-        // This bypasses LiqPay completely and updates the DB right away
         const res = await axios.post(
           `${API_BASE_URL}/api/fundraisers/${fundraiser._id}/donate`,
           { amount: num },
@@ -44,37 +36,24 @@ const DonationForm = ({ fundraiser, onDonation }) => {
         );
         setSuccess(res.data.msg || `Дякуємо! Донат ${num} грн зараховано.`);
         setAmount('');
-        // Update progress bar immediately
         await onDonation();
       } else {
-        // ── PROD MODE: generate LiqPay form and redirect ──
         const res = await axios.post(
           `${API_BASE_URL}/api/payment/create`,
           { amount: num, collectionId: fundraiser._id, description: fundraiser.title },
           { headers: authHeaders() },
         );
         const { data, signature } = res.data;
-
         const form = document.createElement('form');
-        form.method        = 'POST';
-        form.action        = 'https://www.liqpay.ua/api/3/checkout';
-        form.acceptCharset = 'utf-8';
-        form.target        = '_blank';
-
+        form.method = 'POST'; form.action = 'https://www.liqpay.ua/api/3/checkout';
+        form.acceptCharset = 'utf-8'; form.target = '_blank';
         [['data', data], ['signature', signature]].forEach(([name, value]) => {
           const inp = document.createElement('input');
-          inp.type  = 'hidden';
-          inp.name  = name;
-          inp.value = value;
+          inp.type = 'hidden'; inp.name = name; inp.value = value;
           form.appendChild(inp);
         });
-
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
+        document.body.appendChild(form); form.submit(); document.body.removeChild(form);
         setAmount('');
-
-        // Poll every 5 s for up to 2 min waiting for LiqPay callback
         let tries = 0;
         const id = setInterval(async () => {
           tries++;
@@ -84,40 +63,28 @@ const DonationForm = ({ fundraiser, onDonation }) => {
       }
     } catch (err) {
       const status = err.response?.status;
-      const msg    = err.response?.data?.msg || err.response?.data?.error || err.message;
-
-      if (status === 401) {
-        setError('Сесія закінчилась. Будь ласка, увійдіть знову.');
-      } else if (status === 403) {
-        setError('Доступ заборонено. Перевірте чи підтверджено email.');
-      } else {
-        setError('Помилка: ' + msg);
-      }
+      const msg = err.response?.data?.msg || err.response?.data?.error || err.message;
+      if (status === 401) setError('Сесія закінчилась. Увійдіть знову.');
+      else if (status === 403) setError('Доступ заборонено. Перевірте чи підтверджено email.');
+      else setError('Помилка: ' + msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form className="fundraiser-form" onSubmit={handleSubmit}>
-      <div className="card-sep" />
-
-      {IS_DEV && (
-        <p className="fundraiser-dev-badge">🛠 Dev-режим: донат без LiqPay</p>
-      )}
-
-      {error   && <p className="fundraiser-error-msg">{error}</p>}
-      {success && <p className="fundraiser-success-msg">{success}</p>}
-
-      <div>
-        <label>Реквізити картки</label>
-        <input className="neumorph-input" type="text" value={fundraiser.cardNumber} disabled />
+    <form className="fr-donation-form" onSubmit={handleSubmit}>
+      {IS_DEV && <div className="fr-dev-badge">DEV — без LiqPay</div>}
+      {error   && <div className="fr-msg fr-msg-error">{error}</div>}
+      {success && <div className="fr-msg fr-msg-success">{success}</div>}
+      <div className="fr-input-group">
+        <label className="fr-label">Реквізити картки</label>
+        <input className="fr-input" type="text" value={fundraiser.cardNumber} disabled />
       </div>
-
-      <div>
-        <label>Сума (грн)</label>
+      <div className="fr-input-group">
+        <label className="fr-label">Сума (грн)</label>
         <input
-          className="neumorph-input"
+          className="fr-input"
           type="number"
           value={amount}
           onChange={e => setAmount(e.target.value)}
@@ -126,40 +93,34 @@ const DonationForm = ({ fundraiser, onDonation }) => {
           step="1"
         />
       </div>
-
-      <button type="submit" className="neumorph-button" disabled={loading}>
-        {loading ? 'Обробка…' : IS_DEV ? '⚡ Задонатити (тест)' : 'Підтримати →'}
+      <button type="submit" className="fr-donate-btn" disabled={loading}>
+        {loading ? 'Обробка...' : IS_DEV ? 'Задонатити (тест)' : 'Підтримати'}
       </button>
     </form>
   );
 };
 
-/* ── Animated progress bar ── */
 const ProgressBar = ({ collected, goal }) => {
   const pct = goal > 0 ? Math.min((collected / goal) * 100, 100) : 0;
   return (
-    <div>
-      <div className="progress-stats">
-        <span>Зібрано: <strong className="amount">{collected.toLocaleString('uk-UA')} грн</strong></span>
-        <span>Ціль: {goal.toLocaleString('uk-UA')} грн</span>
+    <div className="fr-progress-wrap">
+      <div className="fr-progress-stats">
+        <span className="fr-progress-collected">
+          {collected.toLocaleString('uk-UA')} грн
+        </span>
+        <span className="fr-progress-goal">з {goal.toLocaleString('uk-UA')} грн</span>
       </div>
-      <div className="progress-bar-container">
-        <div
-          className="progress-bar-fill"
-          style={{ width: `${pct.toFixed(1)}%` }}
-        />
+      <div className="fr-progress-bar">
+        <div className="fr-progress-fill" style={{ width: `${pct.toFixed(1)}%` }} />
       </div>
-      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
-        {pct.toFixed(1)}% від цілі
-      </div>
+      <div className="fr-progress-pct">{pct.toFixed(1)}% від цілі</div>
     </div>
   );
 };
 
-/* ── Main page ── */
 const FundraisersPage = () => {
   const [fundraisers, setFundraisers] = useState([]);
-  const [loading, setLoading]         = useState(true);
+  const [loading,     setLoading]     = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
   const isGuest = localStorage.getItem('userRole') === 'guest';
 
@@ -176,19 +137,14 @@ const FundraisersPage = () => {
     }
   }, []);
 
-  // Initial load
   useEffect(() => {
     setLoading(true);
     fetchFundraisers().finally(() => setLoading(false));
   }, [fetchFundraisers]);
 
-  // Auto-refresh when user returns to tab (after LiqPay redirect in prod)
   useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchFundraisers();
-    };
-    const onFocus = () => fetchFundraisers();
-
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchFundraisers(); };
+    const onFocus   = () => fetchFundraisers();
     document.addEventListener('visibilitychange', onVisible);
     window.addEventListener('focus', onFocus);
     return () => {
@@ -204,71 +160,72 @@ const FundraisersPage = () => {
         <DashboardHeader />
         <AnimatedPage>
           <div className="dashboard-content-wrapper">
-            <div className="fundraisers-container">
 
-              <div className="fundraisers-header">
-                <h2>
-                  Актуальні збори{' '}
-                  <span className="text-muted" style={{ fontWeight: 400 }}>
-                    ({fundraisers.length})
-                  </span>
-                </h2>
-                <button
-                  className="neumorph-button"
-                  style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                  onClick={fetchFundraisers}
-                  title="Оновити"
-                >
-                  ↻ Оновити
+            {/* Hero */}
+            <div className="fr-hero">
+              <div className="fr-hero-text">
+                <p className="small-title">ImpactPulse / Збори</p>
+                <h1>Актуальні збори</h1>
+                <p className="fr-hero-desc">
+                  Підтримайте ініціативи напряму. Кожен донат підтверджується та зараховується до вашого профілю.
+                </p>
+              </div>
+              <div className="fr-hero-right">
+                {lastUpdated && (
+                  <span className="fr-updated">Оновлено: {lastUpdated.toLocaleTimeString('uk-UA')}</span>
+                )}
+                <button className="fr-refresh-btn" onClick={fetchFundraisers} title="Оновити">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 4v6h6M23 20v-6h-6"/>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                  </svg>
+                  Оновити
                 </button>
               </div>
+            </div>
 
-              {lastUpdated && (
-                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-                  Оновлено: {lastUpdated.toLocaleTimeString('uk-UA')}
-                </p>
-              )}
-
-              {loading && <div className="fundraisers-empty">Завантаження…</div>}
-
-              {!loading && fundraisers.length === 0 && (
-                <div className="fundraisers-empty">Активних зборів немає.</div>
-              )}
-
-              {!loading && fundraisers.length > 0 && (
-                <div className="fundraisers-grid">
-                  {fundraisers.map(item => (
-                    <div key={item._id} className="fundraiser-card">
-                      <h3>{item.title}</h3>
-                      <p>{item.description}</p>
-                      <p className="fundraiser-date">
-                        📅 Стартував: {new Date(item.createdAt).toLocaleDateString('uk-UA')}
-                      </p>
-
-                      <ProgressBar
-                        collected={item.collectedAmount}
-                        goal={item.goalAmount}
-                      />
-
+            {loading ? (
+              <div className="fr-state">
+                <div className="guilds-spinner" />
+                <span>ЗАВАНТАЖЕННЯ...</span>
+              </div>
+            ) : fundraisers.length === 0 ? (
+              <div className="fr-state">Активних зборів немає.</div>
+            ) : (
+              <div className="fr-grid">
+                {fundraisers.map(item => (
+                  <div key={item._id} className="fr-card">
+                    <div className="fr-card-head">
+                      <Link to={`/fundraisers/${item._id}`} className="fr-card-title-link">
+                        <h3 className="fr-card-title">{item.title}</h3>
+                      </Link>
+                      <span className={`fr-card-status ${item.status === 'open' ? 'open' : 'closed'}`}>
+                        {item.status === 'open' ? 'Активний' : 'Закрито'}
+                      </span>
+                    </div>
+                    <p className="fr-card-desc">{item.description}</p>
+                    <p className="fr-card-date">
+                      Стартував: {new Date(item.createdAt).toLocaleDateString('uk-UA')}
+                    </p>
+                    <ProgressBar collected={item.collectedAmount} goal={item.goalAmount} />
+                    <div className="fr-card-footer">
                       {item.status === 'open' ? (
                         isGuest ? (
-                          <p className="fundraiser-guest-msg">Увійдіть, щоб підтримати збір.</p>
+                          <p className="fr-guest-msg">Увійдіть, щоб підтримати збір.</p>
                         ) : (
-                          <DonationForm
-                            fundraiser={item}
-                            onDonation={fetchFundraisers}
-                          />
+                          <DonationForm fundraiser={item} onDonation={fetchFundraisers} />
                         )
                       ) : (
-                        <p className="fundraiser-closed">
-                          ✓ Збір закрито — {new Date(item.updatedAt).toLocaleDateString('uk-UA')}
+                        <p className="fr-closed-msg">
+                          Збір закрито — {new Date(item.updatedAt).toLocaleDateString('uk-UA')}
                         </p>
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
           </div>
         </AnimatedPage>
       </main>

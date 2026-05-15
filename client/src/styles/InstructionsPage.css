@@ -1,173 +1,148 @@
-/* ════════════════════════════════
-   Instructions Page Styles
-   ════════════════════════════════ */
+/* ══════════════════════════════════════
+   InstructionsPage — Neo-Brutalism
+   Two-column: nav sidebar + content
+   ══════════════════════════════════════ */
 
+/* Hero */
+.instructions-hero {
+  padding: 28px 32px; background: var(--yellow);
+  border: var(--border); box-shadow: var(--shadow); margin-bottom: 24px;
+}
+.instructions-hero h2 {
+  font-size: 2rem; font-weight: 700; color: var(--black);
+  letter-spacing: -0.03em; margin-bottom: 6px;
+}
+.instructions-hero .hero-description {
+  font-size: 0.88rem; color: var(--black); opacity: 0.7; line-height: 1.6;
+}
+
+/* Two-column layout */
 .instructions-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  align-items: start;
 }
 
-@media (min-width: 768px) {
-  .instructions-layout {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-}
-
+/* Nav sidebar */
 .instructions-nav {
-  flex: 0 0 260px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background: var(--bg-surface); border: var(--border);
+  box-shadow: var(--shadow); display: flex; flex-direction: column;
+  overflow: hidden; position: sticky; top: calc(var(--topbar-h) + 16px);
 }
 
 .instruction-tab {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 16px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-align: left;
-  transition: all var(--t-fast);
-  cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; width: 100%; text-align: left;
+  border: none; border-bottom: var(--border-thin);
+  background: transparent; color: var(--black);
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: background var(--t); opacity: 0.65;
+  font-family: var(--font-sans);
 }
-
-.instruction-tab:hover {
-  background: var(--bg-subtle);
-  color: var(--text-primary);
-}
-
+.instruction-tab:last-child { border-bottom: none; }
+.instruction-tab:hover { background: var(--bg-subtle); opacity: 1; }
 .instruction-tab.active {
-  background: var(--accent-subtle);
-  color: var(--accent);
-  border-color: var(--accent-ring);
+  background: var(--yellow); opacity: 1; font-weight: 700;
+  border-bottom: var(--border-thin);
 }
 
 .tab-icon {
-  font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; flex-shrink: 0; color: var(--black);
 }
 
+/* Content area */
 .instructions-content {
-  flex: 1;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 32px;
-  min-height: 500px;
+  background: var(--bg-surface); border: var(--border);
+  box-shadow: var(--shadow); padding: 0; overflow: hidden;
 }
 
-.instruction-section {
-  animation: fadeIn 0.3s ease-out;
+.instruction-section { display: flex; flex-direction: column; }
+
+/* Section title */
+.instruction-section > h2 {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.8rem; font-weight: 700; color: var(--black);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  font-family: var(--font-mono); margin: 0;
+  padding: 18px 24px; border-bottom: var(--border);
+  background: var(--bg);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.instruction-section h2 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-medium);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
+/* Content blocks */
 .instruction-block {
-  margin-bottom: 24px;
+  padding: 24px; border-bottom: var(--border-thin);
 }
+.instruction-block:last-of-type { border-bottom: none; }
 
 .instruction-block h3 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 10px;
+  font-size: 0.88rem; font-weight: 700; color: var(--black);
+  margin-bottom: 10px; text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
-
 .instruction-block p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 12px;
+  font-size: 0.84rem; color: var(--black); opacity: 0.75;
+  line-height: 1.7; margin-bottom: 10px;
 }
+.instruction-block p:last-child { margin-bottom: 0; }
+.instruction-block strong { color: var(--black); opacity: 1; font-weight: 700; }
 
-.instruction-block ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 16px 0;
+/* Ordered list steps */
+.instruction-block ul, .instruction-block ol {
+  padding-left: 0; margin: 0; list-style: none;
+  display: flex; flex-direction: column; gap: 8px;
 }
-
 .instruction-block li {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 8px;
-  position: relative;
-  padding-left: 20px;
+  font-size: 0.82rem; color: var(--black); opacity: 0.75;
+  line-height: 1.6; padding: 10px 14px; border-left: 3px solid var(--yellow);
+  background: var(--bg);
 }
+.instruction-block li strong { opacity: 1; }
 
-.instruction-block li::before {
-  content: '•';
-  color: var(--accent);
-  font-weight: bold;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
+/* Status badges in list */
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 700;
-  margin-right: 8px;
-  text-transform: uppercase;
+  display: inline-flex; align-items: center;
+  font-size: 0.62rem; font-weight: 700; font-family: var(--font-mono);
+  padding: 2px 8px; border: 1px solid; margin-right: 8px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  vertical-align: middle;
 }
+.status-pending  { border-color: var(--status-progress); color: var(--status-progress); }
+.status-approved { border-color: var(--status-open); color: var(--status-open); }
+.status-rejected { border-color: var(--red); color: var(--red); }
 
-.status-pending { background: var(--warning-subtle); color: var(--warning); }
-.status-approved { background: var(--success-subtle); color: var(--success); }
-.status-rejected { background: var(--danger-subtle); color: var(--danger); }
-
+/* Pro tip box */
 .pro-tip {
-  display: flex;
-  gap: 12px;
-  background: var(--info-subtle);
-  border-left: 4px solid var(--info);
-  padding: 16px;
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  margin-top: 24px;
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 20px 24px;
+  background: var(--yellow); border-top: var(--border);
 }
-
 .pro-tip-icon {
-  color: var(--info);
-  font-size: 1.4rem;
+  width: 36px; height: 36px; border: var(--border); background: var(--black);
+  color: var(--bg-surface); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 1rem;
 }
-
 .pro-tip-content h4 {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  font-size: 0.82rem; font-weight: 700; color: var(--black);
+  margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.pro-tip-content p {
+  font-size: 0.8rem; color: var(--black); opacity: 0.8; line-height: 1.6; margin: 0;
 }
 
-.pro-tip-content p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin: 0;
+/* Mobile */
+@media (max-width: 900px) {
+  .instructions-layout { grid-template-columns: 1fr; }
+  .instructions-nav { position: static; flex-direction: row; flex-wrap: wrap; }
+  .instruction-tab { flex: 1 1 auto; min-width: 120px; border-bottom: none; border-right: var(--border-thin); }
+  .instruction-tab:last-child { border-right: none; }
+}
+@media (max-width: 600px) {
+  .instructions-hero { padding: 20px; }
+  .instructions-hero h2 { font-size: 1.4rem; }
+  .instruction-block { padding: 18px 16px; }
+  .instruction-section > h2 { padding: 14px 16px; }
+  .pro-tip { padding: 16px; }
+  .instruction-tab { font-size: 0.7rem; padding: 10px 12px; }
 }

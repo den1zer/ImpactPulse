@@ -60,7 +60,7 @@ const XPBar = ({ guild, large }) => {
 const CreateGuildModal = ({ onClose, onCreated, userXP }) => {
   const [name, setName]         = useState('');
   const [description, setDesc]  = useState('');
-  const [logo, setLogo]         = useState('⚔️');
+  const [logo, setLogo]         = useState('[SW]');
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const token = localStorage.getItem('userToken');
@@ -107,16 +107,17 @@ const CreateGuildModal = ({ onClose, onCreated, userXP }) => {
         <form onSubmit={handleSubmit} className="modal-form">
           {/* Emoji picker */}
           <div className="form-group">
-            <label>Логотип (emoji)</label>
+            <label>Символ гільдії</label>
             <div className="emoji-grid">
-              {EMOJI_OPTIONS.map((em) => (
+              {SYMBOL_OPTIONS.map((sym) => (
                 <button
                   type="button"
-                  key={em}
-                  className={`emoji-btn ${logo === em ? 'active' : ''}`}
-                  onClick={() => setLogo(em)}
+                  key={sym}
+                  className={`emoji-btn ${logo === sym ? 'active' : ''}`}
+                  onClick={() => setLogo(sym)}
+                  style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)', fontWeight: 700 }}
                 >
-                  {em}
+                  {sym}
                 </button>
               ))}
             </div>
@@ -183,7 +184,7 @@ const MyGuildCard = ({ guild, currentUserId, onLeave }) => {
           <div className="my-guild-title-row">
             <h2>{guild.name}</h2>
             <LevelBadge level={guild.level} />
-            {isLeader && <span className="leader-crown">👑 Лідер</span>}
+            {isLeader && <span className="leader-crown">ЛІДЕР</span>}
           </div>
           {guild.description && <p className="my-guild-desc">{guild.description}</p>}
         </div>
@@ -239,7 +240,9 @@ const MyGuildCard = ({ guild, currentUserId, onLeave }) => {
               </div>
               <span className="member-name">
                 {m.username}
-                {(m._id === guild.leader?._id || m._id === guild.leader) && ' 👑'}
+                {(m._id === guild.leader?._id || m._id === guild.leader) && (
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700, marginLeft: 4, background: 'var(--yellow)', padding: '1px 5px', border: '1px solid var(--black)' }}>ЛІДЕР</span>
+                )}
               </span>
               <span className="member-xp">{(m.xp ?? 0).toLocaleString()} XP</span>
             </div>
@@ -274,18 +277,20 @@ const GuildCard = ({ guild, rank, onJoin, inGuild }) => (
         <span><FiUsers /> {guild.memberCount ?? guild.members?.length ?? '?'}/20</span>
         <span><FiZap /> {(guild.totalXP ?? 0).toLocaleString()} XP</span>
         {guild.leader?.username && (
-          <span>👑 {guild.leader.username}</span>
+          <span>
+            <FiAward size={10} /> {guild.leader.username}
+          </span>
         )}
       </div>
       <XPBar guild={guild} />
     </div>
     {!inGuild && (
-      <button
+        <button
         className="join-btn"
         onClick={() => onJoin(guild._id)}
         id={`join-guild-${guild._id}`}
       >
-        Вступити <FiChevronRight />
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
       </button>
     )}
   </motion.div>
@@ -343,7 +348,7 @@ const GuildsPage = () => {
         {},
         { headers: { 'x-auth-token': token } }
       );
-      showToast('Ви успішно вступили в гільдію! 🎉');
+      showToast('Ви успішно вступили в гільдію!');
       fetchAll();
     } catch (err) {
       showToast(err.response?.data?.msg || 'Помилка вступу', 'error');
@@ -367,7 +372,7 @@ const GuildsPage = () => {
 
   const handleCreated = (guild) => {
     setShowCreate(false);
-    showToast(`Гільдія "${guild.name}" створена! ⚔️`);
+    showToast(`Гільдія "${guild.name}" створена!`);
     fetchAll();
   };
 

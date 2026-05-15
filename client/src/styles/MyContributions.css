@@ -1,127 +1,254 @@
-/* MyContributions.css — SaaS redesign */
+/* ══════════════════════════════════════
+   MyContributionsPage — Neo-Brutalism
+   ══════════════════════════════════════ */
 
-.contributions-container {
-  max-width: 1000px;
+/* Hero */
+.mc-hero {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 16px; padding: 28px 32px;
+  background: var(--bg-surface); border: var(--border); box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.mc-hero h1 {
+  font-size: 2rem; font-weight: 700; color: var(--black);
+  letter-spacing: -0.03em; margin-bottom: 6px;
+}
+.mc-hero-desc { font-size: 0.88rem; color: var(--black); opacity: 0.6; }
+
+/* Section */
+.mc-section {
+  background: var(--bg-surface); border: var(--border);
+  box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden;
 }
 
-.contributions-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+.mc-section-header {
+  padding: 18px 22px; border-bottom: var(--border);
+  background: var(--bg); display: flex; align-items: center;
+  flex-wrap: wrap; gap: 12px; justify-content: space-between;
 }
 
-.contributions-header h2 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
+.mc-section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.8rem; font-weight: 700; color: var(--black);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  font-family: var(--font-mono); margin: 0;
 }
 
-/* Filter row */
-.contributions-filter {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+.mc-count {
+  font-size: 0.65rem; background: var(--accent);
+  border: 1px solid var(--accent); color: var(--accent-text);
+  padding: 1px 8px; font-family: var(--font-mono);
 }
 
-/* Contributions list */
-.contributions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--border);
-}
+/* Filters */
+.mc-filters { display: flex; flex-wrap: wrap; gap: 6px; }
 
-.contribution-card {
-  padding: 14px 18px;
-  background: var(--bg-surface);
+.mc-filter-btn {
+  padding: 5px 14px; border: var(--border);
+  background: var(--bg-surface); color: var(--black);
+  font-size: 0.7rem; font-weight: 700; font-family: var(--font-mono);
+  cursor: pointer; transition: var(--t-shadow);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.mc-filter-btn:hover { background: var(--bg-subtle); }
+.mc-filter-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
+/* Tasks grid */
+.mc-tasks-grid {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px 16px;
-  align-items: center;
-  transition: background var(--t-fast);
-}
-.contribution-card:hover { background: var(--bg-subtle); }
-
-.contribution-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 2px;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 14px; padding: 18px 22px;
 }
 
-.contribution-meta {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  font-size: 0.78rem;
-  color: var(--text-muted);
+.mc-task-card {
+  border: var(--border); background: var(--bg);
+  padding: 16px; display: flex; flex-direction: column; gap: 10px;
+  box-shadow: var(--shadow-sm); transition: var(--t-shadow);
+  overflow: hidden; min-width: 0;
 }
+.mc-task-card:hover { transform: translate(2px, 2px); box-shadow: none; }
 
-.contribution-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.mc-task-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.mc-task-title {
+  font-size: 0.9rem; font-weight: 700; color: var(--black); margin: 0;
+  flex: 1;
+}
+.mc-task-pts {
+  font-size: 0.62rem; font-weight: 700;
+  background: var(--accent); color: var(--accent-text);
+  padding: 2px 8px; white-space: nowrap;
+  border: 1px solid var(--black); font-family: var(--font-mono);
   flex-shrink: 0;
 }
-
-/* Status badges */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.mc-task-desc {
+  font-size: 0.8rem; color: var(--black); opacity: 0.6; margin: 0;
+  line-height: 1.5; flex: 1;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
-.status-badge.approved { background: var(--success-subtle); color: var(--success); }
-.status-badge.pending  { background: var(--warning-subtle); color: var(--warning); }
-.status-badge.rejected { background: var(--danger-subtle);  color: var(--danger);  }
+.mc-task-link {
+  display: flex; align-items: center; gap: 6px; justify-content: center;
+  font-size: 0.72rem; font-weight: 700; font-family: var(--font-mono);
+  text-decoration: none; color: var(--black);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  border: var(--border); padding: 8px 12px;
+  background: var(--bg-surface); transition: var(--t-shadow);
+  box-shadow: var(--shadow-sm); width: 100%; box-sizing: border-box;
+}
+.mc-task-link:hover { transform: translate(2px, 2px); box-shadow: none; background: var(--accent); color: var(--accent-text); }
 
-/* Empty / Loading */
-.contributions-empty {
-  padding: 48px 24px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--bg-surface);
+/* Contributions list */
+.mc-contribs-list {
+  display: flex; flex-direction: column; gap: 0;
+  padding: 18px 22px; gap: 10px;
 }
 
-/* Action buttons inside list */
-.contribution-btn {
-  padding: 5px 12px;
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--t-fast);
+.mc-contrib-card {
+  display: flex; border: var(--border);
+  overflow: hidden; background: var(--bg-surface);
+  box-shadow: var(--shadow-sm); transition: var(--t-shadow);
 }
-.contribution-btn:hover  { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
-.contribution-btn.danger { color: var(--danger); border-color: rgba(239,68,68,0.2); }
-.contribution-btn.danger:hover { background: var(--danger-subtle); border-color: var(--danger); }
+.mc-contrib-card:hover { transform: translate(2px, 2px); box-shadow: none; }
 
-/* Mobile */
-@media (max-width: 768px) {
-  .contributions-filter { overflow-x: auto; flex-wrap: nowrap; }
-  .contribution-card {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 12px 14px;
-  }
-  .contribution-actions { flex-wrap: wrap; }
+.mc-contrib-bar { width: 5px; flex-shrink: 0; }
+.bar-pending  { background: var(--status-progress); }
+.bar-approved { background: var(--status-open); }
+.bar-rejected { background: var(--red); }
+
+.mc-contrib-body { flex: 1; padding: 14px 18px; }
+
+.mc-contrib-top {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 12px; margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.mc-contrib-title {
+  font-size: 0.9rem; font-weight: 700; color: var(--black); margin: 0; flex: 1;
+  min-width: 0;
+}
+.mc-contrib-badges { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+
+.mc-type-tag {
+  font-size: 0.62rem; font-weight: 700; font-family: var(--font-mono);
+  padding: 2px 8px; border: var(--border-thin);
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--black);
+}
+
+.mc-status-tag {
+  font-size: 0.62rem; font-weight: 700; font-family: var(--font-mono);
+  padding: 2px 8px; text-transform: uppercase; letter-spacing: 0.06em;
+  border: 1px solid;
+}
+.mc-status-tag.pending  { border-color: var(--status-progress); color: var(--status-progress); }
+.mc-status-tag.approved { border-color: var(--status-open); color: var(--status-open); }
+.mc-status-tag.rejected { border-color: var(--red); color: var(--red); }
+
+.mc-contrib-meta {
+  font-size: 0.65rem; color: var(--black); opacity: 0.5;
+  font-family: var(--font-mono); margin-bottom: 8px;
+}
+.mc-contrib-desc {
+  font-size: 0.8rem; color: var(--black); opacity: 0.65;
+  line-height: 1.5; margin-bottom: 6px;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+.mc-contrib-award {
+  font-size: 0.78rem; font-weight: 700; color: var(--status-open);
+  font-family: var(--font-mono);
+}
+.mc-rejection {
+  margin-top: 8px; padding: 8px 12px;
+  background: var(--bg); border-left: 3px solid var(--red);
+}
+.mc-rejection-label {
+  font-size: 0.62rem; font-weight: 700; font-family: var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--red);
+  display: block; margin-bottom: 4px;
+}
+.mc-rejection p { font-size: 0.8rem; color: var(--black); opacity: 0.7; margin: 0; }
+
+/* Pagination */
+.mc-pagination {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 16px 22px; border-top: var(--border);
+}
+.mc-page-btn {
+  min-width: 36px; height: 36px; border: var(--border);
+  background: var(--bg-surface); color: var(--black);
+  font-size: 0.78rem; font-weight: 700; font-family: var(--font-mono);
+  cursor: pointer; transition: var(--t-shadow);
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 8px;
+}
+.mc-page-btn:hover:not(:disabled) { background: var(--accent); color: var(--accent-text); }
+.mc-page-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.mc-page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Empty / loading */
+.mc-empty {
+  padding: 48px 22px; font-family: var(--font-mono); font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--black);
+  opacity: 0.4; text-align: center;
+}
+.mc-loading {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 80px; font-family: var(--font-mono); font-size: 0.78rem;
+  text-transform: uppercase; color: var(--black); opacity: 0.4;
+}
+
+/* ════════════════ MOBILE ════════════════ */
+
+/* Tablet */
+@media (max-width: 900px) {
+  .mc-tasks-grid { grid-template-columns: 1fr 1fr; }
+  .mc-section-header { flex-direction: column; align-items: flex-start; }
+  .mc-filters { width: 100%; }
+}
+
+/* Phone */
+@media (max-width: 640px) {
+  /* Hero */
+  .mc-hero { flex-direction: column; padding: 16px; gap: 10px; margin-bottom: 14px; }
+  .mc-hero h1 { font-size: 1.4rem; }
+  .mc-hero-desc { font-size: 0.8rem; }
+
+  /* Section header */
+  .mc-section-header { padding: 12px 14px; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .mc-section-title  { font-size: 0.72rem; }
+  .mc-filters        { width: 100%; gap: 5px; }
+  .mc-filter-btn     { padding: 5px 10px; font-size: 0.65rem; flex: 1 1 auto; text-align: center; }
+
+  /* Tasks grid — single column */
+  .mc-tasks-grid { grid-template-columns: 1fr; padding: 12px; gap: 10px; }
+
+  /* Task card — full overflow control */
+  .mc-task-card { padding: 12px; gap: 8px; overflow: hidden; }
+  .mc-task-top  { align-items: flex-start; min-width: 0; }
+  .mc-task-title { font-size: 0.85rem; white-space: normal; word-break: break-word; }
+  .mc-task-pts   { font-size: 0.58rem; flex-shrink: 0; }
+  .mc-task-link  { font-size: 0.65rem; padding: 8px 10px; justify-content: center; }
+
+  /* Contributions list */
+  .mc-contribs-list { padding: 12px; gap: 8px; }
+
+  /* Contribution card */
+  .mc-contrib-body  { padding: 10px 12px; }
+  .mc-contrib-top   { flex-direction: column; gap: 6px; }
+  .mc-contrib-title { font-size: 0.85rem; }
+  .mc-contrib-badges { width: 100%; }
+  .mc-type-tag, .mc-status-tag { font-size: 0.58rem; }
+  .mc-contrib-meta  { font-size: 0.58rem; }
+  .mc-contrib-desc  { font-size: 0.78rem; -webkit-line-clamp: 2; }
+
+  /* Pagination */
+  .mc-pagination { padding: 12px; gap: 3px; }
+  .mc-page-btn   { min-width: 32px; height: 32px; font-size: 0.7rem; }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .mc-hero h1 { font-size: 1.2rem; }
+  .mc-filter-btn { padding: 4px 8px; font-size: 0.6rem; }
+  .mc-contrib-badges { flex-direction: column; }
 }

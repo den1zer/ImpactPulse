@@ -4,100 +4,100 @@ import axios from 'axios';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
-import { FiSearch, FiUsers, FiUserMinus, FiMapPin } from 'react-icons/fi';
+import { FiSearch, FiUsers, FiUserMinus, FiMapPin, FiX } from 'react-icons/fi';
 import API_BASE_URL from '../config/api.js';
 import '../styles/Dashboard.css';
+import '../styles/CommunityPage.css';
+
+const FRAME_BORDERS = {
+  gold:    '2px solid #FFD700',
+  neon:    '2px solid #00ffcc',
+  fire:    '2px solid #ff4500',
+  silver:  '2px solid #a8b2c0',
+  diamond: '2px solid #00bfff',
+};
+
+const UserCard = ({ user, isFriendSection, onRemove }) => {
+  const frame = user.profileCustomization?.avatarFrame;
+  const border = FRAME_BORDERS[frame] || 'var(--border)';
+
+  return (
+    <div className="comm-user-card">
+      <Link to={`/user/${user._id}`} className="comm-user-link">
+        <img
+          src={user.avatarUrl || '/default-avatar.svg'}
+          alt={user.username}
+          className="comm-user-avatar"
+          style={{ border }}
+        />
+        <div className="comm-user-info">
+          <span className="comm-user-name">
+            {user.username}
+            {user.profileCustomization?.nicknameIcon && (
+              <span className="comm-user-icon"> {user.profileCustomization.nicknameIcon}</span>
+            )}
+          </span>
+          <div className="comm-user-meta">
+            <span>Рівень {user.level || 1}</span>
+            {user.city && (
+              <span className="comm-user-city">
+                <FiMapPin size={10} /> {user.city}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+      {isFriendSection && (
+        <button
+          className="comm-remove-btn"
+          onClick={onRemove}
+          title="Видалити з друзів"
+        >
+          <FiX size={14} />
+        </button>
+      )}
+    </div>
+  );
+};
 
 const CommunityPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery,   setSearchQuery]   = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [friends, setFriends] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
+  const [friends,       setFriends]       = useState([]);
+  const [loading,       setLoading]       = useState(false);
   const token = localStorage.getItem('userToken');
 
-  useEffect(() => {
-    fetchFriends();
-  }, []);
+  useEffect(() => { fetchFriends(); }, []);
 
   const fetchFriends = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/users/friends`, {
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token },
       });
       setFriends(res.data);
-    } catch (err) {
-      console.error('Error fetching friends', err);
-    }
+    } catch (err) { console.error(err); }
   };
 
-  const handleSearch = async (e) => {
+  const handleSearch = async e => {
     e.preventDefault();
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    
+    if (!searchQuery.trim()) { setSearchResults([]); return; }
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/api/users/search?q=${searchQuery}`, {
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token },
       });
       setSearchResults(res.data);
-    } catch (err) {
-      console.error('Error searching users', err);
-    }
+    } catch (err) { console.error(err); }
     setLoading(false);
   };
 
-  const handleRemoveFriend = async (id, e) => {
-    e.preventDefault(); // prevent navigation
+  const handleRemoveFriend = async (id) => {
     try {
       await axios.post(`${API_BASE_URL}/api/users/friends/remove/${id}`, {}, {
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token },
       });
       setFriends(friends.filter(f => f._id !== id));
-    } catch (err) {
-      console.error('Error removing friend', err);
-    }
-  };
-
-  const UserCard = ({ user, isFriendSection }) => {
-    const border = user.profileCustomization?.avatarFrame === 'gold' ? '2px solid #FFD700' :
-                   user.profileCustomization?.avatarFrame === 'neon' ? '2px solid #00FF00' :
-                   user.profileCustomization?.avatarFrame === 'fire' ? '2px solid #FF4500' : '2px solid transparent';
-    
-    return (
-      <Link to={`/user/${user._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', transition: 'all 0.2s' }} className="panel-card-hover">
-          <img 
-            src={user.avatarUrl || '/default-avatar.svg'} 
-            alt={user.username} 
-            style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border }} 
-          />
-          <div style={{ flex: 1 }}>
-            <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--text-primary)' }}>
-              {user.username} {user.profileCustomization?.nicknameIcon}
-            </h4>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', gap: '12px' }}>
-              <span>Рівень {user.level}</span>
-              {user.city && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><FiMapPin /> {user.city}</span>}
-            </div>
-          </div>
-          {isFriendSection && (
-            <button 
-              className="btn btn-ghost" 
-              onClick={(e) => handleRemoveFriend(user._id, e)}
-              style={{ padding: '8px', color: 'var(--danger)' }}
-              title="Видалити з друзів"
-            >
-              <FiUserMinus />
-            </button>
-          )}
-        </div>
-      </Link>
-    );
+    } catch (err) { console.error(err); }
   };
 
   return (
@@ -107,66 +107,84 @@ const CommunityPage = () => {
         <DashboardHeader />
         <AnimatedPage>
           <div className="dashboard-content-wrapper">
-            
-            <div className="dashboard-hero">
-              <div className="hero-summary-card">
-                <div>
-                  <p className="small-title">Ком'юніті</p>
-                  <h2>Пошук та Друзі</h2>
-                  <p className="hero-description">Знаходьте однодумців, переглядайте їхні профілі та додавайте до друзів.</p>
-                </div>
+
+            {/* Hero */}
+            <div className="comm-hero">
+              <div>
+                <p className="small-title">ImpactPulse / Ком'юніті</p>
+                <h1>Ком'юніті</h1>
+                <p className="comm-hero-desc">
+                  Знаходьте однодумців, переглядайте їхні профілі та додавайте до друзів.
+                </p>
               </div>
             </div>
 
-            <div className="dashboard-grid" style={{ marginTop: '24px' }}>
-              {/* Search Section */}
-              <div className="panel-card" style={{ alignSelf: 'start' }}>
-                <div className="panel-heading" style={{ marginBottom: '16px' }}>
-                  <h3><FiSearch /> Пошук користувачів</h3>
+            <div className="comm-grid">
+              {/* Search */}
+              <section className="comm-panel">
+                <div className="comm-panel-header">
+                  <h2 className="comm-panel-title">
+                    <FiSearch size={14} /> Пошук користувачів
+                  </h2>
                 </div>
-                <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-                  <input 
-                    type="text" 
-                    placeholder="Введіть ім'я..." 
-                    className="form-control" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ flex: 1 }}
-                  />
-                  <button type="submit" className="btn btn-primary">Знайти</button>
-                </form>
+                <div className="comm-panel-body">
+                  <form onSubmit={handleSearch} className="comm-search-form">
+                    <input
+                      type="text"
+                      placeholder="Введіть ім'я..."
+                      className="comm-search-input"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                    />
+                    <button type="submit" className="comm-search-btn">
+                      Знайти
+                    </button>
+                  </form>
 
-                {loading ? (
-                  <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>Пошук...</p>
-                ) : searchResults.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {searchResults.map(user => <UserCard key={user._id} user={user} isFriendSection={false} />)}
-                  </div>
-                ) : searchQuery ? (
-                  <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>Нікого не знайдено за запитом "{searchQuery}"</p>
-                ) : (
-                  <p style={{ color: 'var(--text-secondary)', textAlign: 'center', fontStyle: 'italic' }}>Використовуйте пошук, щоб знайти людей</p>
-                )}
-              </div>
-
-              {/* Friends Section */}
-              <div className="panel-card" style={{ alignSelf: 'start' }}>
-                <div className="panel-heading" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
-                  <h3><FiUsers /> Мої Друзі</h3>
-                  <span className="badge badge-accent">{friends.length}</span>
+                  {loading ? (
+                    <div className="comm-state">Пошук...</div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="comm-list">
+                      {searchResults.map(u => (
+                        <UserCard key={u._id} user={u} isFriendSection={false} />
+                      ))}
+                    </div>
+                  ) : searchQuery ? (
+                    <div className="comm-state">Нікого не знайдено за запитом «{searchQuery}»</div>
+                  ) : (
+                    <div className="comm-state">Використовуйте пошук, щоб знайти людей</div>
+                  )}
                 </div>
-                
-                {friends.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {friends.map(friend => <UserCard key={friend._id} user={friend} isFriendSection={true} />)}
-                  </div>
-                ) : (
-                  <div style={{ padding: '32px', textAlign: 'center', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>
-                    <FiUsers size={48} color="var(--border-medium)" style={{ marginBottom: '16px' }} />
-                    <p style={{ color: 'var(--text-secondary)', margin: 0 }}>У вас поки немає друзів.<br/>Скористайтесь пошуком, щоб знайти їх!</p>
-                  </div>
-                )}
-              </div>
+              </section>
+
+              {/* Friends */}
+              <section className="comm-panel">
+                <div className="comm-panel-header">
+                  <h2 className="comm-panel-title">
+                    <FiUsers size={14} /> Мої Друзі
+                  </h2>
+                  <span className="comm-count">{friends.length}</span>
+                </div>
+                <div className="comm-panel-body">
+                  {friends.length === 0 ? (
+                    <div className="comm-state">
+                      <FiUsers size={32} style={{ opacity: 0.2 }} />
+                      <span>У вас поки немає друзів. Скористайтесь пошуком!</span>
+                    </div>
+                  ) : (
+                    <div className="comm-list">
+                      {friends.map(f => (
+                        <UserCard
+                          key={f._id}
+                          user={f}
+                          isFriendSection={true}
+                          onRemove={() => handleRemoveFriend(f._id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
             </div>
 
           </div>

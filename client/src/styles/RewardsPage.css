@@ -1,168 +1,119 @@
-/* ════════════════════════════════
-   Rewards Page Styles
-   ════════════════════════════════ */
+/* ══════════════════════════════════════
+   RewardsPage — Neo-Brutalism
+   ══════════════════════════════════════ */
 
+/* Level card */
+.level-progress-card { padding: 24px !important; }
+
+/* Quests grid */
 .quests-grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.quest-card {
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  transition: transform var(--t-fast), border-color var(--t-fast);
-}
-
-.quest-card:hover {
-  border-color: var(--accent);
-}
-
-.quest-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.quest-card-header h4 {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.quest-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: auto;
-}
-
-.quest-progress span {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  text-align: right;
-  font-weight: 600;
-}
-
-.quest-progress progress {
-  width: 100%;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-raised);
-  overflow: hidden;
-  border: none;
-}
-
-.quest-progress progress::-webkit-progress-bar {
-  background: var(--bg-raised);
-}
-
-.quest-progress progress::-webkit-progress-value {
-  background: var(--accent);
-  border-radius: var(--radius-pill);
-}
-
-/* ════════════════════════════════
-   Badges Grid (Compact)
-   ════════════════════════════════ */
-.rewards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
 }
 
+.quest-card {
+  background: var(--bg); border: var(--border);
+  padding: 16px; display: flex; flex-direction: column; gap: 10px;
+  box-shadow: var(--shadow-sm); transition: var(--t-shadow);
+}
+.quest-card:hover { transform: translate(2px, 2px); box-shadow: none; }
+
+.quest-card-header {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.quest-card-header h4 {
+  font-size: 0.85rem; font-weight: 700; color: var(--black);
+  margin: 0; flex: 1;
+}
+
+.quest-description {
+  font-size: 0.78rem; color: var(--black); opacity: 0.6;
+  margin: 0 !important; line-height: 1.5;
+}
+
+.quest-progress {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.quest-progress > span {
+  font-size: 0.62rem; font-family: var(--font-mono);
+  font-weight: 700; color: var(--black); opacity: 0.5;
+}
+.quest-progress progress {
+  width: 100%; height: 6px; appearance: none; border: 1px solid var(--black);
+}
+.quest-progress progress::-webkit-progress-bar { background: var(--bg-subtle); }
+.quest-progress progress::-webkit-progress-value { background: var(--yellow); }
+.quest-progress progress::-moz-progress-bar { background: var(--yellow); }
+
+/* Badges section */
+.badges-section { padding: 24px !important; }
+
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+/* Badge card flip */
 .badge-card {
-  perspective: 1000px;
-  cursor: pointer;
-  aspect-ratio: 1; /* Perfect square */
+  perspective: 800px; cursor: pointer; height: 150px;
 }
-
 .badge-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d; transition: transform 0.6s;
 }
-
 .badge-front, .badge-back {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   backface-visibility: hidden;
-  border-radius: var(--radius-md);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  text-align: center;
-  border: 1px solid var(--border);
-  background: var(--bg-subtle);
-  transition: border-color var(--t-fast);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; border: var(--border); background: var(--bg-surface);
+  padding: 12px; text-align: center;
 }
-
-.badge-card:hover .badge-front {
-  border-color: var(--accent);
-}
-
-.badge-back {
-  transform: rotateY(180deg);
-  background: var(--bg-raised);
-  border-color: var(--accent);
-}
-
-.badge-locked {
-  opacity: 0.5;
-  filter: grayscale(100%);
-  border-style: dashed;
-}
+.badge-back { transform: rotateY(180deg); background: var(--yellow); }
+.badge-locked { opacity: 0.4; filter: grayscale(1); }
 
 .badge-icon {
-  font-size: 2.2rem;
-  margin-bottom: 6px;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-  line-height: 1;
+  font-size: 1.8rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
 }
-
 .badge-name {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  line-height: 1.2;
+  font-size: 0.65rem; font-weight: 700; color: var(--black);
+  text-transform: uppercase; letter-spacing: 0.06em; margin: 0;
+  font-family: var(--font-mono);
 }
-
 .badge-description {
-  display: none; /* Hidden to keep compact */
+  font-size: 0.62rem; color: var(--black); opacity: 0.7;
+  line-height: 1.4; margin: 0;
 }
-
 .badge-status {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--accent);
-  margin-top: 4px;
+  font-size: 0.6rem; font-weight: 700; font-family: var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--black); margin: 0;
 }
 
+/* Leaderboards section */
+.leaderboards-section { padding: 24px !important; }
+
+.tabs {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.tabs .btn-sm {
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+/* Use global .leaderboard-list/.leaderboard-item from Dashboard.css */
+.leaderboard-item {
+  cursor: pointer;
+}
+
+/* Mobile */
 @media (max-width: 768px) {
-  .quests-grid-container {
-    grid-template-columns: 1fr;
-  }
-  
-  .rewards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 8px;
-  }
-  
-  .badge-icon {
-    font-size: 1.8rem;
-  }
-  
-  .badge-name {
-    font-size: 0.65rem;
-  }
+  .quests-grid-container { grid-template-columns: 1fr; }
+  .rewards-grid { grid-template-columns: repeat(3, 1fr); }
+  .badge-card { height: 130px; }
+  .levels-card { padding: 16px !important; }
+  .quests-section, .badges-section, .leaderboards-section { padding: 16px !important; }
+}
+@media (max-width: 480px) {
+  .rewards-grid { grid-template-columns: repeat(2, 1fr); }
 }

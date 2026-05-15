@@ -137,13 +137,28 @@ const DashboardPage = () => {
                 </div>
                 <div className="action-list">
                   {isGuest ? (
-                    <Link to="/login" className="action-item">Увійти для повного доступу →</Link>
+                    <Link to="/login" className="action-item">
+                      Увійти для повного доступу
+                      <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                    </Link>
                   ) : (
                     <>
-                      <Link to="/add-help"         className="action-item">+ Нова заявка</Link>
-                      <Link to="/my-contributions"  className="action-item">Переглянути заявки →</Link>
-                      <Link to="/rewards"           className="action-item">Нагороди →</Link>
-                      <Link to="/fundraisers"       className="action-item">Актуальні збори →</Link>
+                      <Link to="/add-help"         className="action-item">
+                        + Нова заявка
+                        <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                      </Link>
+                      <Link to="/my-contributions"  className="action-item">
+                        Переглянути заявки
+                        <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                      </Link>
+                      <Link to="/rewards"           className="action-item">
+                        Нагороди
+                        <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                      </Link>
+                      <Link to="/fundraisers"       className="action-item">
+                        Актуальні збори
+                        <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                      </Link>
                     </>
                   )}
                 </div>
@@ -189,18 +204,18 @@ const DashboardPage = () => {
               {/* Live Feed */}
               <div className="panel-card panel-feed">
                 <div className="panel-heading">
-                  <h3>Live Feed ⚡</h3>
+                  <h3>Live Feed</h3>
                   <p>Останні дії спільноти</p>
                 </div>
-                <div className="feed-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
+                <div className="feed-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
                   {feed.length > 0 ? (
                     feed.map((item, idx) => (
-                      <div key={idx} className="feed-item" style={{ padding: '12px', background: 'rgba(var(--accent-color-rgb), 0.1)', borderRadius: '8px', borderLeft: '4px solid var(--accent-color)', animation: 'fadeIn 0.5s ease-out' }}>
+                      <div key={idx} className="feed-item">
                         {item.message}
                       </div>
                     ))
                   ) : (
-                    <div style={{ color: 'var(--text-secondary)', padding: '12px', background: 'var(--card-bg)', borderRadius: '8px' }}>Поки що немає активності...</div>
+                    <div className="feed-item" style={{ opacity: 0.5, fontFamily: 'var(--font-mono)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Поки що немає активності...</div>
                   )}
                 </div>
               </div>
