@@ -234,7 +234,7 @@ const MyGuildCard = ({ guild, currentUserId, onLeave }) => {
               <div className="member-avatar">
                 {m.avatarUrl
                   ? <img src={m.avatarUrl} alt={m.username} />
-                  : <span>{m.username?.[0]?.toUpperCase()}</span>
+                  : <img src="/default-avatar.svg" alt={m.username} />
                 }
               </div>
               <span className="member-name">

@@ -37,10 +37,9 @@ function getAvatar(user) {
 
 const Avatar = ({ user, size = 36 }) => {
   const src = getAvatar(user);
-  const letter = user?.username?.[0]?.toUpperCase() || '?';
   return (
     <div className="td2-avatar" style={{ width: size, height: size, fontSize: size * 0.4 }}>
-      {src ? <img src={src} alt={user.username} /> : letter}
+      {src ? <img src={src} alt={user?.username || 'User'} /> : <img src="/default-avatar.svg" alt={user?.username || 'User'} />}
     </div>
   );
 };

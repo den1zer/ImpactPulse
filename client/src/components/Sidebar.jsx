@@ -93,7 +93,7 @@ const Sidebar = () => {
   /* helper: build avatar src */
   const avatarSrc = avatar
     ? (avatar.startsWith('http') ? avatar : `${API_BASE_URL}/${avatar}`)
-    : null;
+    : '/default-avatar.svg';
 
   return (
     <>

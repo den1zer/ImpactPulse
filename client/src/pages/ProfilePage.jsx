@@ -151,7 +151,7 @@ const ProfilePage = () => {
               
               {createdAt && <p style={{fontSize: '0.9em', color: '#777', marginBottom: '20px'}}>📅 Акаунт створено: <strong>{createdAt}</strong></p>}
               <div className="avatar-section">
-                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar preview" /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `${API_BASE_URL}/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar" /> : '👤'}</div>
+                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar preview" /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `${API_BASE_URL}/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar" /> : <img src="/default-avatar.svg" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} alt="default avatar" />}</div>
                 <label htmlFor="avatar" className="avatar-change-btn">Змінити фото<input type="file" id="avatar" accept="image/*" onChange={onFileChange} /></label>
               </div>
               <div className="form-grid">

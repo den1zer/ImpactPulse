@@ -72,7 +72,7 @@ const CommunityPage = () => {
       <Link to={`/user/${user._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', transition: 'all 0.2s' }} className="panel-card-hover">
           <img 
-            src={user.avatarUrl || '/default-avatar.png'} 
+            src={user.avatarUrl || '/default-avatar.svg'} 
             alt={user.username} 
             style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border }} 
           />

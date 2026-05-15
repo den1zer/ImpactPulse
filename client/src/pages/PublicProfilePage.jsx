@@ -92,7 +92,7 @@ const PublicProfilePage = () => {
               <div className="hero-summary-card" style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
                 <div style={{ position: 'relative' }}>
                   <img 
-                    src={profile.avatarUrl || '/default-avatar.png'} 
+                    src={profile.avatarUrl || '/default-avatar.svg'} 
                     alt={profile.username} 
                     style={{ 
                       width: '120px', 

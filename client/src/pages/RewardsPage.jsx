@@ -168,7 +168,7 @@ const RewardsPage = () => {
             style={{ cursor: 'pointer' }}
           >
             <span className="leaderboard-rank">#{i + 1}</span>
-            <img src={u.avatar?.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`} alt="avatar" className={`leaderboard-avatar frame-${u.profileCustomization?.avatarFrame || 'none'}`} />
+            <img src={u.avatar ? (u.avatar.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`) : '/default-avatar.svg'} alt="avatar" className={`leaderboard-avatar frame-${u.profileCustomization?.avatarFrame || 'none'}`} />
             <span className="leaderboard-name">{u.profileCustomization?.nicknameIcon} {u.username}</span>
             <strong className="leaderboard-points">
               {activeTab === 'allTime' && `${u.points} балів`}

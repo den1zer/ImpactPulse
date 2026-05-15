@@ -136,10 +136,10 @@ const DashboardPage = () => {
                           src={
                             user.avatar
                               ? (user.avatar.startsWith('http') ? user.avatar : `${API_BASE_URL}/${user.avatar}`)
-                              : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'
+                              : '/default-avatar.svg'
                           }
                           alt={user.username}
-                          onError={e => { e.target.src = 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'; }}
+                          onError={e => { e.target.src = '/default-avatar.svg'; }}
                         />
                         <span className="leaderboard-name">
                           {user.username}
