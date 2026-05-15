@@ -222,7 +222,7 @@ const JoinControls = ({ task, myGuild, currentUserId, onJoin, onLeave }) => {
         </strong></span>
         {myParticipant.status === 'working' && (
           <>
-            <ProofForm taskId={task._id} onSubmitted={onJoin} />
+            <ProofForm taskId={task._id} onSubmitted={() => onJoin('submit')} />
             <button className="btn-leave" onClick={onLeave}><FiX /> Покинути завдання</button>
           </>
         )}
@@ -257,10 +257,16 @@ const TaskDetailPage = () => {
   const [loading, setLoading]   = useState(true);
   const [comment, setComment]   = useState('');
   const [postingComment, setPostingComment] = useState(false);
+  const [toast, setToast]       = useState(null);
   const commentsEndRef = useRef(null);
 
   const token      = localStorage.getItem('userToken');
   const currentUserId = localStorage.getItem('userId')?.replace(/"/g, '');
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const fetchTask = useCallback(async () => {
     try {
@@ -284,12 +290,17 @@ const TaskDetailPage = () => {
 
   const handleJoin = async (mode = 'solo', guildId = null) => {
     try {
-      await axios.post(`${API_BASE_URL}/api/tasks/${id}/join`,
-        { joinMode: mode, guildId },
-        { headers: { 'x-auth-token': token } }
-      );
+      if (mode === 'submit') {
+          showToast('Звіт відправлено на перевірку!');
+      } else {
+          await axios.post(`${API_BASE_URL}/api/tasks/${id}/join`,
+            { joinMode: mode, guildId },
+            { headers: { 'x-auth-token': token } }
+          );
+          showToast('Ви приєдналися до завдання');
+      }
       fetchTask();
-    } catch (err) { alert(err.response?.data?.msg || 'Помилка'); }
+    } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
   };
 
   const handleLeave = async () => {
@@ -298,8 +309,9 @@ const TaskDetailPage = () => {
       await axios.post(`${API_BASE_URL}/api/tasks/${id}/leave`, {},
         { headers: { 'x-auth-token': token } }
       );
+      showToast('Ви покинули завдання');
       fetchTask();
-    } catch (err) { alert(err.response?.data?.msg || 'Помилка'); }
+    } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
   };
 
   const handleReview = async ({ participantUserId, action, reviewComment }) => {
@@ -308,8 +320,9 @@ const TaskDetailPage = () => {
         { participantUserId, action, reviewComment },
         { headers: { 'x-auth-token': token } }
       );
+      showToast(action === 'approve' ? 'Виконання підтверджено! ✅' : 'Виконання відхилено ❌');
       fetchTask();
-    } catch (err) { alert(err.response?.data?.msg || 'Помилка'); }
+    } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
   };
 
   const handleCloseTask = async () => {
@@ -318,8 +331,9 @@ const TaskDetailPage = () => {
       await axios.post(`${API_BASE_URL}/api/tasks/${id}/close`, {},
         { headers: { 'x-auth-token': token } }
       );
+      showToast('Завдання успішно закрито');
       fetchTask();
-    } catch (err) { alert(err.response?.data?.msg || 'Помилка'); }
+    } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
   };
 
   const handleAddComment = async (e) => {
@@ -392,6 +406,15 @@ const TaskDetailPage = () => {
         <DashboardHeader />
         <AnimatedPage>
           <div className="dashboard-content-wrapper td2-wrapper">
+            {/* ── Toast ── */}
+            {toast && (
+              <div 
+                className={`guild-toast ${toast.type}`} 
+                style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999, padding: '12px 24px', borderRadius: '8px', background: toast.type === 'error' ? 'var(--danger)' : 'var(--success)', color: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', fontWeight: 600 }}
+              >
+                {toast.msg}
+              </div>
+            )}
 
             {/* ── Back ── */}
             <Link to="/tasks" className="td2-back"><FiChevronLeft /> Всі завдання</Link>

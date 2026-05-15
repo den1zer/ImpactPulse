@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import Badge from '../models/Badge.js';
 import Task from '../models/Task.js';
 import Guild from '../models/Guild.js';
+import Activity from '../models/Activity.js';
 import { handleStreak, updateDailyQuestProgress } from '../utils/gameLogic.js';
 
 export const addContribution = async (req, res) => {
@@ -138,6 +139,12 @@ export const approveContribution = async (req, res) => {
     // ── Guild XP aggregation ──
     // pointsToAward XP is added to the user's guild (if any)
     await Guild.addXPForUser(user._id, pointsToAward);
+
+    if (req.io) {
+      const message = `${user.username} щойно виконав завдання '${contribution.title}' +${pointsToAward} XP`;
+      await Activity.create({ message, type: 'contribution_approved' });
+      req.io.emit('activity_feed', { message });
+    }
 
     res.json({ msg: 'Заявку схвалено, бали нараховано!' });
   } catch (err) {

@@ -7,6 +7,8 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import http from 'http';
+import { Server } from 'socket.io';
 
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/userRoutes.js';
@@ -20,6 +22,7 @@ import questRoutes from './routes/questRoutes.js';
 import shopRoutes from './routes/shop.js';
 import guildRoutes from './routes/guildRoutes.js';
 import paymentRoutes from './routes/payment.js';
+import activityRoutes from './routes/activityRoutes.js';
 
 // Swagger
 import swaggerUi from 'swagger-ui-express';
@@ -63,7 +66,21 @@ app.use(cors({
   credentials: true,
 }));
 
-// 4. Static files
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  }
+});
+
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// --- STATIC FILES ---
 app.use('/uploads', express.static('uploads'));
 
 // --- DATABASE CONNECTION ---
@@ -84,12 +101,22 @@ app.use('/api/quests', questRoutes);
 app.use('/api/shop', shopRoutes);
 app.use('/api/guilds', guildRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/activities', activityRoutes);
 
 // --- SWAGGER (mounted AFTER API routes, only at /api-docs) ---
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// --- SOCKET.IO EVENTS ---
+io.on('connection', (socket) => {
+  console.log(`Socket connected: ${socket.id}`);
+  
+  socket.on('disconnect', () => {
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
+});
+
 // --- START SERVER ---
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Swagger UI available at http://localhost:${PORT}/api-docs`);
 });

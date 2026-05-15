@@ -1,6 +1,7 @@
 import Task from '../models/Task.js';
 import User from '../models/User.js';
 import Guild from '../models/Guild.js';
+import Activity from '../models/Activity.js';
 import { checkAndAwardBadges } from './contributionController.js';
 import { updateUserLevel } from '../utils/levelSystem.js';
 
@@ -46,6 +47,16 @@ export const createTask = async (req, res) => {
 
     await task.save();
     await task.populate([POPULATE_CREATED_BY, POPULATE_GUILD]);
+
+    if (req.io) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        const message = `${user.username} створив нове завдання '${task.title}' 🆕`;
+        await Activity.create({ message, type: 'task_created' });
+        req.io.emit('activity_feed', { message });
+      }
+    }
+
     res.status(201).json(task);
   } catch (err) {
     console.error('createTask:', err.message);
@@ -247,6 +258,12 @@ export const reviewParticipant = async (req, res) => {
           const guild = await Guild.findById(participant.guild);
           if (guild) { guild.recomputeLevel(); await guild.save(); }
         }
+
+        if (req.io) {
+          const message = `${user.username} щойно виконав завдання '${task.title}' +${task.points} XP`;
+          await Activity.create({ message, type: 'task_completed' });
+          req.io.emit('activity_feed', { message });
+        }
       }
     } else {
       participant.status = 'rejected';
@@ -357,6 +374,16 @@ export const closeTask = async (req, res) => {
     }
     task.status = 'closed';
     await task.save();
+
+    if (req.io) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        const message = `${user.username} щойно закрив завдання '${task.title}' 🔒`;
+        await Activity.create({ message, type: 'task_closed' });
+        req.io.emit('activity_feed', { message });
+      }
+    }
+
     res.json({ msg: 'Завдання закрито' });
   } catch (err) {
     res.status(500).json({ msg: 'Помилка сервера' });

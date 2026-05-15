@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import AnimatedPage from '../components/AnimatedPage';
 import StatsChart from '../components/StatsChart';
 import Sidebar from '../components/Sidebar';
@@ -11,8 +12,42 @@ import API_BASE_URL from '../config/api.js';
 const DashboardPage = () => {
   const [contributions, setContributions] = useState([]);
   const [leaderboard, setLeaderboard]     = useState([]);
+  const [feed, setFeed]                   = useState([]);
   const [loading, setLoading]             = useState(true);
   const isGuest = localStorage.getItem('userRole') === 'guest';
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/activities`);
+        setFeed(res.data);
+      } catch (err) {
+        console.error('fetchActivities error:', err);
+      }
+    };
+
+    fetchActivities();
+
+    const socket = io(API_BASE_URL, {
+      transports: ['websocket', 'polling'],
+      withCredentials: true
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket connected to server');
+    });
+
+    socket.on('activity_feed', (data) => {
+      console.log('Received activity_feed event:', data);
+      setFeed(prev => [data, ...prev].slice(0, 10)); // keep last 10
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Socket connection error:', err);
+    });
+
+    return () => socket.disconnect();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -151,6 +186,25 @@ const DashboardPage = () => {
                   )}
                 </ul>
               </div>
+              {/* Live Feed */}
+              <div className="panel-card panel-feed" style={{ gridColumn: 'span 2' }}>
+                <div className="panel-heading">
+                  <h3>Live Feed ⚡</h3>
+                  <p>Останні дії спільноти</p>
+                </div>
+                <div className="feed-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
+                  {feed.length > 0 ? (
+                    feed.map((item, idx) => (
+                      <div key={idx} className="feed-item" style={{ padding: '12px', background: 'rgba(var(--accent-color-rgb), 0.1)', borderRadius: '8px', borderLeft: '4px solid var(--accent-color)', animation: 'fadeIn 0.5s ease-out' }}>
+                        {item.message}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: 'var(--text-secondary)', padding: '12px', background: 'var(--card-bg)', borderRadius: '8px' }}>Поки що немає активності...</div>
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
         </AnimatedPage>

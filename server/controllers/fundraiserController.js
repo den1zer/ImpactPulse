@@ -1,5 +1,6 @@
 import Fundraiser from '../models/Fundraiser.js';
 import User from '../models/User.js';
+import Activity from '../models/Activity.js';
 import { checkAndAwardBadges } from './contributionController.js';
 
 export const createFundraiser = async (req, res) => {
@@ -11,6 +12,16 @@ export const createFundraiser = async (req, res) => {
       createdBy: req.user.id
     });
     await newFundraiser.save();
+
+    if (req.io) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        const message = `${user.username} оголосив новий збір: "${newFundraiser.title}" 📢`;
+        await Activity.create({ message, type: 'fundraiser_created' });
+        req.io.emit('activity_feed', { message });
+      }
+    }
+
     res.status(201).json(newFundraiser);
   } catch (err) {
     console.error(err.message);
@@ -91,6 +102,12 @@ export const simulateDonation = async (req, res) => {
       }
 
       await user.save();
+
+      if (req.io) {
+        const message = `${user.username} зробив внесок ${amount} грн на збір "${fundraiser.title}" ❤️`;
+        await Activity.create({ message, type: 'donation_made' });
+        req.io.emit('activity_feed', { message });
+      }
     }
 
     res.json({
