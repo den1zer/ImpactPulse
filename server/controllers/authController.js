@@ -79,6 +79,32 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ msg: 'Please verify your email before logging in.' });
     }
 
+    // Update streak logic
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const lastActivity = user.streak?.lastActivityDate ? new Date(user.streak.lastActivityDate) : null;
+    if (lastActivity) {
+      lastActivity.setHours(0, 0, 0, 0);
+    }
+
+    const diffTime = lastActivity ? today - lastActivity : -1;
+    const diffDays = lastActivity ? Math.round(diffTime / (1000 * 60 * 60 * 24)) : -1;
+
+    if (!user.streak || !user.streak.lastActivityDate) {
+      user.streak = { current: 1, longest: 1, lastActivityDate: new Date() };
+    } else if (diffDays === 1) {
+      user.streak.current += 1;
+      if (user.streak.current > user.streak.longest) user.streak.longest = user.streak.current;
+      user.streak.lastActivityDate = new Date();
+    } else if (diffDays > 1 || diffDays === -1) {
+      user.streak.current = 1;
+      if (user.streak.current > user.streak.longest) user.streak.longest = user.streak.current;
+      user.streak.lastActivityDate = new Date();
+    }
+
+    await user.save();
+
     const payload = {
       user: {
         id: user.id,

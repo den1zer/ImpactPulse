@@ -23,6 +23,7 @@ import shopRoutes from './routes/shop.js';
 import guildRoutes from './routes/guildRoutes.js';
 import paymentRoutes from './routes/payment.js';
 import activityRoutes from './routes/activityRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 
 // Swagger
 import swaggerUi from 'swagger-ui-express';
@@ -102,6 +103,7 @@ app.use('/api/shop', shopRoutes);
 app.use('/api/guilds', guildRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/api/chats', chatRoutes);
 
 // --- SWAGGER (mounted AFTER API routes, only at /api-docs) ---
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

@@ -26,6 +26,9 @@
 }
 
 .sidebar.collapsed { width: var(--sidebar-w-sm); }
+.sidebar.collapsed .sidebar-links { padding: 8px 4px; }
+.sidebar.collapsed .sidebar-link { padding: 8px; justify-content: center; gap: 0; }
+.sidebar.collapsed .sidebar-icon { margin: 0; }
 .sidebar::-webkit-scrollbar { display: none; }
 .sidebar { scrollbar-width: none; }
 

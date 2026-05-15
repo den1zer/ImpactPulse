@@ -17,14 +17,14 @@ async function initChat() {
 
 async function loadChatUsers() {
     const userListEl = document.getElementById('chat-user-list');
-    userListEl.innerHTML = '<div class="loading-state">Завантаження...</div>';
+    userListEl.innerHTML = '<div class="loading-state">LOADING...</div>';
     
     try {
         const users = await api('GET', '/api/support/chats');
         userListEl.innerHTML = '';
         
         if (users.length === 0) {
-            userListEl.innerHTML = '<div class="empty-state">Немає активних чатів</div>';
+            userListEl.innerHTML = '<div class="empty-state">NO ACTIVE SESSIONS</div>';
             return;
         }
 
@@ -33,7 +33,7 @@ async function loadChatUsers() {
             item.className = `chat-user-item ${currentChatUserId === user._id ? 'active' : ''}`;
             item.innerHTML = `
                 <div class="user-info">
-                    <div class="username">${user.username}</div>
+                    <div class="username">${user.username.toUpperCase()}</div>
                     <div class="last-msg">${user.lastMessage || ''}</div>
                 </div>
                 <div class="time">${new Date(user.lastMessageAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
@@ -42,29 +42,27 @@ async function loadChatUsers() {
             userListEl.appendChild(item);
         });
     } catch (err) {
-        userListEl.innerHTML = `<div class="error-msg">${err.message}</div>`;
+        userListEl.innerHTML = `<div class="error-msg">ERROR: ${err.message.toUpperCase()}</div>`;
     }
 }
 
 async function selectUserChat(user) {
     currentChatUserId = user._id;
     
-    // UI Updates
     document.querySelectorAll('.chat-user-item').forEach(el => el.classList.remove('active'));
     document.getElementById('chat-empty-state').classList.add('hidden');
     document.getElementById('chat-window').classList.remove('hidden');
     
-    document.getElementById('active-chat-username').textContent = user.username;
-    document.getElementById('active-chat-email').textContent = user.email;
+    document.getElementById('active-chat-username').textContent = user.username.toUpperCase();
+    document.getElementById('active-chat-email').textContent = user.email.toUpperCase();
     document.getElementById('active-chat-avatar').textContent = user.username[0].toUpperCase();
 
-    // Load Messages
     loadMessages(user._id);
 }
 
 async function loadMessages(userId) {
     const messagesEl = document.getElementById('chat-messages');
-    messagesEl.innerHTML = '<div class="loading-state">Завантаження...</div>';
+    messagesEl.innerHTML = '<div class="loading-state">LOADING DATA...</div>';
     
     try {
         const messages = await api('GET', `/api/support/chat/${userId}`);
@@ -72,7 +70,7 @@ async function loadMessages(userId) {
         messages.forEach(renderMessage);
         scrollToBottom();
     } catch (err) {
-        messagesEl.innerHTML = `<div class="error-msg">${err.message}</div>`;
+        messagesEl.innerHTML = `<div class="error-msg">ERROR: ${err.message.toUpperCase()}</div>`;
     }
 }
 
@@ -104,7 +102,7 @@ async function handleSendMessage(e) {
         await api('POST', '/api/support/chat', { text, userId: currentChatUserId });
         input.value = '';
     } catch (err) {
-        alert('Помилка відправки: ' + err.message);
+        alert('SEND ERROR: ' + err.message.toUpperCase());
     }
 }
 
@@ -123,15 +121,12 @@ function setupChatSocket() {
     });
 
     chatSocket.on('admin_new_support_message', (msg) => {
-        // If current chat is open for this user
         if (currentChatUserId === msg.user) {
             renderMessage(msg);
             scrollToBottom();
         }
-        // Update user list to show last message
         loadChatUsers();
     });
 }
 
-// Export to be used in app.js
 window.initChat = initChat;

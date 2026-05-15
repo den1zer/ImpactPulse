@@ -22,6 +22,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import GuildsPage from './pages/GuildsPage';
+import MessagesPage from './pages/MessagesPage';
 import Footer from './components/Footer/Footer';
 
 const ProtectedRoute = ({ children }) => {
@@ -77,6 +78,7 @@ function App() {
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/tasks/:id" element={<TaskDetailPage />} />
           <Route path="/guilds" element={<ProtectedRoute><GuildsPage /></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
         </Routes>
       </AnimatePresence>
       <Footer />

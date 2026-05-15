@@ -76,8 +76,6 @@
 .fr-card-desc {
   padding: 10px 20px 0; font-size: 0.82rem; color: var(--black); opacity: 0.65;
   line-height: 1.5; margin: 0;
-  overflow: hidden; display: -webkit-box;
-  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 .fr-card-date {
   padding: 6px 20px 0; font-size: 0.62rem; font-family: var(--font-mono);

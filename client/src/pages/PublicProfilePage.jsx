@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FiMessageSquare } from 'react-icons/fi';
 import AnimatedPage from '../components/AnimatedPage';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
@@ -121,13 +122,22 @@ const PublicProfilePage = () => {
                   </div>
                   
                   {!isMe && (
-                    <button 
-                      className={`btn ${isFriend ? 'btn-secondary' : 'btn-primary'}`} 
-                      onClick={handleFriendAction}
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                    >
-                      {isFriend ? <><FiUserMinus /> Видалити з друзів</> : <><FiUserPlus /> Додати в друзі</>}
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button 
+                        className={`btn ${isFriend ? 'btn-secondary' : 'btn-primary'}`} 
+                        onClick={handleFriendAction}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        {isFriend ? <><FiUserMinus /> Видалити з друзів</> : <><FiUserPlus /> Додати в друзі</>}
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => navigate('/messages', { state: { receiverId: id, receiverName: profile.username, receiverAvatar: profile.avatarUrl } })}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        <FiMessageSquare /> Написати
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

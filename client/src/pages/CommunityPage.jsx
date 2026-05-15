@@ -78,17 +78,27 @@ const CommunityPage = () => {
     } catch (err) { console.error(err); }
   };
 
-  const handleSearch = async e => {
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/users/search?q=${searchQuery}`, {
+          headers: { 'x-auth-token': token },
+        });
+        setSearchResults(res.data);
+      } catch (err) { console.error(err); }
+      setLoading(false);
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, token]);
+
+  const handleSearch = e => {
     e.preventDefault();
-    if (!searchQuery.trim()) { setSearchResults([]); return; }
-    setLoading(true);
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/users/search?q=${searchQuery}`, {
-        headers: { 'x-auth-token': token },
-      });
-      setSearchResults(res.data);
-    } catch (err) { console.error(err); }
-    setLoading(false);
   };
 
   const handleRemoveFriend = async (id) => {
