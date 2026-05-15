@@ -1,98 +1,125 @@
-/* SupportPage.css — SaaS redesign */
+/* ════════════════════════════════════════
+   SupportPage Styles — Premium Design
+   ════════════════════════════════════════ */
 
-.support-container {
-  max-width: 600px;
+.sp-wrapper { display: flex; flex-direction: column; gap: 32px; }
+
+/* Hero Section */
+.sp-hero {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); padding: 40px; position: relative;
+  overflow: hidden; box-shadow: var(--shadow-md);
+}
+.sp-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at top right, var(--accent-subtle) 0%, transparent 70%);
+  pointer-events: none;
+}
+.sp-hero-tag { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); margin-bottom: 8px; }
+.sp-hero h1 { font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; }
+.sp-hero-desc { font-size: 1rem; color: var(--text-secondary); max-width: 500px; line-height: 1.6; }
+.sp-hero-visual { display: flex; align-items: center; justify-content: center; width: 100px; height: 100px; }
+.sp-floating-icon { font-size: 4rem; color: var(--accent); opacity: .2; animation: floatIcon 6s infinite ease-in-out; }
+
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(10deg); }
 }
 
-.support-header {
+/* Grid Layout */
+.sp-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+
+/* Sections */
+.sp-section { margin-bottom: 32px; }
+.sp-section-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 1.1rem; font-weight: 700; color: var(--text-primary);
   margin-bottom: 20px;
 }
 
-.support-header h2 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 2px;
+/* FAQ Cards */
+.sp-faq-list { display: flex; flex-direction: column; gap: 12px; }
+.sp-faq-card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden; cursor: pointer;
+  transition: all .2s ease;
 }
+.sp-faq-card:hover { border-color: var(--accent); transform: translateX(4px); }
+.sp-faq-card.active { border-color: var(--accent); box-shadow: var(--shadow-sm); }
 
-.support-header p {
-  font-size: 0.83rem;
-  color: var(--text-muted);
-}
+.sp-faq-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; }
+.sp-faq-header h4 { font-size: .95rem; font-weight: 600; color: var(--text-primary); margin: 0; }
+.sp-faq-toggle { color: var(--text-muted); font-size: 1.2rem; display: flex; align-items: center; }
+.sp-faq-card.active .sp-faq-toggle { color: var(--accent); }
 
-/* Form card */
-.support-form-card {
-  padding: 22px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-}
+.sp-faq-body { overflow: hidden; }
+.sp-faq-content { padding: 0 24px 20px; font-size: .9rem; color: var(--text-secondary); line-height: 1.6; }
+.sp-inline-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-weight: 600; text-decoration: none; margin-top: 8px; font-size: .85rem; }
 
-.support-submit {
-  width: 100%;
-  padding: 10px 20px;
-  border-radius: var(--radius-md);
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background var(--t-fast), box-shadow var(--t-fast);
-  margin-top: 6px;
+/* Contact Section */
+.sp-contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.sp-contact-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px;
+  text-decoration: none; color: inherit; transition: all .2s ease;
 }
-.support-submit:hover { background: var(--accent-hover); box-shadow: var(--shadow-md); }
+.sp-contact-item:hover { border-color: var(--accent); background: var(--bg-raised); transform: translateY(-2px); }
+.sp-contact-item svg { font-size: 1.2rem; color: var(--accent); }
+.sp-contact-item span { font-size: .7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+.sp-contact-item p { font-size: .85rem; color: var(--text-primary); font-weight: 600; margin: 0; }
 
-/* Donation section */
-.donation-section {
-  margin-top: 14px;
-  padding: 18px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+/* Forms Cards */
+.sp-form-card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); padding: 24px; margin-bottom: 24px;
+  position: relative; overflow: hidden;
 }
+.sp-icon-bg { position: absolute; top: -10px; right: -10px; font-size: 5rem; color: var(--accent); opacity: .03; pointer-events: none; }
+.sp-card-header { margin-bottom: 20px; }
+.sp-card-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+.sp-card-header p { font-size: .82rem; color: var(--text-muted); margin: 0; }
 
-.donation-section h3 {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 12px;
-}
+.sp-form { display: flex; flex-direction: column; gap: 16px; }
+.sp-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-.amount-chips {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
+.sp-btn-primary, .sp-btn-secondary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 12px; border-radius: var(--radius-md);
+  font-weight: 700; font-size: .9rem; cursor: pointer; transition: all .2s; border: none;
 }
+.sp-btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px var(--accent-ring); }
+.sp-btn-primary:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 16px var(--accent-ring); }
 
-.amount-chip {
-  padding: 5px 14px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-subtle);
-  border: 1px solid var(--border-medium);
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-.amount-chip.active,
-.amount-chip:hover { background: var(--accent-subtle); border-color: var(--accent); color: var(--accent); }
+.sp-btn-secondary { background: var(--bg-raised); color: var(--text-primary); border: 1px solid var(--border); }
+.sp-btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
 
-.donate-btn {
-  width: 100%;
-  padding: 9px 20px;
-  border-radius: var(--radius-md);
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background var(--t-fast), box-shadow var(--t-fast);
+.sp-btn-primary:disabled, .sp-btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Rating Box */
+.sp-rating-box { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+.sp-star {
+  font-size: 1.8rem; background: none; border: none; cursor: pointer;
+  color: var(--bg-raised); transition: all .15s ease;
 }
-.donate-btn:hover { background: var(--accent-hover); box-shadow: var(--shadow-md); }
+.sp-star:hover { transform: scale(1.2); }
+.sp-star.active { color: #facc15; }
+
+/* Alerts */
+.sp-alert {
+  padding: 12px; border-radius: var(--radius-md); font-size: .82rem; font-weight: 600; text-align: center;
+}
+.sp-alert.success { background: var(--success-subtle); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.2); }
+.sp-alert.error { background: var(--danger-subtle); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+/* Mobile */
+@media (max-width: 1100px) {
+  .sp-grid { grid-template-columns: 1fr; }
+  .sp-hero { flex-direction: column; text-align: center; gap: 24px; padding: 30px 20px; }
+  .sp-hero-desc { margin: 0 auto; }
+}
+@media (max-width: 600px) {
+  .sp-form-row { grid-template-columns: 1fr; }
+  .sp-contact-grid { grid-template-columns: 1fr; }
+}
