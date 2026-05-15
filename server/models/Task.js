@@ -36,7 +36,7 @@ const TaskSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['volunteering', 'aid', 'donation', 'education', 'ecology', 'other'],
+    enum: ['volunteering', 'aid', 'donation', 'education', 'ecology', 'military', 'other'],
   },
   points:    { type: Number, required: true, default: 100 },
   startDate: { type: Date, default: Date.now },
@@ -64,10 +64,10 @@ const TaskSchema = new mongoose.Schema({
   participants: [ParticipantSchema],
   comments:     [CommentSchema],
 
-  // Legacy fields kept for backward-compat (old single-assignee model)
-  assignedTo:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-  submission:   { type: mongoose.Schema.Types.ObjectId, ref: 'Contribution', default: null },
-  abandonReason:{ type: String },
+  // Location fields
+  lat:      { type: Number },
+  lng:      { type: Number },
+  address:  { type: String },
 
 }, { timestamps: true });
 

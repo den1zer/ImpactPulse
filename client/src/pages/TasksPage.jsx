@@ -10,8 +10,21 @@ import {
   FiPlus, FiFilter, FiSearch, FiUsers, FiZap,
   FiClock, FiTag, FiChevronRight, FiShield, FiX,
 } from 'react-icons/fi';
+import {
+  MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents
+} from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import '../styles/TasksPage.css';
 import './TasksPage2.css';
+
+// Fix Leaflet default icon issues
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -21,6 +34,7 @@ const CATEGORIES = [
   { key: 'donation',     label: '💰 Донат' },
   { key: 'education',    label: '📚 Освіта' },
   { key: 'ecology',      label: '🌱 Екологія' },
+  { key: 'military',     label: '🪖 Армія' },
   { key: 'other',        label: '⚙️ Інше' },
 ];
 
@@ -38,6 +52,44 @@ const STATUS_META = {
 };
 
 const EMOJI_LIST = ['📋','🤝','💪','🔥','🌟','📦','🎯','🌿','💎','🏆','🌊','📚','🏗️','🎨','⚡'];
+const CATEGORY_ICONS = {
+  volunteering: '🤝',
+  aid:          '📦',
+  donation:     '💰',
+  education:    '📚',
+  ecology:      '🌱',
+  military:     '🪖',
+  other:        '⚙️',
+};
+
+const createCategoryIcon = (category) => {
+  const emoji = CATEGORY_ICONS[category] || '📋';
+  return L.divIcon({
+    html: `
+      <div class="premium-marker">
+        <div class="marker-pulse"></div>
+        <div class="marker-base">
+          <span class="marker-emoji">${emoji}</span>
+        </div>
+      </div>
+    `,
+    className: 'custom-map-icon',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
+  });
+};
+
+// ── Location Picker ───────────────────────────────────────────────────────────
+const LocationPicker = ({ onSelect, selectedPos }) => {
+  const map = useMapEvents({
+    click(e) {
+      onSelect(e.latlng);
+    },
+  });
+
+  return selectedPos ? <Marker position={selectedPos} /> : null;
+};
 
 // ── Create Task Modal ─────────────────────────────────────────────────────────
 const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
@@ -45,6 +97,7 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
     title: '', description: '', category: 'volunteering',
     points: 100, endDate: '', coverEmoji: '📋',
     guildOnly: false, targetGuild: '', maxParticipants: '',
+    lat: null, lng: null, address: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
@@ -158,6 +211,38 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
             </div>
           )}
 
+          {/* Location Picker */}
+          <div className="form-group">
+            <label>Місце виконання (натисніть на мапі)</label>
+            <div className="modal-map-picker">
+              <MapContainer
+                center={[48.3794, 31.1656]}
+                zoom={5}
+                style={{ height: '200px', width: '100%', borderRadius: '8px' }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <LocationPicker
+                  selectedPos={form.lat ? { lat: form.lat, lng: form.lng } : null}
+                  onSelect={(pos) => {
+                    set('lat', pos.lat);
+                    set('lng', pos.lng);
+                  }}
+                />
+              </MapContainer>
+            </div>
+            {form.lat && (
+              <div className="location-coords">
+                Координати: {form.lat.toFixed(4)}, {form.lng.toFixed(4)}
+              </div>
+            )}
+            <input
+              placeholder="Адреса (опціонально)"
+              value={form.address}
+              onChange={e => set('address', e.target.value)}
+              style={{ marginTop: '8px' }}
+            />
+          </div>
+
           {error && <div className="modal-error">{error}</div>}
 
           <button type="submit" className="btn-primary" disabled={loading} id="create-task-submit">
@@ -225,6 +310,52 @@ const TaskCard = ({ task, index }) => {
   );
 };
 
+// ── Map View ──────────────────────────────────────────────────────────────────
+const TaskMapView = ({ tasks }) => {
+  const tasksWithLocation = tasks.filter(t => t.lat && t.lng);
+
+  return (
+    <div className="tasks-map-container">
+      <MapContainer
+        center={[48.3794, 31.1656]} // Center of Ukraine
+        zoom={6}
+        style={{ height: '600px', width: '100%', borderRadius: '12px' }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {tasksWithLocation.map(task => (
+          <Marker
+            key={task._id}
+            position={[task.lat, task.lng]}
+            icon={createCategoryIcon(task.category)}
+          >
+            <Popup className="premium-map-popup">
+              <div className="popup-card">
+                <div className="popup-emoji-bg">{task.coverEmoji || '📋'}</div>
+                <div className="popup-main">
+                  <div className="popup-header">
+                    <span className="popup-cat-tag">
+                      {CATEGORY_ICONS[task.category]} {task.category}
+                    </span>
+                    <span className="popup-points">+{task.points} XP</span>
+                  </div>
+                  <h4 className="popup-title">{task.title}</h4>
+                  <p className="popup-text">{task.description?.substring(0, 70)}...</p>
+                  <Link to={`/tasks/${task._id}`} className="popup-action-btn">
+                    Переглянути <FiChevronRight />
+                  </Link>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </div>
+  );
+};
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const TasksPage = () => {
   const [tasks, setTasks]         = useState([]);
@@ -234,6 +365,7 @@ const TasksPage = () => {
   const [filter, setFilter]       = useState('all');
   const [catFilter, setCatFilter] = useState('all');
   const [search, setSearch]       = useState('');
+  const [viewMode, setViewMode]   = useState('list'); // 'list' | 'map'
 
   const token   = localStorage.getItem('userToken');
   const isGuest = localStorage.getItem('userRole') === 'guest';
@@ -305,6 +437,21 @@ const TasksPage = () => {
                 />
               </div>
 
+              <div className="view-mode-toggle">
+                <button
+                  className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                >
+                  📋 Список
+                </button>
+                <button
+                  className={`toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
+                  onClick={() => setViewMode('map')}
+                >
+                  🗺️ Мапа
+                </button>
+              </div>
+
               <div className="tasks-filters-row">
                 <div className="filter-group">
                   <FiFilter size={13} />
@@ -326,7 +473,7 @@ const TasksPage = () => {
               </div>
             </div>
 
-            {/* ── Task list ── */}
+            {/* ── Content (Map or List) ── */}
             {loading ? (
               <div className="tasks-loading">
                 <div className="guilds-spinner" />
@@ -342,6 +489,8 @@ const TasksPage = () => {
                   </button>
                 )}
               </div>
+            ) : viewMode === 'map' ? (
+              <TaskMapView tasks={tasks} />
             ) : (
               <div className="tasks-list-v2">
                 <AnimatePresence>

@@ -664,6 +664,15 @@
     transform: translateX(0);
     box-shadow: var(--shadow-xl);
     overflow-y: auto;
+    display: block; /* Allow the whole sidebar to scroll as one unit */
+  }
+  .sidebar.mobile-open .sidebar-links {
+    flex: none;
+    overflow-y: visible;
+  }
+  .sidebar.mobile-open .sidebar-bottom {
+    margin-top: 20px;
+    padding-bottom: 40px; /* Extra space to ensure logout is reachable */
   }
   /* Restore collapsed-hid text inside drawer */
   .sidebar.collapsed .sidebar-text,

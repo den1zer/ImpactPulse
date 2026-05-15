@@ -23,6 +23,7 @@ export const createTask = async (req, res) => {
     const {
       title, description, category, points, endDate,
       guildOnly, targetGuild, maxParticipants, coverEmoji,
+      lat, lng, address,
     } = req.body;
 
     const pointsNum = parseInt(points);
@@ -42,6 +43,9 @@ export const createTask = async (req, res) => {
       guildOnly: guildOnly === true || guildOnly === 'true',
       targetGuild: targetGuild || null,
       maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+      lat: lat ? parseFloat(lat) : null,
+      lng: lng ? parseFloat(lng) : null,
+      address: address || '',
       status: 'open',
     });
 
@@ -416,6 +420,9 @@ export const updateTask = async (req, res) => {
     if (points)      task.points      = parseInt(points);
     if (status)      task.status      = status;
     if (endDate)     task.endDate     = endDate;
+    if (lat)         task.lat         = parseFloat(lat);
+    if (lng)         task.lng         = parseFloat(lng);
+    if (address)     task.address     = address;
 
     await task.save();
     res.json(task);
