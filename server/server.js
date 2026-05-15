@@ -110,6 +110,16 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
   
+  socket.on('join_support', (userId) => {
+    socket.join(`user_${userId}`);
+    console.log(`User ${userId} joined support chat`);
+  });
+
+  socket.on('join_admins', () => {
+    socket.join('admins');
+    console.log('Admin joined admins room');
+  });
+
   socket.on('disconnect', () => {
     console.log(`Socket disconnected: ${socket.id}`);
   });

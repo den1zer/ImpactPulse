@@ -84,7 +84,13 @@
           <span class="nav-icon">💬</span>
           <span class="nav-label">Відгуки</span>
         </button>
+        <button class="nav-item" data-tab="chat">
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">Чат</span>
+          <span class="nav-badge" id="badge-chat"></span>
+        </button>
         <button class="nav-item" data-tab="statistics">
+
           <span class="nav-icon">📊</span>
           <span class="nav-label">Статистика</span>
         </button>
@@ -223,6 +229,45 @@
         <div class="pagination" id="feedback-pagination"></div>
       </section>
 
+      <!-- ── CHAT TAB ── -->
+      <section id="tab-chat" class="tab-content">
+        <div class="admin-chat-container">
+          <div class="admin-chat-sidebar">
+            <div class="chat-sidebar-header">
+              <h3>Чати</h3>
+              <button class="btn btn-sm" id="chat-refresh-btn">🔄</button>
+            </div>
+            <div id="chat-user-list" class="chat-user-list">
+              <!-- Users will be injected here -->
+            </div>
+          </div>
+          <div class="admin-chat-main">
+            <div id="chat-empty-state" class="chat-empty-state">
+              <div class="empty-icon">💬</div>
+              <p>Оберіть користувача, щоб почати спілкування</p>
+            </div>
+            <div id="chat-window" class="chat-window hidden">
+              <div class="chat-header">
+                <div class="chat-user-info">
+                  <div class="user-avatar-sm" id="active-chat-avatar">U</div>
+                  <div>
+                    <h4 id="active-chat-username">Користувач</h4>
+                    <p id="active-chat-email">email@example.com</p>
+                  </div>
+                </div>
+              </div>
+              <div id="chat-messages" class="chat-messages">
+                <!-- Messages will be injected here -->
+              </div>
+              <form id="chat-form" class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Напишіть повідомлення..." autocomplete="off" />
+                <button type="submit" class="btn btn-primary btn-sm">Відправити</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ── STATISTICS TAB ── -->
       <section id="tab-statistics" class="tab-content">
         <div id="stats-content">
@@ -353,7 +398,10 @@
   <script src="./js/users.js"></script>
   <script src="./js/tickets.js"></script>
   <script src="./js/feedback.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="./js/chat.js"></script>
   <script src="./js/statistics.js"></script>
+
   <script src="./js/manage-tasks.js"></script>
   <script src="./js/manage-fundraisers.js"></script>
   <script src="./js/create-forms.js"></script>

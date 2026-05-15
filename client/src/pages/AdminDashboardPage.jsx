@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { io } from 'socket.io-client';
+
 import AnimatedPage from '../components/AnimatedPage';
 import { useNavigate } from 'react-router-dom';
 
@@ -886,6 +888,170 @@ const CreateTask = () => {
   );
 };
 
+const AdminChat = () => {
+  const [chatUsers, setChatUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const socketRef = React.useRef(null);
+  const messagesEndRef = React.useRef(null);
+
+  const token = localStorage.getItem('userToken');
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const fetchChatUsers = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/support/chats`, {
+          headers: { 'x-auth-token': token }
+        });
+        setChatUsers(res.data);
+      } catch (err) { console.error(err); }
+    };
+    fetchChatUsers();
+    
+    // Socket.io
+    socketRef.current = io(API_BASE_URL, {
+
+      transports: ['websocket', 'polling'],
+      withCredentials: true
+    });
+
+    socketRef.current.emit('join_admins');
+
+    socketRef.current.on('admin_new_support_message', (msg) => {
+      // If the message is from/for the selected user, add it to chat
+      if (selectedUser && msg.user === selectedUser._id) {
+        setMessages(prev => [...prev, msg]);
+      }
+      // Update chat users list (last message preview)
+      setChatUsers(prev => {
+        const index = prev.findIndex(u => u._id === msg.user);
+        if (index !== -1) {
+          const updated = [...prev];
+          updated[index] = { ...updated[index], lastMessage: msg.text, lastMessageAt: msg.createdAt };
+          return updated.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+        }
+        return prev;
+      });
+    });
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
+  }, [selectedUser, token]);
+
+  useEffect(() => {
+    if (selectedUser) {
+      const fetchMessages = async () => {
+        setLoading(true);
+        try {
+          const res = await axios.get(`${API_BASE_URL}/api/support/chat/${selectedUser._id}`, {
+            headers: { 'x-auth-token': token }
+          });
+          setMessages(res.data);
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+      };
+      fetchMessages();
+    }
+  }, [selectedUser, token]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || !selectedUser) return;
+
+    try {
+      await axios.post(`${API_BASE_URL}/api/support/chat`, 
+        { text: input, userId: selectedUser._id },
+        { headers: { 'x-auth-token': token } }
+      );
+      setInput('');
+    } catch (err) { console.error(err); }
+  };
+
+  return (
+    <div className="admin-chat-layout" style={{ display: 'flex', height: '600px', backgroundColor: 'var(--card-bg)', borderRadius: '15px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+      {/* Sidebar: Users */}
+      <div className="admin-chat-sidebar" style={{ width: '300px', borderRight: '1px solid var(--border-color)', overflowY: 'auto' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', fontWeight: 'bold' }}>Чати</div>
+        {chatUsers.map(user => (
+          <div 
+            key={user._id} 
+            onClick={() => setSelectedUser(user)}
+            className={`admin-chat-user-item ${selectedUser?._id === user._id ? 'active' : ''}`}
+            style={{ 
+              padding: '15px 20px', 
+              cursor: 'pointer', 
+              borderBottom: '1px solid var(--border-color)',
+              backgroundColor: selectedUser?._id === user._id ? 'rgba(0,123,255,0.1)' : 'transparent'
+            }}
+          >
+            <div style={{ fontWeight: 600 }}>{user.username}</div>
+            <div style={{ fontSize: '0.8em', color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user.lastMessage}
+            </div>
+          </div>
+        ))}
+        {chatUsers.length === 0 && <div style={{ padding: '20px', color: '#888' }}>Немає активних чатів</div>}
+      </div>
+
+      {/* Main: Chat Window */}
+      <div className="admin-chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {selectedUser ? (
+          <>
+            <div style={{ padding: '15px 20px', borderBottom: '1px solid var(--border-color)', fontWeight: 600 }}>
+              Чат з {selectedUser.username} ({selectedUser.email})
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {loading ? <p>Завантаження...</p> : messages.map((m, idx) => (
+                <div key={idx} style={{ 
+                  alignSelf: m.isAdmin ? 'flex-end' : 'flex-start',
+                  maxWidth: '70%',
+                  padding: '10px 15px',
+                  borderRadius: '12px',
+                  backgroundColor: m.isAdmin ? '#007bff' : 'var(--bg-secondary)',
+                  color: m.isAdmin ? 'white' : 'inherit',
+                  position: 'relative'
+                }}>
+                  {m.text}
+                  <div style={{ fontSize: '0.7em', marginTop: '4px', opacity: 0.7, textAlign: 'right' }}>
+                    {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+            <form onSubmit={handleSend} style={{ padding: '20px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '10px' }}>
+              <input 
+                type="text" 
+                value={input} 
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Напишіть повідомлення..."
+                className="neumorph-input"
+                style={{ flex: 1, marginBottom: 0 }}
+              />
+              <button type="submit" className="action-btn approve" style={{ padding: '10px 20px' }}>Відправити</button>
+            </form>
+          </>
+        ) : (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+            Оберіть користувача, щоб почати чат
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('contributions');
   const navigate = useNavigate();
@@ -931,6 +1097,12 @@ const AdminDashboardPage = () => {
             Тікети
           </button>
           <button
+            className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
+            onClick={() => setActiveTab('chat')}
+          >
+            Чат
+          </button>
+          <button
             className={`tab-btn ${activeTab === 'feedback' ? 'active' : ''}`}
             onClick={() => setActiveTab('feedback')}
           >
@@ -971,6 +1143,7 @@ const AdminDashboardPage = () => {
         {activeTab === 'contributions' && <PendingContributions />}
         {activeTab === 'users' && <AdminUserList />}
         {activeTab === 'tickets' && <AdminTicketList />}
+        {activeTab === 'chat' && <AdminChat />}
         {activeTab === 'feedback' && <AdminFeedbackList />}
         {activeTab === 'statistics' && <AdminStatistics />}
         {activeTab === 'manage-tasks' && <AdminManageTasks />}

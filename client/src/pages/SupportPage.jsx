@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../config/api.js';
 import { Link } from 'react-router-dom';
@@ -14,6 +14,7 @@ import {
   FiMinus, FiSend, FiHelpCircle, FiArrowRight, FiGithub, FiTwitter
 } from 'react-icons/fi';
 import playSound from '../utils/sounds';
+import { io } from 'socket.io-client';
 
 const FaqItem = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,69 +43,132 @@ const FaqItem = ({ title, children }) => {
   );
 };
 
-const TicketForm = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', question: '' });
-  const [message, setMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
-  
-  const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  
-  const onSubmit = async (e) => {
+const SupportChat = () => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef(null);
+  const socketRef = useRef(null);
+  const userId = localStorage.getItem('userId');
+  const token = localStorage.getItem('userToken');
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/support/chat`, {
+          headers: { 'x-auth-token': token }
+        });
+        setMessages(res.data);
+      } catch (err) {
+        console.error('Chat history error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchHistory();
+
+      // Initialize Socket
+      socketRef.current = io(API_BASE_URL, {
+        transports: ['websocket', 'polling'],
+        withCredentials: true
+      });
+
+      socketRef.current.emit('join_support', userId);
+
+      socketRef.current.on('support_message', (msg) => {
+        setMessages(prev => [...prev, msg]);
+        if (msg.isAdmin) playSound('success', 0.2);
+      });
+    }
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
+  }, [token, userId]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    playSound('click');
+    if (!input.trim()) return;
+
+    const text = input;
+    setInput('');
+    playSound('click', 0.1);
+
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/support/ticket`, formData);
-      setMessage({ type: 'success', text: res.data.msg }); 
-      setFormData({ name: '', email: '', phone: '', question: '' });
-      playSound('success');
+      await axios.post(`${API_BASE_URL}/api/support/chat`, 
+        { text },
+        { headers: { 'x-auth-token': token } }
+      );
+      // Message will come back via Socket
     } catch (err) {
-      const errorMsg = err.response?.data?.errors ? err.response.data.errors[0].msg : (err.response?.data?.msg || 'Щось пішло не так');
-      setMessage({ type: 'error', text: 'Помилка: ' + errorMsg });
-      playSound('error');
-    } finally {
-      setLoading(false);
+      console.error('Send message error:', err);
     }
   };
 
+  if (!token) {
+    return (
+      <div className="sp-form-card sp-chat-locked">
+        <FiMessageSquare className="sp-icon-bg" />
+        <h3>Чат з підтримкою</h3>
+        <p>Будь ласка, увійдіть, щоб спілкуватися з нами в реальному часі.</p>
+        <Link to="/login" className="sp-btn-primary" style={{marginTop: '15px'}}>Увійти</Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="sp-form-card">
+    <div className="sp-form-card sp-chat-card">
       <div className="sp-card-header">
         <FiMessageSquare className="sp-icon-bg" />
-        <h3>Надіслати тікет</h3>
-        <p>Наші адміністратори допоможуть вам протягом дня</p>
+        <div className="sp-chat-status">
+          <span className="sp-status-dot online"></span>
+          <div>
+            <h3>Чат з адміном</h3>
+            <p>Онлайн • Відповідаємо швидко</p>
+          </div>
+        </div>
       </div>
-      <form className="sp-form" onSubmit={onSubmit}>
-        <div className="sp-form-row">
-          <div className="form-group">
-            <label>Ім'я</label>
-            <input type="text" name="name" value={formData.name} onChange={onChange} placeholder="Ваше ім'я" required />
-          </div>
-          <div className="form-group">
-            <label>Email</label>
-            <input type="email" name="email" value={formData.email} onChange={onChange} placeholder="you@example.com" required />
-          </div>
-        </div>
-        <div className="form-group">
-          <label>Телефон (необов'язково)</label>
-          <input type="tel" name="phone" value={formData.phone} onChange={onChange} placeholder="+380..." />
-        </div>
-        <div className="form-group">
-          <label>Повідомлення</label>
-          <textarea name="question" value={formData.question} onChange={onChange} placeholder="Опишіть ваше питання або проблему..." rows={4} required></textarea>
-        </div>
-        <button type="submit" className="sp-btn-primary" disabled={loading}>
-          {loading ? 'Надсилаємо...' : <><FiSend /> Надіслати запит</>}
-        </button>
-        {message && (
-          <motion.div 
-            className={`sp-alert ${message.type}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {message.text}
-          </motion.div>
+
+      <div className="sp-chat-messages">
+        {loading ? (
+          <div className="sp-chat-loading">Завантаження повідомлень...</div>
+        ) : messages.length === 0 ? (
+          <div className="sp-chat-empty">Привіт! Чим ми можемо вам допомогти?</div>
+        ) : (
+          messages.map((m, idx) => (
+            <div key={idx} className={`sp-msg ${m.isAdmin ? 'admin' : 'user'}`}>
+              <div className="sp-msg-bubble">
+                {m.text}
+                <span className="sp-msg-time">
+                  {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            </div>
+          ))
         )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form className="sp-chat-input" onSubmit={handleSend}>
+        <input 
+          type="text" 
+          value={input} 
+          onChange={(e) => setInput(e.target.value)} 
+          placeholder="Напишіть повідомлення..."
+        />
+        <button type="submit" disabled={!input.trim()}>
+          <FiSend />
+        </button>
       </form>
     </div>
   );
@@ -251,7 +315,7 @@ const SupportPage = () => {
 
               {/* ══ RIGHT COLUMN: FORMS ══ */}
               <div className="sp-right">
-                <TicketForm />
+                <SupportChat />
                 <FeedbackForm />
               </div>
             </div>

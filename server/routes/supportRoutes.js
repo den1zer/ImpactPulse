@@ -7,8 +7,13 @@ import {
   createTicket, 
   createFeedback, 
   getOpenTickets,
-  getAllFeedback
+  getAllFeedback,
+  getChatMessages,
+  sendChatMessage,
+  getAllChatUsers,
+  getAdminChatMessages
 } from '../controllers/supportController.js';
+
 
 /**
  * @swagger
@@ -80,5 +85,13 @@ router.get('/tickets', [isAuthenticated, isAdmin], getOpenTickets);
  *         description: List of all feedback
  */
 router.get('/feedback', [isAuthenticated, isAdmin], getAllFeedback);
+
+// Support Chat
+router.get('/chat', isAuthenticated, getChatMessages);
+router.post('/chat', isAuthenticated, sendChatMessage);
+
+// Admin Chat Management
+router.get('/chats', [isAuthenticated, isAdmin], getAllChatUsers);
+router.get('/chat/:userId', [isAuthenticated, isAdmin], getAdminChatMessages);
 
 export default router;
