@@ -93,12 +93,9 @@ const DashboardPage = () => {
 
             {/* ── Main grid ── */}
             <div className="dashboard-grid">
-              {/* Chart */}
               <div className="panel-card panel-chart">
-                <StatsChart contributions={contributions.map(item => item.amount || 1)} />
+                <StatsChart contributions={contributions} />
               </div>
-
-              {/* Quick actions */}
               <div className="panel-card panel-actions">
                 <div className="panel-heading">
                   <h3>Швидкі дії</h3>
