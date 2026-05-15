@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import authService from '../api/authService';
+import playSound from '../utils/sounds';
 
 const RegisterPage = () => {
   const [formData, setFormData]   = useState({ 
@@ -24,6 +25,7 @@ const RegisterPage = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userId');
     localStorage.setItem('userRole', 'guest');
+    playSound('click');
     navigate('/dashboard');
   };
 
@@ -49,6 +51,7 @@ const RegisterPage = () => {
     setLoading(true);
     try {
       await authService.register({ username, email, password });
+      playSound('success');
       setSuccessMsg(
         'Реєстрацію завершено! Перевірте вашу пошту (та папку "Спам") для підтвердження акаунту.',
       );
@@ -139,7 +142,7 @@ const RegisterPage = () => {
                 <button
                   type="button"
                   className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => { setShowPassword(!showPassword); playSound('click', 0.1); }}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
@@ -165,7 +168,7 @@ const RegisterPage = () => {
                 <button
                   type="button"
                   className="password-toggle"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() => { setShowConfirmPassword(!showConfirmPassword); playSound('click', 0.1); }}
                 >
                   {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>

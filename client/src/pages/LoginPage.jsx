@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import authService from '../api/authService';
+import playSound from '../utils/sounds';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -17,6 +18,7 @@ const LoginPage = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userId');
     localStorage.setItem('userRole', 'guest');
+    playSound('click');
     navigate('/dashboard');
   };
 
@@ -26,6 +28,7 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const { role } = await authService.login({ email, password });
+      playSound('success');
       navigate(role === 'admin' ? '/admin/dashboard' : '/dashboard');
     } catch (error) {
       const msg = error.response?.data?.msg || '';
@@ -93,7 +96,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => { setShowPassword(!showPassword); playSound('click', 0.1); }}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}

@@ -14,6 +14,7 @@ import {
 import confetti from 'canvas-confetti';
 import '../styles/TasksPage.css';
 import './TaskDetailPage2.css';
+import playSound from '../utils/sounds';
 
 // ── helpers ───────────────────────────────────────────────────
 const STATUS_META = {
@@ -327,12 +328,14 @@ const TaskDetailPage = () => {
             origin: { y: 0.6 },
             colors: ['#6366f1', '#22c55e', '#facc15']
           });
+          playSound('success');
           setShowSuccess(true);
       } else {
           await axios.post(`${API_BASE_URL}/api/tasks/${id}/join`,
             { joinMode: mode, guildId },
             { headers: { 'x-auth-token': token } }
           );
+          playSound('click');
           showToast('Ви приєдналися до завдання');
       }
       fetchTask();
@@ -356,6 +359,7 @@ const TaskDetailPage = () => {
         { participantUserId, action, reviewComment },
         { headers: { 'x-auth-token': token } }
       );
+      playSound(action === 'approve' ? 'badge' : 'click');
       showToast(action === 'approve' ? 'Виконання підтверджено! ✅' : 'Виконання відхилено ❌');
       fetchTask();
     } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
