@@ -24,7 +24,7 @@ const InstructionsPage = () => {
           <div className="instruction-section">
             <h2><span className="tab-icon"><FiCompass /></span> З чого почати?</h2>
             <div className="instruction-block">
-              <h3>Привіт! Вітаємо в ImpactPulse 👋</h3>
+              <h3>Привіт! Вітаємо в ImpactPulse</h3>
               <p>Ми створили це місце, щоб зробити благодійність і волонтерство ще крутішими. Ти робиш добрі справи, а ми допомагаємо перетворити це на цікавий процес із реальними нагородами.</p>
               <p>Все працює максимально просто: ти донатиш або волонтериш, ділишся цим на платформі і отримуєш за це визнання у вигляді <strong>Досвіду (XP)</strong> та спеціальних монет <strong>(ImpactCoins)</strong>.</p>
             </div>
@@ -153,14 +153,10 @@ const InstructionsPage = () => {
         <AnimatedPage>
           <div className="dashboard-content-wrapper">
             
-            <div className="dashboard-hero">
-              <div className="hero-summary-card">
-                <div>
-                  <p className="small-title">База знань</p>
-                  <h2>Інструкція Користувача</h2>
-                  <p className="hero-description">Все, що потрібно знати про роботу ImpactPulse: від подачі заявок до обміну балів на реальні нагороди.</p>
-                </div>
-              </div>
+            <div className="instructions-hero">
+              <p className="small-title">База знань</p>
+              <h2>Інструкція Користувача</h2>
+              <p className="hero-description">Все, що потрібно знати про роботу ImpactPulse: від подачі заявок до обміну балів на реальні нагороди.</p>
             </div>
 
             <div className="instructions-layout">

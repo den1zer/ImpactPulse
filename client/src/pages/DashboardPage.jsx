@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import AnimatedPage from '../components/AnimatedPage';
 import StatsChart from '../components/StatsChart';
 import Sidebar from '../components/Sidebar';
@@ -11,8 +12,42 @@ import API_BASE_URL from '../config/api.js';
 const DashboardPage = () => {
   const [contributions, setContributions] = useState([]);
   const [leaderboard, setLeaderboard]     = useState([]);
+  const [feed, setFeed]                   = useState([]);
   const [loading, setLoading]             = useState(true);
   const isGuest = localStorage.getItem('userRole') === 'guest';
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/activities`);
+        setFeed(res.data);
+      } catch (err) {
+        console.error('fetchActivities error:', err);
+      }
+    };
+
+    fetchActivities();
+
+    const socket = io(API_BASE_URL, {
+      transports: ['websocket', 'polling'],
+      withCredentials: true
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket connected to server');
+    });
+
+    socket.on('activity_feed', (data) => {
+      console.log('Received activity_feed event:', data);
+      setFeed(prev => [data, ...prev].slice(0, 10)); // keep last 10
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Socket connection error:', err);
+    });
+
+    return () => socket.disconnect();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,25 +128,37 @@ const DashboardPage = () => {
 
             {/* ── Main grid ── */}
             <div className="dashboard-grid">
-              {/* Chart */}
               <div className="panel-card panel-chart">
-                <StatsChart contributions={contributions.map(item => item.amount || 1)} />
+                <StatsChart contributions={contributions} />
               </div>
-
-              {/* Quick actions */}
               <div className="panel-card panel-actions">
                 <div className="panel-heading">
                   <h3>Швидкі дії</h3>
                 </div>
                 <div className="action-list">
                   {isGuest ? (
-                    <Link to="/login" className="action-item">Увійти для повного доступу →</Link>
+                    <Link to="/login" className="action-item">
+                      Увійти для повного доступу
+                      <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                    </Link>
                   ) : (
                     <>
-                      <Link to="/add-help"         className="action-item">+ Нова заявка</Link>
-                      <Link to="/my-contributions"  className="action-item">Переглянути заявки →</Link>
-                      <Link to="/rewards"           className="action-item">Нагороди →</Link>
-                      <Link to="/fundraisers"       className="action-item">Актуальні збори →</Link>
+                      <Link to="/add-help"         className="action-item">
+                        + Нова заявка
+                        <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                      </Link>
+                      <Link to="/my-contributions"  className="action-item">
+                        Переглянути заявки
+                        <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                      </Link>
+                      <Link to="/rewards"           className="action-item">
+                        Нагороди
+                        <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                      </Link>
+                      <Link to="/fundraisers"       className="action-item">
+                        Актуальні збори
+                        <svg style={{marginLeft:'auto'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                      </Link>
                     </>
                   )}
                 </div>
@@ -136,10 +183,10 @@ const DashboardPage = () => {
                           src={
                             user.avatar
                               ? (user.avatar.startsWith('http') ? user.avatar : `${API_BASE_URL}/${user.avatar}`)
-                              : 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'
+                              : '/default-avatar.svg'
                           }
                           alt={user.username}
-                          onError={e => { e.target.src = 'https://icon-library.com/images/default-user-icon/default-user-icon-8.jpg'; }}
+                          onError={e => { e.target.src = '/default-avatar.svg'; }}
                         />
                         <span className="leaderboard-name">
                           {user.username}
@@ -154,6 +201,25 @@ const DashboardPage = () => {
                   )}
                 </ul>
               </div>
+              {/* Live Feed */}
+              <div className="panel-card panel-feed">
+                <div className="panel-heading">
+                  <h3>Live Feed</h3>
+                  <p>Останні дії спільноти</p>
+                </div>
+                <div className="feed-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                  {feed.length > 0 ? (
+                    feed.map((item, idx) => (
+                      <div key={idx} className="feed-item">
+                        {item.message}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="feed-item" style={{ opacity: 0.5, fontFamily: 'var(--font-mono)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Поки що немає активності...</div>
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
         </AnimatedPage>

@@ -1,12 +1,12 @@
-const Contribution = require('../models/Contribution');
-const User = require('../models/User');
-const Badge = require('../models/Badge');
-const Task = require('../models/Task');
-const Guild = require('../models/Guild');
-const { handleStreak, updateDailyQuestProgress } = require('../utils/gameLogic');
+import Contribution from '../models/Contribution.js';
+import User from '../models/User.js';
+import Badge from '../models/Badge.js';
+import Task from '../models/Task.js';
+import Guild from '../models/Guild.js';
+import Activity from '../models/Activity.js';
+import { handleStreak, updateDailyQuestProgress } from '../utils/gameLogic.js';
 
-exports.addContribution = async (req, res) => {
-  
+export const addContribution = async (req, res) => {
   const { title, description, type, amount, itemList, comment, location, taskId } = req.body;
   const userId = req.user.id; 
 
@@ -42,7 +42,7 @@ exports.addContribution = async (req, res) => {
   }
 };
 
-const checkAndAwardBadges = async (user) => {
+export const checkAndAwardBadges = async (user) => {
   const allBadges = await Badge.find(); 
   for (const badge of allBadges) {
     let currentValue = 0;
@@ -83,9 +83,8 @@ const checkAndAwardBadges = async (user) => {
     }
   }
 };
-exports.checkAndAwardBadges = checkAndAwardBadges;
 
-exports.approveContribution = async (req, res) => {
+export const approveContribution = async (req, res) => {
   try {
     const contribution = await Contribution.findById(req.params.id);
     if (!contribution) return res.status(404).json({ msg: 'Заявку не знайдено' });
@@ -141,6 +140,12 @@ exports.approveContribution = async (req, res) => {
     // pointsToAward XP is added to the user's guild (if any)
     await Guild.addXPForUser(user._id, pointsToAward);
 
+    if (req.io) {
+      const message = `${user.username} щойно виконав завдання '${contribution.title}' +${pointsToAward} XP`;
+      await Activity.create({ message, type: 'contribution_approved' });
+      req.io.emit('activity_feed', { message });
+    }
+
     res.json({ msg: 'Заявку схвалено, бали нараховано!' });
   } catch (err) {
     console.error(err.message);
@@ -148,7 +153,7 @@ exports.approveContribution = async (req, res) => {
   }
 };
 
-exports.rejectContribution = async (req, res) => {
+export const rejectContribution = async (req, res) => {
   const { comment } = req.body; 
   try {
     const contribution = await Contribution.findById(req.params.id);
@@ -167,7 +172,7 @@ exports.rejectContribution = async (req, res) => {
   }
 };
 
-exports.getPendingContributions = async (req, res) => {
+export const getPendingContributions = async (req, res) => {
   try {
     const contributions = await Contribution.find({ status: 'pending' })
                                             .populate('user', 'username email');
@@ -178,7 +183,7 @@ exports.getPendingContributions = async (req, res) => {
   }
 };
 
-exports.getMyContributions = async (req, res) => {
+export const getMyContributions = async (req, res) => {
   try {
     const contributions = await Contribution.find({ user: req.user.id })
                                             .sort({ createdAt: -1 }); 

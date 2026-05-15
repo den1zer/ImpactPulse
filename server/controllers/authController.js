@@ -1,11 +1,14 @@
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const sendEmail = require('../utils/sendEmail');
-require('dotenv').config();
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { sendEmail } from '../utils/sendEmail.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
+  console.log('--- REGISTER START ---');
+  console.log('[Register] Body:', JSON.stringify(req.body));
   const { username, email, password } = req.body;
   try {
     let user = await User.findOne({ email });
@@ -33,14 +36,24 @@ exports.registerUser = async (req, res) => {
       </div>
     `;
 
+    let emailSent = true;
     try {
+      console.log(`[Register] Відправка verification email на ${user.email}...`);
       await sendEmail({
         email: user.email,
         subject: 'Підтвердження реєстрації на ImpactPulse',
         html: message,
       });
+      console.log(`[Register] ✅ Email відправлено успішно`);
     } catch (err) {
-      console.error('Помилка відправки email', err);
+      console.error('[Register] ❌ Email НЕ відправлено:', err.message);
+      emailSent = false;
+    }
+
+    if (!emailSent) {
+      return res.status(201).json({
+        msg: 'Акаунт створено, але лист не надійшов, зверніться в підтримку'
+      });
     }
 
     res.status(201).json({ msg: 'Реєстрація успішна! На вашу пошту відправлено лист із посиланням для підтвердження. Будь ласка, перевірте скриньку (та папку Спам).' });
@@ -50,7 +63,7 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     let user = await User.findOne({ email }).select('+password');
@@ -65,6 +78,32 @@ exports.loginUser = async (req, res) => {
     if (!user.isVerified) {
       return res.status(401).json({ msg: 'Please verify your email before logging in.' });
     }
+
+    // Update streak logic
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const lastActivity = user.streak?.lastActivityDate ? new Date(user.streak.lastActivityDate) : null;
+    if (lastActivity) {
+      lastActivity.setHours(0, 0, 0, 0);
+    }
+
+    const diffTime = lastActivity ? today - lastActivity : -1;
+    const diffDays = lastActivity ? Math.round(diffTime / (1000 * 60 * 60 * 24)) : -1;
+
+    if (!user.streak || !user.streak.lastActivityDate) {
+      user.streak = { current: 1, longest: 1, lastActivityDate: new Date() };
+    } else if (diffDays === 1) {
+      user.streak.current += 1;
+      if (user.streak.current > user.streak.longest) user.streak.longest = user.streak.current;
+      user.streak.lastActivityDate = new Date();
+    } else if (diffDays > 1 || diffDays === -1) {
+      user.streak.current = 1;
+      if (user.streak.current > user.streak.longest) user.streak.longest = user.streak.current;
+      user.streak.lastActivityDate = new Date();
+    }
+
+    await user.save();
 
     const payload = {
       user: {
@@ -87,7 +126,7 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-exports.verifyEmail = async (req, res) => {
+export const verifyEmail = async (req, res) => {
   try {
     const user = await User.findOne({ verificationToken: req.params.token });
     if (!user) {
@@ -103,18 +142,18 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-exports.forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
       return res.status(404).json({ msg: 'Користувача з таким email не знайдено' });
     }
-    
+
     const resetToken = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hr
     await user.save();
-    
+
     const clientUrl = req.headers.origin || process.env.FRONTEND_URL;
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
     const message = `
@@ -128,18 +167,20 @@ exports.forgotPassword = async (req, res) => {
     `;
 
     try {
+      console.log(`[ForgotPassword] Відправка reset email на ${user.email}...`);
       await sendEmail({
         email: user.email,
         subject: 'Скидання пароля на ImpactPulse',
         html: message,
       });
+      console.log(`[ForgotPassword] ✅ Email відправлено успішно`);
       res.status(200).json({ msg: 'Лист для скидання пароля відправлено' });
     } catch (err) {
-      console.error(err);
+      console.error('[ForgotPassword] ❌ Email НЕ відправлено:', err.message);
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
       await user.save();
-      res.status(500).json({ msg: 'Помилка відправки email' });
+      res.status(500).json({ msg: 'Помилка відправки email. Спробуйте пізніше або зверніться в підтримку.' });
     }
   } catch (err) {
     console.error(err);
@@ -147,24 +188,24 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-exports.resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
   try {
     const user = await User.findOne({
       resetPasswordToken: req.params.token,
       resetPasswordExpire: { $gt: Date.now() }
     });
-    
+
     if (!user) {
       return res.status(400).json({ msg: 'Невірний токен або його термін дії минув' });
     }
-    
+
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(req.body.password, salt);
-    
+
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
-    
+
     res.status(200).json({ msg: 'Пароль успішно оновлено' });
   } catch (err) {
     console.error(err);

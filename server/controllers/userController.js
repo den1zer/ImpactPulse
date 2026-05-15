@@ -1,8 +1,8 @@
-const User = require('../models/User');
-const { checkAndAwardBadges } = require('./contributionController'); 
-const cloudinary = require('../config/cloudinary');
+import User from '../models/User.js';
+import { checkAndAwardBadges } from './contributionController.js'; 
+import cloudinary from '../config/cloudinary.js';
 
-exports.getUserProfile = async (req, res) => {
+export const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
@@ -13,7 +13,7 @@ exports.getUserProfile = async (req, res) => {
   }
 };
 
-exports.updateUserProfile = async (req, res) => {
+export const updateUserProfile = async (req, res) => {
   try {
     const { username, age, backupEmail, city, gender, profileCustomization } = req.body;
     const user = await User.findById(req.user.id);
@@ -66,7 +66,7 @@ exports.updateUserProfile = async (req, res) => {
   }
 };
 
-exports.updateAvatar = async (req, res) => {
+export const updateAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
@@ -98,7 +98,7 @@ exports.updateAvatar = async (req, res) => {
   }
 };
 
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password');
     res.json(users);
@@ -107,7 +107,8 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).send('Помилка на сервері');
   }
 };
-exports.updateUserRole = async (req, res) => {
+
+export const updateUserRole = async (req, res) => {
   try {
     const { role } = req.body;
     if (role !== 'user' && role !== 'admin') {
@@ -125,7 +126,7 @@ exports.updateUserRole = async (req, res) => {
   }
 };
 
-exports.getLeaderboard = async (req, res) => {
+export const getLeaderboard = async (req, res) => {
   try {
     const topAllTime = await User.find({ role: 'user' })
       .sort({ points: -1 })
@@ -159,7 +160,7 @@ exports.getLeaderboard = async (req, res) => {
   }
 };
 
-exports.updateSelectedBadge = async (req, res) => {
+export const updateSelectedBadge = async (req, res) => {
   try {
     const { badgeId, level, name, icon } = req.body;
     const user = await User.findById(req.user.id);
@@ -189,7 +190,7 @@ exports.updateSelectedBadge = async (req, res) => {
   }
 };
 
-exports.getUserStats = async (req, res) => {
+export const getUserStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({ role: 'user' });
     const totalAdmins = await User.countDocuments({ role: 'admin' });
@@ -250,7 +251,7 @@ exports.getUserStats = async (req, res) => {
   }
 };
 
-exports.getPublicProfile = async (req, res) => {
+export const getPublicProfile = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
       .select('username avatar avatarUrl city age points xp level badges selectedBadge profileCustomization stats streak createdAt friends');
@@ -269,7 +270,7 @@ exports.getPublicProfile = async (req, res) => {
   }
 };
 
-exports.searchUsers = async (req, res) => {
+export const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
     if (!q) {
@@ -288,7 +289,7 @@ exports.searchUsers = async (req, res) => {
   }
 };
 
-exports.getFriends = async (req, res) => {
+export const getFriends = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('friends', 'username avatar avatarUrl city level points xp selectedBadge profileCustomization');
     res.json(user.friends);
@@ -298,7 +299,7 @@ exports.getFriends = async (req, res) => {
   }
 };
 
-exports.addFriend = async (req, res) => {
+export const addFriend = async (req, res) => {
   try {
     const friendId = req.params.id;
     if (friendId === req.user.id) {
@@ -332,7 +333,7 @@ exports.addFriend = async (req, res) => {
   }
 };
 
-exports.removeFriend = async (req, res) => {
+export const removeFriend = async (req, res) => {
   try {
     const friendId = req.params.id;
     const user = await User.findById(req.user.id);

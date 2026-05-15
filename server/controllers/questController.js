@@ -1,13 +1,13 @@
-const DailyQuest = require('../models/DailyQuest');
-const User = require('../models/User');
-const Guild = require('../models/Guild');
-const { generateDailyQuests } = require('../utils/gameLogic');
-const { updateUserLevel } = require('../utils/levelSystem');
+import DailyQuest from '../models/DailyQuest.js';
+import User from '../models/User.js';
+import Guild from '../models/Guild.js';
+import { generateDailyQuests } from '../utils/gameLogic.js';
+import { updateUserLevel } from '../utils/levelSystem.js';
 
 /**
  * Get daily quests for the current user. Generates new ones if they don't exist for today.
  */
-exports.getTodayQuests = async (req, res) => {
+export const getTodayQuests = async (req, res) => {
   try {
     const userId = req.user.id;
     const startOfDay = new Date();
@@ -29,7 +29,7 @@ exports.getTodayQuests = async (req, res) => {
 /**
  * Claim reward for a specific completed quest
  */
-exports.claimRewards = async (req, res) => {
+export const claimRewards = async (req, res) => {
   try {
     const userId = req.user.id;
     const { questId } = req.body;
@@ -103,3 +103,4 @@ exports.claimRewards = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+

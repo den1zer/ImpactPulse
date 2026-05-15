@@ -143,15 +143,16 @@ const ProfilePage = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2>Налаштування Профілю</h2>
                 {user && (
-                  <div className="streak-badge" style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--panel)', padding: '5px 15px', borderRadius: '20px', border: '1px solid var(--accent-primary)' }}>
-                    🔥 {user.streak?.current || 0} Днів поспіль
+                  <div className="streak-badge" style={{ fontSize: '0.72rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--yellow)', padding: '6px 14px', border: '2px solid var(--black)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: 'var(--shadow-sm)' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2C8.5 2 6 4.5 6 8c0 2.5 1.5 4.5 3 5.5V16h6v-2.5c1.5-1 3-3 3-5.5 0-3.5-2.5-6-6-6z"/><rect x="9" y="16" width="6" height="4" rx="1"/></svg>
+                    {user.streak?.current || 0} ДНІВ ПОСПІЛЬ
                   </div>
                 )}
               </div>
               
-              {createdAt && <p style={{fontSize: '0.9em', color: '#777', marginBottom: '20px'}}>📅 Акаунт створено: <strong>{createdAt}</strong></p>}
+              {createdAt && <p style={{fontSize: '0.72em', color: 'var(--black)', opacity: 0.5, marginBottom: '20px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em'}}>Acc. створено: <strong>{createdAt}</strong></p>}
               <div className="avatar-section">
-                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar preview" /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `${API_BASE_URL}/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar" /> : '👤'}</div>
+                <div className={`avatar-preview frame-${profileCustomization.avatarFrame}`}>{avatarPreview ? <img src={avatarPreview} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar preview" /> : currentAvatar ? <img src={currentAvatar.startsWith('http') ? currentAvatar : `${API_BASE_URL}/${currentAvatar}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="avatar" /> : <img src="/default-avatar.svg" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} alt="default avatar" />}</div>
                 <label htmlFor="avatar" className="avatar-change-btn">Змінити фото<input type="file" id="avatar" accept="image/*" onChange={onFileChange} /></label>
               </div>
               <div className="form-grid">
@@ -180,17 +181,17 @@ const ProfilePage = () => {
                 </div>
                 
                 <div className="form-group full-width">
-                  <label>Іконка біля нікнейму (наприклад: 👑, 🦄, 🚀)</label>
+                  <label>Іконка біля нікнейму</label>
                   <select name="nicknameIcon" className="neumorph-select" value={profileCustomization.nicknameIcon} onChange={onCustomizationChange}>
                     <option value="">Без іконки</option>
-                    <option value="👑">👑 Корона</option>
-                    <option value="🦄">🦄 Єдиноріг</option>
-                    <option value="🚀">🚀 Ракета</option>
-                    <option value="🔥">🔥 Вогонь</option>
-                    <option value="⭐">⭐ Зірка</option>
-                    <option value="💎">💎 Діамант</option>
-                    <option value="⚡">⚡ Блискавка</option>
-                    <option value="🛡️">🛡️ Щит</option>
+                    <option value="CROWN">[CROWN]</option>
+                    <option value="UNI">[UNI]</option>
+                    <option value="ROCKET">[ROCKET]</option>
+                    <option value="FIRE">[FIRE]</option>
+                    <option value="STAR">[STAR]</option>
+                    <option value="GEM">[GEM]</option>
+                    <option value="ZAP">[ZAP]</option>
+                    <option value="SHIELD">[SHIELD]</option>
                   </select>
                 </div>
                 <div className="form-group">

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const TicketSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -16,4 +16,5 @@ const TicketSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Ticket', TicketSchema);
+const Ticket = mongoose.model('Ticket', TicketSchema);
+export default Ticket;

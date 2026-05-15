@@ -1,8 +1,9 @@
-const Fundraiser = require('../models/Fundraiser');
-const User = require('../models/User');
+import Fundraiser from '../models/Fundraiser.js';
+import User from '../models/User.js';
+import Activity from '../models/Activity.js';
+import { checkAndAwardBadges } from './contributionController.js';
 
-exports.createFundraiser = async (req, res) => {
-
+export const createFundraiser = async (req, res) => {
   try {
     const { title, description, goalAmount, cardName, cardNumber, bonuses } = req.body;
     const newFundraiser = new Fundraiser({
@@ -11,6 +12,16 @@ exports.createFundraiser = async (req, res) => {
       createdBy: req.user.id
     });
     await newFundraiser.save();
+
+    if (req.io) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        const message = `${user.username} оголосив новий збір: "${newFundraiser.title}" 📢`;
+        await Activity.create({ message, type: 'fundraiser_created' });
+        req.io.emit('activity_feed', { message });
+      }
+    }
+
     res.status(201).json(newFundraiser);
   } catch (err) {
     console.error(err.message);
@@ -18,8 +29,7 @@ exports.createFundraiser = async (req, res) => {
   }
 };
 
-exports.getAllFundraisers = async (req, res) => {
-
+export const getAllFundraisers = async (req, res) => {
   try {
     const fundraisers = await Fundraiser.find({ status: 'open' }).sort({ createdAt: -1 });
     res.json(fundraisers);
@@ -28,7 +38,17 @@ exports.getAllFundraisers = async (req, res) => {
   }
 };
 
-exports.simulateDonation = async (req, res) => {
+export const getFundraiserById = async (req, res) => {
+  try {
+    const fundraiser = await Fundraiser.findById(req.params.id);
+    if (!fundraiser) return res.status(404).json({ msg: 'Збір не знайдено' });
+    res.json(fundraiser);
+  } catch (err) {
+    res.status(500).send('Помилка на сервері');
+  }
+};
+
+export const simulateDonation = async (req, res) => {
   try {
     const { amount } = req.body;
     const fundraiser = await Fundraiser.findById(req.params.id);
@@ -68,7 +88,6 @@ exports.simulateDonation = async (req, res) => {
       
       if (pointsToAward > 0) {
         user.points += pointsToAward;
-        const { checkAndAwardBadges } = require('./contributionController');
         await checkAndAwardBadges(user);
       }
 
@@ -83,6 +102,12 @@ exports.simulateDonation = async (req, res) => {
       }
 
       await user.save();
+
+      if (req.io) {
+        const message = `${user.username} зробив внесок ${amount} грн на збір "${fundraiser.title}" ❤️`;
+        await Activity.create({ message, type: 'donation_made' });
+        req.io.emit('activity_feed', { message });
+      }
     }
 
     res.json({
@@ -96,7 +121,7 @@ exports.simulateDonation = async (req, res) => {
   }
 };
 
-exports.getAllFundraisersAdmin = async (req, res) => {
+export const getAllFundraisersAdmin = async (req, res) => {
   try {
     const fundraisers = await Fundraiser.find({})
       .populate('createdBy', 'username')
@@ -107,7 +132,7 @@ exports.getAllFundraisersAdmin = async (req, res) => {
   }
 };
 
-exports.updateFundraiser = async (req, res) => {
+export const updateFundraiser = async (req, res) => {
   try {
     const { title, description, goalAmount, status, cardName, cardNumber, bonuses } = req.body;
     const fundraiser = await Fundraiser.findById(req.params.id);
@@ -129,7 +154,7 @@ exports.updateFundraiser = async (req, res) => {
   }
 };
 
-exports.deleteFundraiser = async (req, res) => {
+export const deleteFundraiser = async (req, res) => {
   try {
     const fundraiser = await Fundraiser.findById(req.params.id);
     if (!fundraiser) return res.status(404).json({ msg: 'Збір не знайдено' });
@@ -141,3 +166,4 @@ exports.deleteFundraiser = async (req, res) => {
     res.status(500).send('Помилка на сервері');
   }
 };
+

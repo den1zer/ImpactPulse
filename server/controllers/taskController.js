@@ -1,8 +1,9 @@
-const Task = require('../models/Task');
-const User = require('../models/User');
-const Guild = require('../models/Guild');
-const { checkAndAwardBadges } = require('./contributionController');
-const { updateUserLevel } = require('../utils/levelSystem');
+import Task from '../models/Task.js';
+import User from '../models/User.js';
+import Guild from '../models/Guild.js';
+import Activity from '../models/Activity.js';
+import { checkAndAwardBadges } from './contributionController.js';
+import { updateUserLevel } from '../utils/levelSystem.js';
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 const POPULATE_CREATED_BY = { path: 'createdBy', select: 'username avatar avatarUrl xp level' };
@@ -17,11 +18,12 @@ const POPULATE_COMMENTS = {
 const POPULATE_GUILD = { path: 'targetGuild', select: 'name logo' };
 
 // ── CREATE TASK (any authenticated user) ──────────────────────────────────────
-exports.createTask = async (req, res) => {
+export const createTask = async (req, res) => {
   try {
     const {
       title, description, category, points, endDate,
       guildOnly, targetGuild, maxParticipants, coverEmoji,
+      lat, lng, address,
     } = req.body;
 
     const pointsNum = parseInt(points);
@@ -41,11 +43,24 @@ exports.createTask = async (req, res) => {
       guildOnly: guildOnly === true || guildOnly === 'true',
       targetGuild: targetGuild || null,
       maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+      lat: lat ? parseFloat(lat) : null,
+      lng: lng ? parseFloat(lng) : null,
+      address: address || '',
       status: 'open',
     });
 
     await task.save();
     await task.populate([POPULATE_CREATED_BY, POPULATE_GUILD]);
+
+    if (req.io) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        const message = `${user.username} створив нове завдання '${task.title}' 🆕`;
+        await Activity.create({ message, type: 'task_created' });
+        req.io.emit('activity_feed', { message });
+      }
+    }
+
     res.status(201).json(task);
   } catch (err) {
     console.error('createTask:', err.message);
@@ -54,7 +69,7 @@ exports.createTask = async (req, res) => {
 };
 
 // ── GET ALL OPEN TASKS ────────────────────────────────────────────────────────
-exports.getOpenTasks = async (req, res) => {
+export const getOpenTasks = async (req, res) => {
   try {
     const { status, category, search } = req.query;
     const filter = {};
@@ -76,7 +91,7 @@ exports.getOpenTasks = async (req, res) => {
 };
 
 // ── GET TASK BY ID ────────────────────────────────────────────────────────────
-exports.getTaskById = async (req, res) => {
+export const getTaskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
       .populate(POPULATE_CREATED_BY)
@@ -93,7 +108,7 @@ exports.getTaskById = async (req, res) => {
 };
 
 // ── JOIN TASK ─────────────────────────────────────────────────────────────────
-exports.joinTask = async (req, res) => {
+export const joinTask = async (req, res) => {
   try {
     const { joinMode, guildId } = req.body;   // joinMode: 'solo' | 'guild'
     const userId  = req.user.id;
@@ -149,7 +164,7 @@ exports.joinTask = async (req, res) => {
 };
 
 // ── LEAVE TASK ────────────────────────────────────────────────────────────────
-exports.leaveTask = async (req, res) => {
+export const leaveTask = async (req, res) => {
   try {
     const userId = req.user.id;
     const task   = await Task.findById(req.params.id);
@@ -176,7 +191,7 @@ exports.leaveTask = async (req, res) => {
 };
 
 // ── SUBMIT PROOF (participant marks as ready for review) ──────────────────────
-exports.submitProof = async (req, res) => {
+export const submitProof = async (req, res) => {
   try {
     const userId = req.user.id;
     const { proofText } = req.body;
@@ -204,7 +219,7 @@ exports.submitProof = async (req, res) => {
 };
 
 // ── APPROVE / REJECT participant (only task creator can do this) ───────────────
-exports.reviewParticipant = async (req, res) => {
+export const reviewParticipant = async (req, res) => {
   try {
     const creatorId = req.user.id;
     const { participantUserId, action, reviewComment } = req.body;
@@ -247,6 +262,12 @@ exports.reviewParticipant = async (req, res) => {
           const guild = await Guild.findById(participant.guild);
           if (guild) { guild.recomputeLevel(); await guild.save(); }
         }
+
+        if (req.io) {
+          const message = `${user.username} щойно виконав завдання '${task.title}' +${task.points} XP`;
+          await Activity.create({ message, type: 'task_completed' });
+          req.io.emit('activity_feed', { message });
+        }
       }
     } else {
       participant.status = 'rejected';
@@ -262,7 +283,7 @@ exports.reviewParticipant = async (req, res) => {
 };
 
 // ── ADD COMMENT ───────────────────────────────────────────────────────────────
-exports.addComment = async (req, res) => {
+export const addComment = async (req, res) => {
   try {
     const { text } = req.body;
     if (!text?.trim()) return res.status(400).json({ msg: 'Коментар не може бути порожнім' });
@@ -281,7 +302,7 @@ exports.addComment = async (req, res) => {
 };
 
 // ── DELETE COMMENT ────────────────────────────────────────────────────────────
-exports.deleteComment = async (req, res) => {
+export const deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
     const userId = req.user.id;
@@ -308,7 +329,7 @@ exports.deleteComment = async (req, res) => {
 };
 
 // ── LIKE COMMENT ──────────────────────────────────────────────────────────────
-exports.likeComment = async (req, res) => {
+export const likeComment = async (req, res) => {
   try {
     const { commentId } = req.params;
     const userId = req.user.id;
@@ -335,7 +356,7 @@ exports.likeComment = async (req, res) => {
 };
 
 // ── GET MY TASKS ──────────────────────────────────────────────────────────────
-exports.getMyTasks = async (req, res) => {
+export const getMyTasks = async (req, res) => {
   try {
     const userId = req.user.id;
     const tasks = await Task.find({ 'participants.user': userId })
@@ -348,7 +369,7 @@ exports.getMyTasks = async (req, res) => {
 };
 
 // ── CLOSE TASK (creator only) ─────────────────────────────────────────────────
-exports.closeTask = async (req, res) => {
+export const closeTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
@@ -357,6 +378,16 @@ exports.closeTask = async (req, res) => {
     }
     task.status = 'closed';
     await task.save();
+
+    if (req.io) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        const message = `${user.username} щойно закрив завдання '${task.title}' 🔒`;
+        await Activity.create({ message, type: 'task_closed' });
+        req.io.emit('activity_feed', { message });
+      }
+    }
+
     res.json({ msg: 'Завдання закрито' });
   } catch (err) {
     res.status(500).json({ msg: 'Помилка сервера' });
@@ -364,7 +395,7 @@ exports.closeTask = async (req, res) => {
 };
 
 // ── ADMIN: GET ALL ────────────────────────────────────────────────────────────
-exports.getAllTasksAdmin = async (req, res) => {
+export const getAllTasksAdmin = async (req, res) => {
   try {
     const tasks = await Task.find({})
       .populate(POPULATE_CREATED_BY)
@@ -377,7 +408,7 @@ exports.getAllTasksAdmin = async (req, res) => {
 };
 
 // ── ADMIN: UPDATE ─────────────────────────────────────────────────────────────
-exports.updateTask = async (req, res) => {
+export const updateTask = async (req, res) => {
   try {
     const { title, description, category, points, status, endDate } = req.body;
     const task = await Task.findById(req.params.id);
@@ -389,6 +420,9 @@ exports.updateTask = async (req, res) => {
     if (points)      task.points      = parseInt(points);
     if (status)      task.status      = status;
     if (endDate)     task.endDate     = endDate;
+    if (lat)         task.lat         = parseFloat(lat);
+    if (lng)         task.lng         = parseFloat(lng);
+    if (address)     task.address     = address;
 
     await task.save();
     res.json(task);
@@ -398,7 +432,7 @@ exports.updateTask = async (req, res) => {
 };
 
 // ── ADMIN: DELETE ─────────────────────────────────────────────────────────────
-exports.deleteTask = async (req, res) => {
+export const deleteTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
@@ -410,7 +444,7 @@ exports.deleteTask = async (req, res) => {
 };
 
 // ── Legacy: claimTask / abandonTask (kept for compat) ────────────────────────
-exports.claimTask = async (req, res) => {
+export const claimTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
@@ -429,7 +463,7 @@ exports.claimTask = async (req, res) => {
   }
 };
 
-exports.abandonTask = async (req, res) => {
+export const abandonTask = async (req, res) => {
   try {
     const { reason } = req.body;
     const task = await Task.findById(req.params.id);
@@ -447,3 +481,4 @@ exports.abandonTask = async (req, res) => {
     res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
+

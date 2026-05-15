@@ -4,115 +4,102 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ImpactPulse — Admin Panel</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-    rel="stylesheet" />
+  <title>ImpactPulse — Admin Panel [STRICT]</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-  <!-- ═══════════════════ SPLASH ═══════════════════ -->
+  <!-- SPLASH -->
   <div id="splash" class="splash">
     <div class="splash-inner">
       <div class="splash-logo">
-        <span class="logo-icon">⚡</span>
         <span class="logo-text">ImpactPulse</span>
       </div>
-      <p class="splash-subtitle">Admin Panel</p>
-      <div class="splash-status" id="splash-status">Очікуємо на відповідь сервера...</div>
+      <p class="splash-subtitle">Admin Workspace</p>
+      <div class="splash-status" id="splash-status">CONNECTING...</div>
       <div class="loader-bar">
         <div class="loader-fill" id="loader-fill"></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════════════ LOGIN ═══════════════════ -->
+  <!-- LOGIN -->
   <div id="login-screen" class="screen hidden">
-    <div class="login-bg"></div>
     <div class="login-card">
       <div class="login-logo">
-        <span class="logo-icon">⚡</span>
         <span class="logo-text">ImpactPulse</span>
       </div>
-      <h1 class="login-title">Вхід до адмін-панелі</h1>
-      <p class="login-sub">Тільки для авторизованих адміністраторів</p>
+      <h1 class="login-title">ADMIN AUTHENTICATION</h1>
+      <p class="login-sub">RESTRICTED ACCESS ONLY</p>
 
       <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" id="login-email" class="form-input" placeholder="admin@example.com" autocomplete="email" />
+        <label class="form-label">Email Address</label>
+        <input type="email" id="login-email" class="form-input" placeholder="admin@system.local" autocomplete="email" />
       </div>
       <div class="form-group">
-        <label class="form-label">Пароль</label>
+        <label class="form-label">Password</label>
         <div class="input-wrap">
           <input type="password" id="login-password" class="form-input" placeholder="••••••••"
             autocomplete="current-password" />
-          <button class="eye-btn" id="eye-btn" type="button">👁</button>
+          <button class="eye-btn" id="eye-btn" type="button">VIEW</button>
         </div>
       </div>
       <div id="login-error" class="error-msg hidden"></div>
-      <button class="btn btn-primary btn-full" id="login-btn">Увійти</button>
+      <button class="btn btn-primary btn-full" id="login-btn">LOGIN</button>
     </div>
   </div>
 
-  <!-- ═══════════════════ MAIN APP ═══════════════════ -->
+  <!-- MAIN APP -->
   <div id="app" class="screen hidden">
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-logo">
-        <span class="logo-icon">⚡</span>
         <span class="logo-text">ImpactPulse</span>
       </div>
       <nav class="sidebar-nav">
         <button class="nav-item active" data-tab="contributions">
-          <span class="nav-icon">📋</span>
-          <span class="nav-label">Заявки</span>
+          <span class="nav-label">CONTRIBUTIONS</span>
           <span class="nav-badge" id="badge-contributions"></span>
         </button>
         <button class="nav-item" data-tab="users">
-          <span class="nav-icon">👥</span>
-          <span class="nav-label">Користувачі</span>
+          <span class="nav-label">USER DIRECTORY</span>
         </button>
         <button class="nav-item" data-tab="tickets">
-          <span class="nav-icon">🎫</span>
-          <span class="nav-label">Тікети</span>
+          <span class="nav-label">SUPPORT TICKETS</span>
           <span class="nav-badge" id="badge-tickets"></span>
         </button>
         <button class="nav-item" data-tab="feedback">
-          <span class="nav-icon">💬</span>
-          <span class="nav-label">Відгуки</span>
+          <span class="nav-label">USER FEEDBACK</span>
+        </button>
+        <button class="nav-item" data-tab="chat">
+          <span class="nav-label">LIVE CHAT</span>
+          <span class="nav-badge" id="badge-chat"></span>
         </button>
         <button class="nav-item" data-tab="statistics">
-          <span class="nav-icon">📊</span>
-          <span class="nav-label">Статистика</span>
+          <span class="nav-label">SYSTEM STATS</span>
         </button>
         <div class="nav-separator"></div>
         <button class="nav-item" data-tab="manage-tasks">
-          <span class="nav-icon">⚙️</span>
-          <span class="nav-label">Завдання</span>
+          <span class="nav-label">TASK MANAGER</span>
         </button>
         <button class="nav-item" data-tab="manage-fundraisers">
-          <span class="nav-icon">💰</span>
-          <span class="nav-label">Збори</span>
+          <span class="nav-label">FUNDRAISER MANAGER</span>
         </button>
         <button class="nav-item" data-tab="create-fundraiser">
-          <span class="nav-icon">➕</span>
-          <span class="nav-label">Новий збір</span>
+          <span class="nav-label">NEW FUNDRAISER</span>
         </button>
         <button class="nav-item" data-tab="create-task">
-          <span class="nav-icon">✏️</span>
-          <span class="nav-label">Нове завдання</span>
+          <span class="nav-label">NEW TASK</span>
         </button>
       </nav>
       <div class="sidebar-footer">
         <div class="sidebar-user">
           <div class="user-avatar-sm" id="sidebar-avatar">A</div>
-          <span class="sidebar-username" id="sidebar-username">Admin</span>
+          <span class="sidebar-username" id="sidebar-username">ADMIN</span>
         </div>
-        <button class="btn-theme" id="theme-btn" title="Змінити тему">🌙</button>
-        <button class="btn-logout" id="logout-btn" title="Вийти">⏻</button>
+        <button class="btn-theme" id="theme-btn" title="Toggle Theme">MODE</button>
+        <button class="btn-logout" id="logout-btn" title="Logout">EXIT</button>
       </div>
     </aside>
 
@@ -120,226 +107,260 @@
     <main class="content">
       <header class="content-header">
         <div>
-          <h2 class="page-title" id="page-title">Заявки на перевірку</h2>
-          <p class="page-sub" id="page-sub">Розгляньте та схваліть або відхиліть внески користувачів</p>
+          <h2 class="page-title" id="page-title">PENDING CONTRIBUTIONS</h2>
+          <p class="page-sub" id="page-sub">Review and verify user contributions</p>
         </div>
-        <button class="btn btn-secondary btn-sm" id="refresh-btn">🔄 Оновити</button>
+        <button class="btn btn-secondary btn-sm" id="refresh-btn">REFRESH SYSTEM</button>
       </header>
 
-      <!-- ── CONTRIBUTIONS TAB ── -->
+      <!-- CONTRIBUTIONS TAB -->
       <section id="tab-contributions" class="tab-content active">
         <div class="toolbar">
           <div class="toolbar-left">
             <select class="form-select" id="contrib-filter-type">
-              <option value="all">Всі типи</option>
-              <option value="donation">💸 Донат</option>
-              <option value="aid">📦 Гум. допомога</option>
-              <option value="volunteering">🤝 Волонтерство</option>
-              <option value="other">📌 Інше</option>
+              <option value="all">ALL TYPES</option>
+              <option value="donation">DONATION</option>
+              <option value="aid">HUMANITARIAN AID</option>
+              <option value="volunteering">VOLUNTEERING</option>
+              <option value="other">OTHER</option>
             </select>
             <select class="form-select" id="contrib-sort">
-              <option value="newest">Найновіші</option>
-              <option value="oldest">Найстаріші</option>
-              <option value="username">По користувачу</option>
+              <option value="newest">NEWEST FIRST</option>
+              <option value="oldest">OLDEST FIRST</option>
+              <option value="username">SORT BY USERNAME</option>
             </select>
           </div>
           <input class="form-input search-input" id="contrib-search" type="text"
-            placeholder="🔍 Пошук за користувачем, email, заголовком..." />
+            placeholder="Search by user, email, or title..." />
         </div>
         <div id="contrib-list" class="table-wrap">
-          <div class="loading-state">Завантаження...</div>
+          <div class="loading-state">LOADING DATA...</div>
         </div>
         <div class="pagination" id="contrib-pagination"></div>
       </section>
 
-      <!-- ── USERS TAB ── -->
+      <!-- USERS TAB -->
       <section id="tab-users" class="tab-content">
         <div class="toolbar">
           <div class="toolbar-left">
             <select class="form-select" id="users-filter-role">
-              <option value="all">Всі ролі</option>
-              <option value="user">👤 User</option>
-              <option value="admin">🛡 Admin</option>
+              <option value="all">ALL ROLES</option>
+              <option value="user">USER</option>
+              <option value="admin">ADMIN</option>
             </select>
             <select class="form-select" id="users-sort">
-              <option value="username">По Username (A-Z)</option>
-              <option value="email">По Email (A-Z)</option>
-              <option value="role">По Ролі</option>
+              <option value="username">USERNAME (A-Z)</option>
+              <option value="email">EMAIL (A-Z)</option>
+              <option value="role">ROLE</option>
             </select>
           </div>
           <input class="form-input search-input" id="users-search" type="text"
-            placeholder="🔍 Пошук за username або email..." />
+            placeholder="Search username or email..." />
         </div>
         <div id="users-list" class="table-wrap">
-          <div class="loading-state">Завантаження...</div>
+          <div class="loading-state">LOADING DATA...</div>
         </div>
         <div class="pagination" id="users-pagination"></div>
       </section>
 
-      <!-- ── TICKETS TAB ── -->
+      <!-- TICKETS TAB -->
       <section id="tab-tickets" class="tab-content">
         <div class="toolbar">
           <div class="toolbar-left">
             <select class="form-select" id="tickets-sort">
-              <option value="newest">Найновіші</option>
-              <option value="oldest">Найстаріші</option>
-              <option value="name">По Імені (A-Z)</option>
+              <option value="newest">NEWEST FIRST</option>
+              <option value="oldest">OLDEST FIRST</option>
+              <option value="name">NAME (A-Z)</option>
             </select>
           </div>
           <input class="form-input search-input" id="tickets-search" type="text"
-            placeholder="🔍 Пошук за іменем, email, питанням..." />
+            placeholder="Search tickets..." />
         </div>
         <div id="tickets-list" class="table-wrap">
-          <div class="loading-state">Завантаження...</div>
+          <div class="loading-state">LOADING DATA...</div>
         </div>
         <div class="pagination" id="tickets-pagination"></div>
       </section>
 
-      <!-- ── FEEDBACK TAB ── -->
+      <!-- FEEDBACK TAB -->
       <section id="tab-feedback" class="tab-content">
         <div class="toolbar">
           <div class="toolbar-left">
             <select class="form-select" id="feedback-filter-rating">
-              <option value="all">Всі рейтинги</option>
-              <option value="5">★★★★★ (5)</option>
-              <option value="4">★★★★☆ (4)</option>
-              <option value="3">★★★☆☆ (3)</option>
-              <option value="2">★★☆☆☆ (2)</option>
-              <option value="1">★☆☆☆☆ (1)</option>
+              <option value="all">ALL RATINGS</option>
+              <option value="5">RATING: 5</option>
+              <option value="4">RATING: 4</option>
+              <option value="3">RATING: 3</option>
+              <option value="2">RATING: 2</option>
+              <option value="1">RATING: 1</option>
             </select>
             <select class="form-select" id="feedback-sort">
-              <option value="newest">Найновіші</option>
-              <option value="oldest">Найстаріші</option>
-              <option value="rating-high">Рейтинг ↓</option>
-              <option value="rating-low">Рейтинг ↑</option>
+              <option value="newest">NEWEST FIRST</option>
+              <option value="oldest">OLDEST FIRST</option>
+              <option value="rating-high">RATING HIGH-LOW</option>
+              <option value="rating-low">RATING LOW-HIGH</option>
             </select>
           </div>
           <input class="form-input search-input" id="feedback-search" type="text"
-            placeholder="🔍 Пошук за користувачем або коментарем..." />
+            placeholder="Search feedback..." />
         </div>
         <div id="feedback-list" class="table-wrap">
-          <div class="loading-state">Завантаження...</div>
+          <div class="loading-state">LOADING DATA...</div>
         </div>
         <div class="pagination" id="feedback-pagination"></div>
       </section>
 
-      <!-- ── STATISTICS TAB ── -->
+      <!-- CHAT TAB -->
+      <section id="tab-chat" class="tab-content">
+        <div class="admin-chat-container">
+          <div class="admin-chat-sidebar">
+            <div class="chat-sidebar-header">
+              <h3>ACTIVE SESSIONS</h3>
+              <button class="btn btn-sm" id="chat-refresh-btn">REFRESH</button>
+            </div>
+            <div id="chat-user-list" class="chat-user-list"></div>
+          </div>
+          <div class="admin-chat-main">
+            <div id="chat-empty-state" class="chat-empty-state">
+              <p>SELECT SESSION TO INITIATE COMMUNICATION</p>
+            </div>
+            <div id="chat-window" class="chat-window hidden">
+              <div class="chat-header">
+                <div class="chat-user-info">
+                  <div class="user-avatar-sm" id="active-chat-avatar">U</div>
+                  <div>
+                    <h4 id="active-chat-username">USERNAME</h4>
+                    <p id="active-chat-email">USER_EMAIL</p>
+                  </div>
+                </div>
+              </div>
+              <div id="chat-messages" class="chat-messages"></div>
+              <form id="chat-form" class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="ENTER MESSAGE..." autocomplete="off" />
+                <button type="submit" class="btn btn-primary btn-sm">SEND</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATISTICS TAB -->
       <section id="tab-statistics" class="tab-content">
         <div id="stats-content">
-          <div class="loading-state">Завантаження статистики...</div>
+          <div class="loading-state">LOADING SYSTEM STATISTICS...</div>
         </div>
       </section>
 
-      <!-- ── MANAGE TASKS TAB ── -->
+      <!-- MANAGE TASKS TAB -->
       <section id="tab-manage-tasks" class="tab-content">
         <div id="manage-tasks-content" class="table-wrap">
-          <div class="loading-state">Завантаження...</div>
+          <div class="loading-state">LOADING DATA...</div>
         </div>
       </section>
 
-      <!-- ── MANAGE FUNDRAISERS TAB ── -->
+      <!-- MANAGE FUNDRAISERS TAB -->
       <section id="tab-manage-fundraisers" class="tab-content">
         <div id="manage-fundraisers-content" class="table-wrap">
-          <div class="loading-state">Завантаження...</div>
+          <div class="loading-state">LOADING DATA...</div>
         </div>
       </section>
 
-      <!-- ── CREATE FUNDRAISER TAB ── -->
+      <!-- CREATE FUNDRAISER TAB -->
       <section id="tab-create-fundraiser" class="tab-content">
         <div class="form-card">
-          <h3 class="form-card-title">Новий збір коштів</h3>
+          <h3 class="form-card-title">NEW FUNDRAISING CAMPAIGN</h3>
           <form id="create-fundraiser-form">
             <div class="form-group">
-              <label class="form-label">Назва збору <span class="required">*</span></label>
-              <input type="text" id="cf-title" class="form-input" placeholder="Назва збору (мін. 5 символів)"
+              <label class="form-label">CAMPAIGN TITLE *</label>
+              <input type="text" id="cf-title" class="form-input" placeholder="Min. 5 characters"
                 minlength="5" required />
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Ціль (UAH) <span class="required">*</span></label>
+                <label class="form-label">TARGET GOAL (UAH) *</label>
                 <input type="number" id="cf-goal" class="form-input" placeholder="50000" min="1" required />
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Опис <span class="required">*</span></label>
-              <textarea id="cf-description" class="form-textarea" placeholder="Детальний опис збору (мін. 10 символів)"
+              <label class="form-label">DESCRIPTION *</label>
+              <textarea id="cf-description" class="form-textarea" placeholder="Min. 10 characters"
                 minlength="10" required rows="4"></textarea>
             </div>
-            <div class="form-separator">Банківські реквізити</div>
+            <div class="form-separator"><span>BANKING DETAILS</span></div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Ім'я на картці <span class="required">*</span></label>
+                <label class="form-label">CARDHOLDER NAME *</label>
                 <input type="text" id="cf-card-name" class="form-input" placeholder="IVAN PETRENKO" required />
               </div>
               <div class="form-group">
-                <label class="form-label">Номер картки <span class="required">*</span></label>
-                <input type="text" id="cf-card-number" class="form-input" placeholder="1234567890123456" minlength="16"
+                <label class="form-label">CARD NUMBER *</label>
+                <input type="text" id="cf-card-number" class="form-input" placeholder="16 digits" minlength="16"
                   maxlength="16" required />
               </div>
             </div>
-            <div class="form-separator">Бонуси для донатерів (Опціонально)</div>
+            <div class="form-separator"><span>DONOR BONUSES (OPTIONAL)</span></div>
             <div id="cf-bonuses-container"></div>
-            <button type="button" class="btn btn-secondary btn-sm" id="cf-add-bonus-btn" style="margin-bottom: 20px;">+ Додати рівень бонусу</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="cf-add-bonus-btn" style="margin-bottom: 20px;">ADD BONUS TIER</button>
             <div id="cf-message" class="form-message hidden"></div>
-            <button type="submit" class="btn btn-primary">➕ Створити збір</button>
+            <button type="submit" class="btn btn-primary">CREATE CAMPAIGN</button>
           </form>
         </div>
       </section>
 
-      <!-- ── CREATE TASK TAB ── -->
+      <!-- CREATE TASK TAB -->
       <section id="tab-create-task" class="tab-content">
         <div class="form-card">
-          <h3 class="form-card-title">Нове завдання</h3>
+          <h3 class="form-card-title">NEW TASK SPECIFICATION</h3>
           <form id="create-task-form">
             <div class="form-group">
-              <label class="form-label">Назва завдання <span class="required">*</span></label>
-              <input type="text" id="ct-title" class="form-input" placeholder="Назва завдання (мін. 5 символів)"
+              <label class="form-label">TASK TITLE *</label>
+              <input type="text" id="ct-title" class="form-input" placeholder="Min. 5 characters"
                 minlength="5" required />
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Категорія <span class="required">*</span></label>
+                <label class="form-label">CATEGORY *</label>
                 <select id="ct-category" class="form-select">
-                  <option value="volunteering">🤝 Волонтерство</option>
-                  <option value="aid">📦 Гуманітарна допомога</option>
-                  <option value="other">📌 Інше</option>
+                  <option value="volunteering">VOLUNTEERING</option>
+                  <option value="aid">HUMANITARIAN AID</option>
+                  <option value="other">OTHER</option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Бали <span class="required">*</span></label>
+                <label class="form-label">POINTS *</label>
                 <input type="number" id="ct-points" class="form-input" placeholder="100" min="1" required />
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Опис завдання <span class="required">*</span></label>
+              <label class="form-label">DESCRIPTION *</label>
               <textarea id="ct-description" class="form-textarea"
-                placeholder="Детальний опис завдання (мін. 10 символів)" minlength="10" required rows="4"></textarea>
+                placeholder="Min. 10 characters" minlength="10" required rows="4"></textarea>
             </div>
             <div class="form-group">
-              <label class="form-label">Дата кінця (опціонально)</label>
+              <label class="form-label">EXPIRATION DATE (OPTIONAL)</label>
               <input type="date" id="ct-end-date" class="form-input" />
             </div>
             <div class="form-group">
-              <label class="form-label">Файл (інструкція / фото, опціонально)</label>
+              <label class="form-label">ATTACHMENT (INSTRUCTIONS / PHOTO)</label>
               <div class="file-drop-zone" id="ct-file-zone">
-                <span id="ct-file-label">📁 Натисніть або перетягніть файл</span>
+                <span id="ct-file-label">SELECT OR DRAG FILE</span>
                 <input type="file" id="ct-file" class="file-input-hidden" />
               </div>
             </div>
             <div id="ct-message" class="form-message hidden"></div>
-            <button type="submit" class="btn btn-primary">✏️ Створити завдання</button>
+            <button type="submit" class="btn btn-primary">CREATE TASK</button>
           </form>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- ═══════════════════ MODALS ═══════════════════ -->
+  <!-- MODALS -->
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal" id="modal">
       <div class="modal-header">
-        <h3 id="modal-title">Підтвердження</h3>
-        <button class="modal-close" id="modal-close">✕</button>
+        <h3 id="modal-title">CONFIRMATION</h3>
+        <button class="modal-close" id="modal-close">X</button>
       </div>
       <div class="modal-body" id="modal-body"></div>
       <div class="modal-footer" id="modal-footer"></div>
@@ -353,6 +374,8 @@
   <script src="./js/users.js"></script>
   <script src="./js/tickets.js"></script>
   <script src="./js/feedback.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="./js/chat.js"></script>
   <script src="./js/statistics.js"></script>
   <script src="./js/manage-tasks.js"></script>
   <script src="./js/manage-fundraisers.js"></script>

@@ -8,20 +8,34 @@ import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
 import {
   FiPlus, FiFilter, FiSearch, FiUsers, FiZap,
-  FiClock, FiTag, FiChevronRight, FiShield, FiX,
+  FiClock, FiTag, FiChevronRight, FiShield, FiX, FiClipboard,
 } from 'react-icons/fi';
+import {
+  MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents
+} from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import '../styles/TasksPage.css';
 import './TasksPage2.css';
+
+// Fix Leaflet default icon issues
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { key: 'all',          label: 'Всі' },
-  { key: 'volunteering', label: '🤝 Волонтерство' },
-  { key: 'aid',          label: '📦 Допомога' },
-  { key: 'donation',     label: '💰 Донат' },
-  { key: 'education',    label: '📚 Освіта' },
-  { key: 'ecology',      label: '🌱 Екологія' },
-  { key: 'other',        label: '⚙️ Інше' },
+  { key: 'volunteering', label: 'Волонтерство' },
+  { key: 'aid',          label: 'Допомога' },
+  { key: 'donation',     label: 'Донат' },
+  { key: 'education',    label: 'Освіта' },
+  { key: 'ecology',      label: 'Екологія' },
+  { key: 'military',     label: 'Армія' },
+  { key: 'other',        label: 'Інше' },
 ];
 
 const STATUS_FILTERS = [
@@ -32,12 +46,61 @@ const STATUS_FILTERS = [
 ];
 
 const STATUS_META = {
-  open:        { label: 'Відкрите',  color: '#22c55e', dot: 'open' },
-  in_progress: { label: 'В роботі',  color: '#f59e0b', dot: 'in_progress' },
-  closed:      { label: 'Закрите',   color: '#6b7280', dot: 'completed' },
+  open:        { label: 'Відкрите',  color: 'var(--status-open)',     dot: 'open' },
+  in_progress: { label: 'В роботі',  color: 'var(--status-progress)', dot: 'in_progress' },
+  closed:      { label: 'Закрите',   color: 'var(--status-closed)',   dot: 'completed' },
 };
 
-const EMOJI_LIST = ['📋','🤝','💪','🔥','🌟','📦','🎯','🌿','💎','🏆','🌊','📚','🏗️','🎨','⚡'];
+const CATEGORY_LABELS = {
+  volunteering: 'ВОЛ',
+  aid:          'ДОП',
+  donation:     'ДОН',
+  education:    'ОСВ',
+  ecology:      'ЕКО',
+  military:     'АРМ',
+  other:        'ІНШ',
+};
+
+// Category color accent bars for map markers
+const CAT_COLORS = {
+  volunteering: '#FFE500',
+  aid:          '#FF5C00',
+  donation:     '#00C853',
+  education:    '#0057FF',
+  ecology:      '#00C853',
+  military:     '#FF1F1F',
+  other:        '#888',
+};
+
+const createCategoryIcon = (category) => {
+  const color = CAT_COLORS[category] || '#FFE500';
+  const label = CATEGORY_LABELS[category] || 'TSK';
+  return L.divIcon({
+    html: `
+      <div class="premium-marker">
+        <div class="marker-pulse"></div>
+        <div class="marker-base" style="background:${color}">
+          <span class="marker-emoji" style="font-family:var(--font-mono,monospace);font-size:9px;font-weight:700;color:#000">${label}</span>
+        </div>
+      </div>
+    `,
+    className: 'custom-map-icon',
+    iconSize: [34, 34],
+    iconAnchor: [17, 34],
+    popupAnchor: [0, -34],
+  });
+};
+
+// ── Location Picker ───────────────────────────────────────────────────────────
+const LocationPicker = ({ onSelect, selectedPos }) => {
+  const map = useMapEvents({
+    click(e) {
+      onSelect(e.latlng);
+    },
+  });
+
+  return selectedPos ? <Marker position={selectedPos} /> : null;
+};
 
 // ── Create Task Modal ─────────────────────────────────────────────────────────
 const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
@@ -45,6 +108,7 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
     title: '', description: '', category: 'volunteering',
     points: 100, endDate: '', coverEmoji: '📋',
     guildOnly: false, targetGuild: '', maxParticipants: '',
+    lat: null, lng: null, address: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
@@ -83,23 +147,11 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
         onClick={e => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h2>📋 Нове завдання</h2>
+          <h2>Нове завдання</h2>
           <button className="modal-close-btn" onClick={onClose}><FiX /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
-          {/* Emoji */}
-          <div className="form-group">
-            <label>Іконка</label>
-            <div className="emoji-grid">
-              {EMOJI_LIST.map(em => (
-                <button type="button" key={em}
-                  className={`emoji-btn ${form.coverEmoji === em ? 'active' : ''}`}
-                  onClick={() => set('coverEmoji', em)}>{em}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div className="form-group">
             <label htmlFor="task-title">Назва *</label>
@@ -158,6 +210,38 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
             </div>
           )}
 
+          {/* Location Picker */}
+          <div className="form-group">
+            <label>Місце виконання (натисніть на мапі)</label>
+            <div className="modal-map-picker">
+              <MapContainer
+                center={[48.3794, 31.1656]}
+                zoom={5}
+                style={{ height: '200px', width: '100%', borderRadius: '8px' }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <LocationPicker
+                  selectedPos={form.lat ? { lat: form.lat, lng: form.lng } : null}
+                  onSelect={(pos) => {
+                    set('lat', pos.lat);
+                    set('lng', pos.lng);
+                  }}
+                />
+              </MapContainer>
+            </div>
+            {form.lat && (
+              <div className="location-coords">
+                Координати: {form.lat.toFixed(4)}, {form.lng.toFixed(4)}
+              </div>
+            )}
+            <input
+              placeholder="Адреса (опціонально)"
+              value={form.address}
+              onChange={e => set('address', e.target.value)}
+              style={{ marginTop: '8px' }}
+            />
+          </div>
+
           {error && <div className="modal-error">{error}</div>}
 
           <button type="submit" className="btn-primary" disabled={loading} id="create-task-submit">
@@ -174,6 +258,7 @@ const TaskCard = ({ task, index }) => {
   const s = STATUS_META[task.status] || STATUS_META.open;
   const approvedCount = task.participants?.filter(p => p.status === 'approved').length ?? 0;
   const totalCount    = task.participants?.length ?? 0;
+  const catColor = CAT_COLORS[task.category] || 'var(--yellow)';
 
   return (
     <motion.div
@@ -182,46 +267,97 @@ const TaskCard = ({ task, index }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
     >
-      <div className="tc2-emoji">{task.coverEmoji || '📋'}</div>
-      <div className="tc2-body">
-        <div className="tc2-top">
-          <h3 className="tc2-title">{task.title}</h3>
-          <span className="tc2-points">+{task.points} XP</span>
-        </div>
-        <p className="tc2-desc">{task.description}</p>
-        <div className="tc2-meta">
-          <span className="tc2-status-pill" style={{ borderColor: s.color, color: s.color }}>
-            <span className="status-dot" style={{ background: s.color }} />
-            {s.label}
-          </span>
-          <span className="tc2-meta-item">
-            <FiTag size={12} /> {task.category}
-          </span>
-          <span className="tc2-meta-item">
-            <FiUsers size={12} /> {totalCount} учасн.
-            {approvedCount > 0 && <span className="tc2-approved"> ({approvedCount} ✓)</span>}
-          </span>
-          {task.endDate && (
+      <div className="tc2-cat-bar" style={{ background: catColor }} />
+      <Link to={`/tasks/${task._id}`} className="tc2-link-wrap" id={`open-task-${task._id}`}>
+        <div className="tc2-body">
+          <div className="tc2-top">
+            <h3 className="tc2-title">{task.title}</h3>
+            <span className="tc2-points">+{task.points} XP</span>
+          </div>
+          <p className="tc2-desc">{task.description}</p>
+          <div className="tc2-meta">
+            <span className="tc2-status-pill" style={{ borderColor: s.color, color: s.color }}>
+              <span className="status-dot" style={{ background: s.color }} />
+              {s.label}
+            </span>
             <span className="tc2-meta-item">
-              <FiClock size={12} /> {new Date(task.endDate).toLocaleDateString('uk-UA')}
+              <FiTag size={12} /> {task.category}
             </span>
-          )}
-          {task.guildOnly && (
-            <span className="tc2-meta-item guild-only-badge">
-              <FiShield size={12} /> Команди
+            <span className="tc2-meta-item">
+              <FiUsers size={12} /> {totalCount} учасн.
+              {approvedCount > 0 && <span className="tc2-approved"> ({approvedCount} OK)</span>}
             </span>
-          )}
-          {task.createdBy?.username && (
-            <span className="tc2-meta-item tc2-author">
-              від {task.createdBy.username}
-            </span>
-          )}
+            {task.endDate && (
+              <span className="tc2-meta-item">
+                <FiClock size={12} /> {new Date(task.endDate).toLocaleDateString('uk-UA')}
+              </span>
+            )}
+            {task.guildOnly && (
+              <span className="tc2-meta-item guild-only-badge">
+                <FiShield size={12} /> Команди
+              </span>
+            )}
+            {task.createdBy?.username && (
+              <span className="tc2-meta-item tc2-author">
+                від {task.createdBy.username}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-      <Link to={`/tasks/${task._id}`} className="tc2-btn" id={`open-task-${task._id}`}>
-        Відкрити <FiChevronRight />
+        <div className="tc2-btn" aria-label="Відкрити завдання">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        </div>
       </Link>
     </motion.div>
+  );
+};
+
+// ── Map View ──────────────────────────────────────────────────────────────────
+const TaskMapView = ({ tasks }) => {
+  const tasksWithLocation = tasks.filter(t => t.lat && t.lng);
+
+  return (
+    <div className="tasks-map-container">
+      <MapContainer
+        center={[48.3794, 31.1656]}
+        zoom={6}
+        style={{ height: '600px', width: '100%' }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {tasksWithLocation.map(task => (
+          <Marker
+            key={task._id}
+            position={[task.lat, task.lng]}
+            icon={createCategoryIcon(task.category)}
+          >
+            <Popup className="premium-map-popup">
+              <div className="popup-card">
+                <div className="popup-emoji-bg" style={{ background: CAT_COLORS[task.category] || 'var(--yellow)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.2rem', fontWeight: 700, color: '#000' }}>
+                    {CATEGORY_LABELS[task.category] || 'TSK'}
+                  </span>
+                </div>
+                <div className="popup-main">
+                  <div className="popup-header">
+                    <span className="popup-cat-tag">{task.category}</span>
+                    <span className="popup-points">+{task.points} XP</span>
+                  </div>
+                  <h4 className="popup-title">{task.title}</h4>
+                  <p className="popup-text">{task.description?.substring(0, 70)}...</p>
+                  <Link to={`/tasks/${task._id}`} className="popup-action-btn">
+                    Переглянути
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                  </Link>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </div>
   );
 };
 
@@ -234,6 +370,7 @@ const TasksPage = () => {
   const [filter, setFilter]       = useState('all');
   const [catFilter, setCatFilter] = useState('all');
   const [search, setSearch]       = useState('');
+  const [viewMode, setViewMode]   = useState('list'); // 'list' | 'map'
 
   const token   = localStorage.getItem('userToken');
   const isGuest = localStorage.getItem('userRole') === 'guest';
@@ -280,7 +417,7 @@ const TasksPage = () => {
             {/* ── Hero ── */}
             <div className="tasks-v2-hero">
               <div>
-                <p className="small-title">ImpactPulse Tasks</p>
+                <p className="small-title">ImpactPulse / Tasks</p>
                 <h1>Завдання спільноти</h1>
                 <p className="hero-description">
                   Беріть участь самостійно або з командою. Автор завдання підтверджує виконання.
@@ -305,6 +442,21 @@ const TasksPage = () => {
                 />
               </div>
 
+              <div className="view-mode-toggle">
+                <button
+                  className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                >
+                  <FiClipboard size={14} /> Список
+                </button>
+                <button
+                  className={`toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
+                  onClick={() => setViewMode('map')}
+                >
+                  <FiZap size={14} /> Мапа
+                </button>
+              </div>
+
               <div className="tasks-filters-row">
                 <div className="filter-group">
                   <FiFilter size={13} />
@@ -326,22 +478,24 @@ const TasksPage = () => {
               </div>
             </div>
 
-            {/* ── Task list ── */}
+            {/* ── Content (Map or List) ── */}
             {loading ? (
               <div className="tasks-loading">
                 <div className="guilds-spinner" />
-                Завантаження завдань...
+                <span>ЗАВАНТАЖЕННЯ...</span>
               </div>
             ) : tasks.length === 0 ? (
               <div className="tasks-empty-v2">
-                <span style={{ fontSize: '3rem' }}>📋</span>
-                <p>Завдань за цими фільтрами немає.</p>
+                <FiClipboard size={40} style={{ opacity: 0.25 }} />
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Завдань за цими фільтрами немає.</p>
                 {!isGuest && (
                   <button className="btn-primary" onClick={() => setShowCreate(true)}>
                     <FiPlus /> Створити перше завдання
                   </button>
                 )}
               </div>
+            ) : viewMode === 'map' ? (
+              <TaskMapView tasks={tasks} />
             ) : (
               <div className="tasks-list-v2">
                 <AnimatePresence>

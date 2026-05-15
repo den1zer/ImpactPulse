@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const BadgeSchema = new mongoose.Schema({
   badgeId: {
@@ -22,4 +22,5 @@ const BadgeSchema = new mongoose.Schema({
   ]
 });
 
-module.exports = mongoose.model('Badge', BadgeSchema);
+const Badge = mongoose.model('Badge', BadgeSchema);
+export default Badge;

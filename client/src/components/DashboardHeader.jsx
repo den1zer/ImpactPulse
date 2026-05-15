@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Link, useLocation } from 'react-router-dom';
 import { FiStar, FiAward, FiSun, FiMoon } from 'react-icons/fi';
 import API_BASE_URL from '../config/api.js';
+import playSound from '../utils/sounds.js';
+import { useRef } from 'react';
 
 const POINT_LEVELS = [
   { level: 1, name: 'Новачок',     value: 500   },
@@ -37,12 +39,14 @@ const DashboardHeader = () => {
   const [progress, setProgress] = useState(0);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const location = useLocation();
+  const prevPointsRef = useRef(0);
 
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     localStorage.setItem('theme', next);
     document.documentElement.setAttribute('data-theme', next);
+    playSound('click', 0.15);
   };
 
   useEffect(() => {
@@ -74,6 +78,11 @@ const DashboardHeader = () => {
         const pct   = Math.min(((points - start) / Math.max(end - start, 1)) * 100, 100);
         setProgress(Math.round(pct));
         setIsLoading(false);
+
+        if (prevPointsRef.current > 0 && points > prevPointsRef.current) {
+          playSound('success', 0.25);
+        }
+        prevPointsRef.current = points;
       } catch {
         setUserData({ username: 'Помилка', points: 0 });
         setIsLoading(false);

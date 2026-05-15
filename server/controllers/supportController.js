@@ -1,7 +1,8 @@
-const Ticket = require('../models/Ticket');
-const Feedback = require('../models/Feedback');
+import Ticket from '../models/Ticket.js';
+import Feedback from '../models/Feedback.js';
+import SupportMessage from '../models/SupportMessage.js';
 
-exports.createTicket = async (req, res) => {
+export const createTicket = async (req, res) => {
   try {
     const { name, phone, email, question } = req.body;
     
@@ -20,7 +21,7 @@ exports.createTicket = async (req, res) => {
   }
 };
 
-exports.createFeedback = async (req, res) => {
+export const createFeedback = async (req, res) => {
   try {
     const { rating, comment } = req.body;
     
@@ -37,7 +38,7 @@ exports.createFeedback = async (req, res) => {
   }
 };
 
-exports.getOpenTickets = async (req, res) => {
+export const getOpenTickets = async (req, res) => {
   try {
     const tickets = await Ticket.find({ status: 'open' })
                                  .populate('user', 'username')
@@ -47,7 +48,8 @@ exports.getOpenTickets = async (req, res) => {
     res.status(500).send('Помилка на сервері');
   }
 };
-exports.getAllFeedback = async (req, res) => {
+
+export const getAllFeedback = async (req, res) => {
   try {
     const feedback = await Feedback.find()
                                    .populate('user', 'username email') 
@@ -55,6 +57,91 @@ exports.getAllFeedback = async (req, res) => {
     res.json(feedback);
   } catch (err) {
     console.error(err.message);
+    res.status(500).send('Помилка на сервері');
+  }
+};
+
+export const getChatMessages = async (req, res) => {
+  try {
+    const messages = await SupportMessage.find({ user: req.user.id })
+                                         .sort({ createdAt: 1 });
+    res.json(messages);
+  } catch (err) {
+    res.status(500).send('Помилка на сервері');
+  }
+};
+
+export const sendChatMessage = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const isAdmin = req.user.role === 'admin';
+    
+    const targetUserId = isAdmin ? req.body.userId : req.user.id;
+
+    if (!targetUserId) return res.status(400).json({ msg: 'userId is required for admin' });
+
+    const newMessage = new SupportMessage({
+      user: targetUserId,
+      sender: req.user.id,
+      text,
+      isAdmin
+    });
+
+    await newMessage.save();
+
+    req.io.to(`user_${targetUserId}`).emit('support_message', newMessage);
+    req.io.to('admins').emit('admin_new_support_message', newMessage);
+
+    res.status(201).json(newMessage);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Помилка на сервері');
+  }
+};
+
+export const getAllChatUsers = async (req, res) => {
+  try {
+    const users = await SupportMessage.aggregate([
+      {
+        $group: {
+          _id: '$user',
+          lastMessage: { $last: '$text' },
+          lastMessageAt: { $last: '$createdAt' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      { $unwind: '$userInfo' },
+      {
+        $project: {
+          _id: 1,
+          username: '$userInfo.username',
+          email: '$userInfo.email',
+          lastMessage: 1,
+          lastMessageAt: 1
+        }
+      },
+      { $sort: { lastMessageAt: -1 } }
+    ]);
+    res.json(users);
+  } catch (err) {
+    res.status(500).send('Помилка на сервері');
+  }
+};
+
+export const getAdminChatMessages = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const messages = await SupportMessage.find({ user: userId })
+                                         .sort({ createdAt: 1 });
+    res.json(messages);
+  } catch (err) {
     res.status(500).send('Помилка на сервері');
   }
 };

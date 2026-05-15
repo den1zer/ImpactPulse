@@ -9,10 +9,12 @@ import API_BASE_URL from '../config/api.js';
 import {
   FiUsers, FiZap, FiClock, FiTag, FiShield, FiCheck,
   FiX, FiSend, FiHeart, FiTrash2, FiMessageCircle,
-  FiUpload, FiChevronLeft, FiAlertCircle,
+  FiUpload, FiChevronLeft, FiAlertCircle, FiStar,
 } from 'react-icons/fi';
+import confetti from 'canvas-confetti';
 import '../styles/TasksPage.css';
 import './TaskDetailPage2.css';
+import playSound from '../utils/sounds';
 
 // ── helpers ───────────────────────────────────────────────────
 const STATUS_META = {
@@ -37,10 +39,9 @@ function getAvatar(user) {
 
 const Avatar = ({ user, size = 36 }) => {
   const src = getAvatar(user);
-  const letter = user?.username?.[0]?.toUpperCase() || '?';
   return (
     <div className="td2-avatar" style={{ width: size, height: size, fontSize: size * 0.4 }}>
-      {src ? <img src={src} alt={user.username} /> : letter}
+      {src ? <img src={src} alt={user?.username || 'User'} /> : <img src="/default-avatar.svg" alt={user?.username || 'User'} />}
     </div>
   );
 };
@@ -79,7 +80,7 @@ const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
           <p className="td2-proof-label">Звіт:</p>
           <p className="td2-proof-text">{p.proofText}</p>
           {p.proofFile && (
-            <a className="td2-proof-link" href={`${API_BASE_URL}/${p.proofFile}`} target="_blank" rel="noreferrer">
+            <a className="td2-proof-link" href={p.proofFile.startsWith('http') ? p.proofFile : `${API_BASE_URL}/${p.proofFile}`} target="_blank" rel="noreferrer">
               📎 Файл підтвердження
             </a>
           )}
@@ -155,6 +156,34 @@ const CommentItem = ({ comment, currentUserId, isCreator, taskId, onDelete, onLi
   );
 };
 
+// ── Success Overlay ───────────────────────────────────────────
+const SuccessOverlay = ({ onClose, points }) => (
+  <motion.div 
+    className="success-overlay"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    <motion.div 
+      className="success-card"
+      initial={{ scale: 0.8, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.8, y: 20 }}
+    >
+      <div className="success-icon-wrap">
+        <FiStar className="success-star-icon" />
+      </div>
+      <h2>Дякуємо за допомогу! 💙💛</h2>
+      <p>Ваш звіт успішно відправлено на перевірку. Автор завдання перегляне його найближчим часом.</p>
+      <div className="success-reward">
+        <span>Ви отримаєте</span>
+        <strong>+{points} XP</strong>
+      </div>
+      <button className="btn-primary" style={{ width: '100%' }} onClick={onClose}>Чудово!</button>
+    </motion.div>
+  </motion.div>
+);
+
 // ── Proof submit form ─────────────────────────────────────────
 const ProofForm = ({ taskId, onSubmitted }) => {
   const [text, setText] = useState('');
@@ -223,7 +252,7 @@ const JoinControls = ({ task, myGuild, currentUserId, onJoin, onLeave }) => {
         </strong></span>
         {myParticipant.status === 'working' && (
           <>
-            <ProofForm taskId={task._id} onSubmitted={onJoin} />
+            <ProofForm taskId={task._id} onSubmitted={() => onJoin('submit')} />
             <button className="btn-leave" onClick={onLeave}><FiX /> Покинути завдання</button>
           </>
         )}
@@ -258,10 +287,17 @@ const TaskDetailPage = () => {
   const [loading, setLoading]   = useState(true);
   const [comment, setComment]   = useState('');
   const [postingComment, setPostingComment] = useState(false);
+  const [toast, setToast]       = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const commentsEndRef = useRef(null);
 
   const token      = localStorage.getItem('userToken');
   const currentUserId = localStorage.getItem('userId')?.replace(/"/g, '');
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const fetchTask = useCallback(async () => {
     try {
@@ -285,12 +321,25 @@ const TaskDetailPage = () => {
 
   const handleJoin = async (mode = 'solo', guildId = null) => {
     try {
-      await axios.post(`${API_BASE_URL}/api/tasks/${id}/join`,
-        { joinMode: mode, guildId },
-        { headers: { 'x-auth-token': token } }
-      );
+      if (mode === 'submit') {
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#6366f1', '#22c55e', '#facc15']
+          });
+          playSound('success');
+          setShowSuccess(true);
+      } else {
+          await axios.post(`${API_BASE_URL}/api/tasks/${id}/join`,
+            { joinMode: mode, guildId },
+            { headers: { 'x-auth-token': token } }
+          );
+          playSound('click');
+          showToast('Ви приєдналися до завдання');
+      }
       fetchTask();
-    } catch (err) { alert(err.response?.data?.msg || 'Помилка'); }
+    } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
   };
 
   const handleLeave = async () => {
@@ -299,8 +348,9 @@ const TaskDetailPage = () => {
       await axios.post(`${API_BASE_URL}/api/tasks/${id}/leave`, {},
         { headers: { 'x-auth-token': token } }
       );
+      showToast('Ви покинули завдання');
       fetchTask();
-    } catch (err) { alert(err.response?.data?.msg || 'Помилка'); }
+    } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
   };
 
   const handleReview = async ({ participantUserId, action, reviewComment }) => {
@@ -309,8 +359,10 @@ const TaskDetailPage = () => {
         { participantUserId, action, reviewComment },
         { headers: { 'x-auth-token': token } }
       );
+      playSound(action === 'approve' ? 'badge' : 'click');
+      showToast(action === 'approve' ? 'Виконання підтверджено! ✅' : 'Виконання відхилено ❌');
       fetchTask();
-    } catch (err) { alert(err.response?.data?.msg || 'Помилка'); }
+    } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
   };
 
   const handleCloseTask = async () => {
@@ -319,8 +371,9 @@ const TaskDetailPage = () => {
       await axios.post(`${API_BASE_URL}/api/tasks/${id}/close`, {},
         { headers: { 'x-auth-token': token } }
       );
+      showToast('Завдання успішно закрито');
       fetchTask();
-    } catch (err) { alert(err.response?.data?.msg || 'Помилка'); }
+    } catch (err) { showToast(err.response?.data?.msg || 'Помилка', 'error'); }
   };
 
   const handleAddComment = async (e) => {
@@ -393,6 +446,24 @@ const TaskDetailPage = () => {
         <DashboardHeader />
         <AnimatedPage>
           <div className="dashboard-content-wrapper td2-wrapper">
+            <AnimatePresence>
+              {showSuccess && (
+                <SuccessOverlay 
+                  points={task?.points || 0} 
+                  onClose={() => setShowSuccess(false)} 
+                />
+              )}
+            </AnimatePresence>
+
+            {/* ── Toast ── */}
+            {toast && (
+              <div 
+                className={`guild-toast ${toast.type}`} 
+                style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999, padding: '12px 24px', borderRadius: '8px', background: toast.type === 'error' ? 'var(--danger)' : 'var(--success)', color: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', fontWeight: 600 }}
+              >
+                {toast.msg}
+              </div>
+            )}
 
             {/* ── Back ── */}
             <Link to="/tasks" className="td2-back"><FiChevronLeft /> Всі завдання</Link>
@@ -433,7 +504,7 @@ const TaskDetailPage = () => {
                   <h3 className="td2-section-title">📝 Опис</h3>
                   <p className="td2-description">{task.description}</p>
                   {task.filePath && (
-                    <a className="td2-attachment" href={`${API_BASE_URL}/${task.filePath}`} target="_blank" rel="noreferrer">
+                    <a className="td2-attachment" href={task.filePath.startsWith('http') ? task.filePath : `${API_BASE_URL}/${task.filePath}`} target="_blank" rel="noreferrer">
                       📎 Завантажити інструкцію
                     </a>
                   )}

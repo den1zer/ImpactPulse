@@ -12,13 +12,13 @@ import '../styles/Dashboard.css';
 import '../styles/RewardsPage.css';
 
 const LEVELS = [
-  { level: 1, name: 'Новобранець', threshold: 0, icon: '🌱' },
-  { level: 2, name: 'Дослідник', threshold: 100, icon: '🔍' },
-  { level: 3, name: 'Ентузіаст', threshold: 300, icon: '🔥' },
-  { level: 4, name: 'Активіст', threshold: 600, icon: '⚡' },
-  { level: 5, name: 'Провідник', threshold: 1000, icon: '🧭' },
-  { level: 6, name: 'Лідер', threshold: 1500, icon: '👑' },
-  { level: 7, name: 'Герой', threshold: 2500, icon: '🦸' }
+  { level: 1, name: 'Новобранець', threshold: 0,     tag: 'LV.1' },
+  { level: 2, name: 'Дослідник',   threshold: 100,   tag: 'LV.2' },
+  { level: 3, name: 'Ентузіаст',  threshold: 300,   tag: 'LV.3' },
+  { level: 4, name: 'Активіст',   threshold: 600,   tag: 'LV.4' },
+  { level: 5, name: 'Провідник',  threshold: 1000,  tag: 'LV.5' },
+  { level: 6, name: 'Лідер',      threshold: 1500,  tag: 'LV.6' },
+  { level: 7, name: 'Герой',       threshold: 2500,  tag: 'LV.7' },
 ];
 
 const getLevelData = (xp = 0) => {
@@ -47,14 +47,20 @@ const BadgeDisplay = ({ user, badge }) => {
     <motion.div className="badge-card" onClick={() => setIsFlipped(f => !f)}>
       <motion.div className="badge-inner" animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.6 }}>
         <div className={`badge-front ${!isUnlocked ? 'badge-locked' : ''}`}>
-          <div className="badge-icon">{isUnlocked ? badge.icon : '🔒'}</div>
+          <div className="badge-icon">
+            {isUnlocked ? badge.icon : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="0"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            )}
+          </div>
           <h3 className="badge-name">{badge.name}</h3>
         </div>
         <div className="badge-back">
           <h3 className="badge-name">{badge.name}</h3>
           <p className="badge-description">{badge.description}</p>
           <p className="badge-status">
-            {isUnlocked ? '✅ Отримано!' : '❌ Заблоковано'}
+            {isUnlocked ? 'ОТРИМАНО' : 'ЗАБЛОКОВАНО'}
           </p>
         </div>
       </motion.div>
@@ -168,7 +174,7 @@ const RewardsPage = () => {
             style={{ cursor: 'pointer' }}
           >
             <span className="leaderboard-rank">#{i + 1}</span>
-            <img src={u.avatar?.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`} alt="avatar" className={`leaderboard-avatar frame-${u.profileCustomization?.avatarFrame || 'none'}`} />
+            <img src={u.avatar ? (u.avatar.startsWith('http') ? u.avatar : `${API_BASE_URL}/${u.avatar}`) : '/default-avatar.svg'} alt="avatar" className={`leaderboard-avatar frame-${u.profileCustomization?.avatarFrame || 'none'}`} />
             <span className="leaderboard-name">{u.profileCustomization?.nicknameIcon} {u.username}</span>
             <strong className="leaderboard-points">
               {activeTab === 'allTime' && `${u.points} балів`}
@@ -202,20 +208,28 @@ const RewardsPage = () => {
             {user && (
               <>
                 <section className="panel-card level-progress-card" style={{ marginBottom: '20px' }}>
-                  <div className="level-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <h3 style={{ margin: 0 }}>{levelData.current.icon} {levelData.current.name} (Рівень {levelData.current.level})</h3>
-                    <span style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{user.xp || user.points || 0} XP</span>
+                  <div className="panel-heading" style={{ marginBottom: '12px' }}>
+                    <h3>Ваш рівень</h3>
+                  </div>
+                  <div className="level-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.7rem', background: 'var(--black)', color: 'var(--bg-surface)', padding: '4px 10px', letterSpacing: '0.06em' }}>{levelData.current.tag}</span>
+                      <strong style={{ fontSize: '1rem', fontWeight: 700 }}>{levelData.current.name}</strong>
+                    </div>
+                    <span style={{ fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>{user.xp || user.points || 0} XP</span>
                   </div>
                   <div className="progress-bar-container">
-                    <motion.div 
-                      className="progress-bar-fill" 
+                    <motion.div
+                      className="progress-bar-fill"
                       initial={{ width: 0 }}
                       animate={{ width: `${levelData.progress}%` }}
                       transition={{ duration: 1, ease: 'easeOut' }}
-                    ></motion.div>
+                    />
                   </div>
                   {levelData.next && (
-                    <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '10px' }}>Залишилося {(levelData.next.threshold - (user.xp || user.points || 0))} XP до {levelData.next.name}</p>
+                    <p className="text-muted" style={{ fontSize: '0.72rem', marginTop: '8px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      Осталось {levelData.next.threshold - (user.xp || user.points || 0)} XP до рівня {levelData.next.name}
+                    </p>
                   )}
                 </section>
 

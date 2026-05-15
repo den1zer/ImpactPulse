@@ -3,7 +3,9 @@ const TABS = {
   'contributions':       { title: 'Заявки на перевірку',      sub: 'Розгляньте та схваліть або відхиліть внески',      load: loadContributions },
   'users':               { title: 'Управління користувачами', sub: 'Переглядайте та змінюйте ролі користувачів',        load: loadUsers },
   'tickets':             { title: 'Тікети підтримки',         sub: 'Запитання від користувачів',                        load: loadTickets },
+  'chat':                { title: 'Чат з користувачами',     sub: 'Пряме спілкування в реальному часі',                load: initChat },
   'feedback':            { title: 'Відгуки',                  sub: 'Оцінки та коментарі користувачів',                  load: loadFeedback },
+
   'statistics':          { title: 'Статистика',               sub: 'Загальна аналітика платформи',                      load: loadStatistics },
   'manage-tasks':        { title: 'Керування завданнями',     sub: 'Редагуйте та видаляйте завдання',                   load: loadManageTasks },
   'manage-fundraisers':  { title: 'Керування зборами',        sub: 'Редагуйте та видаляйте збори коштів',              load: loadManageFundraisers },

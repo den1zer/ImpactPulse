@@ -1,43 +1,55 @@
-const nodemailer = require('nodemailer');
+import axios from 'axios';
 
-const sendEmail = async (options) => {
-  const emailUser = (process.env.EMAIL_USER || '').trim();
-  const emailPass = (process.env.EMAIL_PASS || '').trim();
-
-  if (!emailUser || !emailPass) {
-    console.error('Email credentials are missing in .env');
-    throw new Error('Email configuration error');
+export const sendEmail = async ({ email, subject, html }) => {
+  if (!email || !subject || !html) {
+    throw new Error('[SendEmail] Відсутні обов\'язкові поля: email, subject, html');
   }
 
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
-    auth: {
-      user: emailUser,
-      pass: emailPass,
-    },
-    family: 4, // Force IPv4 to avoid connection issues on Render
-    connectionTimeout: 20000, // 20 seconds
-    greetingTimeout: 20000,
-    socketTimeout: 20000,
-  });
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.EMAIL_FROM_ADDRESS;
+  const senderName = process.env.EMAIL_FROM_NAME || 'ImpactPulse';
 
-  const message = {
-    from: `${process.env.FROM_NAME || 'ImpactPulse'} <${emailUser}>`,
-    to: options.email,
-    subject: options.subject,
-    html: options.html,
+  if (!apiKey || !senderEmail) {
+    console.error('[SendEmail] ❌ BREVO_API_KEY або EMAIL_FROM_ADDRESS відсутні в .env');
+    throw new Error('Email configuration error: credentials missing');
+  }
+
+  console.log(`[SendEmail] 📤 Спроба відправки на ${email}`);
+
+  const data = {
+    sender: {
+      name: senderName,
+      email: senderEmail
+    },
+    to: [
+      {
+        email: email
+      }
+    ],
+    subject: subject,
+    htmlContent: html
   };
 
   try {
-    const info = await transporter.sendMail(message);
-    console.log('Message sent: %s', info.messageId);
-    return info;
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', data, {
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    console.log(`[SendEmail] ✅ Успіх (з messageId: ${response.data.messageId})!`);
+    return response.data;
   } catch (error) {
-    console.error('Nodemailer Error:', error);
+    console.error(`[SendEmail] ❌ Помилка відправки на ${email}:`);
+    if (error.response && error.response.data) {
+      console.error(JSON.stringify(error.response.data, null, 2));
+    } else {
+      console.error(error.message);
+    }
     throw error;
   }
 };
 
-module.exports = sendEmail;
+export default sendEmail;

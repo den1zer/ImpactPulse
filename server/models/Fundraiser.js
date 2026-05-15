@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const FundraiserSchema = new mongoose.Schema({
   title: {
@@ -36,4 +36,5 @@ const FundraiserSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-module.exports = mongoose.model('Fundraiser', FundraiserSchema);
+const Fundraiser = mongoose.model('Fundraiser', FundraiserSchema);
+export default Fundraiser;

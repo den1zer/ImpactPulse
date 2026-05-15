@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // XP thresholds for each guild level (10 levels)
-const GUILD_LEVEL_THRESHOLDS = [0, 500, 1500, 3000, 6000, 10000, 16000, 24000, 35000, 50000];
+export const GUILD_LEVEL_THRESHOLDS = [0, 500, 1500, 3000, 6000, 10000, 16000, 24000, 35000, 50000];
 
 const GuildSchema = new mongoose.Schema(
   {
@@ -83,5 +83,6 @@ GuildSchema.virtual('xpCurrentLevelStart').get(function () {
 GuildSchema.set('toJSON', { virtuals: true });
 GuildSchema.set('toObject', { virtuals: true });
 
-module.exports = mongoose.model('Guild', GuildSchema);
-module.exports.GUILD_LEVEL_THRESHOLDS = GUILD_LEVEL_THRESHOLDS;
+const Guild = mongoose.model('Guild', GuildSchema);
+export default Guild;
+
