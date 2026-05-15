@@ -57,10 +57,12 @@ router.post('/create', isAuthenticated, async (req, res) => {
       orderId
     });
 
+    console.log(`[Payment] /create — userId=${userId} amount=${amount} collectionId=${collectionId} orderId=${orderId}`);
+
     res.json({ data, signature, orderId });
   } catch (error) {
-    console.error('Error in /api/payment/create:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error in /api/payment/create:', error.message);
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
 

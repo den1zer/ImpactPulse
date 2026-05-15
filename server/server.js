@@ -33,8 +33,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // --- MIDDLEWARE ---
-// 1. JSON parsing — must be first
+// 1. JSON + URL-encoded parsing — must be first
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // needed for LiqPay callback (form-encoded)
 
 // 2. Request logger
 app.use((req, res, next) => {
@@ -43,12 +44,22 @@ app.use((req, res, next) => {
 });
 
 // 3. CORS
-const allowedOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000']
-  : true; // allow all in dev
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+].filter(Boolean);
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow server-to-server requests (no origin header, e.g. LiqPay callbacks)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // In development (no FRONTEND_URL set), allow all
+    if (!process.env.FRONTEND_URL) return callback(null, true);
+    return callback(new Error(`CORS: origin ${origin} not allowed`), false);
+  },
   credentials: true,
 }));
 

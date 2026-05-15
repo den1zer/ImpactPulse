@@ -6,6 +6,7 @@ import { isAuthenticated, isAdmin } from '../middleware/authMiddleware.js';
 import {
   createFundraiser,
   getAllFundraisers,
+  getFundraiserById,
   simulateDonation,
   getAllFundraisersAdmin,
   updateFundraiser,
@@ -50,34 +51,7 @@ router.post(
  */
 router.get('/', getAllFundraisers);
 
-/**
- * @swagger
- * /api/fundraisers/{id}/donate:
- *   post:
- *     summary: Simulate a donation (deprecated/internal)
- *     tags: [Fundraisers]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Donation simulated
- */
-router.post(
-  '/:id/donate',
-  [
-    isAuthenticated,
-    body('amount', 'Сума має бути додатнім числом').isInt({ gt: 0 })
-  ],
-  validate,
-  simulateDonation
-);
-
+// ⚠️ Static routes MUST come before dynamic /:id routes
 /**
  * @swagger
  * /api/fundraisers/admin/all:
@@ -91,6 +65,54 @@ router.post(
  *         description: List of all fundraisers
  */
 router.get('/admin/all', [isAuthenticated, isAdmin], getAllFundraisersAdmin);
+
+/**
+ * @swagger
+ * /api/fundraisers/{id}:
+ *   get:
+ *     summary: Get a single fundraiser by ID
+ *     tags: [Fundraisers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Fundraiser data
+ *       404:
+ *         description: Not found
+ */
+router.get('/:id', getFundraiserById);
+
+/**
+ * @swagger
+ * /api/fundraisers/{id}/donate:
+ *   post:
+ *     summary: Simulate a donation
+ *     tags: [Fundraisers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Donation processed
+ */
+router.post(
+  '/:id/donate',
+  [
+    isAuthenticated,
+    body('amount', 'Сума має бути додатнім числом').isFloat({ gt: 0 })
+  ],
+  validate,
+  simulateDonation
+);
 
 /**
  * @swagger

@@ -137,3 +137,30 @@
 @media (max-width: 768px) {
   .fundraisers-grid { grid-template-columns: 1fr; }
 }
+
+/* Dev-mode badge */
+.fundraiser-dev-badge {
+  font-size: 0.72rem;
+  color: var(--warning);
+  background: var(--warning-subtle);
+  border-radius: var(--radius-md);
+  padding: 4px 10px;
+  text-align: center;
+}
+
+/* Inline error / success inside form */
+.fundraiser-error-msg {
+  font-size: 0.8rem;
+  color: var(--danger);
+  background: var(--danger-subtle);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+}
+
+.fundraiser-success-msg {
+  font-size: 0.8rem;
+  color: var(--success);
+  background: var(--success-subtle);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+}

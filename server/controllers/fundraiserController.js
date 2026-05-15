@@ -27,6 +27,16 @@ export const getAllFundraisers = async (req, res) => {
   }
 };
 
+export const getFundraiserById = async (req, res) => {
+  try {
+    const fundraiser = await Fundraiser.findById(req.params.id);
+    if (!fundraiser) return res.status(404).json({ msg: 'Збір не знайдено' });
+    res.json(fundraiser);
+  } catch (err) {
+    res.status(500).send('Помилка на сервері');
+  }
+};
+
 export const simulateDonation = async (req, res) => {
   try {
     const { amount } = req.body;
