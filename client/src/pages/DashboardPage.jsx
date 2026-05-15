@@ -187,7 +187,7 @@ const DashboardPage = () => {
                 </ul>
               </div>
               {/* Live Feed */}
-              <div className="panel-card panel-feed" style={{ gridColumn: 'span 2' }}>
+              <div className="panel-card panel-feed">
                 <div className="panel-heading">
                   <h3>Live Feed ⚡</h3>
                   <p>Останні дії спільноти</p>
