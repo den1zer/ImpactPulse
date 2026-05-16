@@ -1,43 +1,22 @@
 import express from 'express';
-import { generateLiqPayData, verifyLiqPaySignature, decodeLiqPayData } from '../utils/liqpay.js';
-import Donation from '../models/Donation.js';
-import Fundraiser from '../models/Fundraiser.js';
-import User from '../models/User.js';
+import { generateLiqPayData, verifyLiqPaySignature, decodeLiqPayData, checkLiqPayStatus } from '../utils/liqpay.js';
+import { processSuccessfulPayment } from '../services/paymentService.js';
 import { isAuthenticated } from '../middleware/authMiddleware.js';
-import { checkAndAwardBadges } from '../controllers/contributionController.js';
-import { handleStreak, updateDailyQuestProgress } from '../utils/gameLogic.js';
 
 const router = express.Router();
 
+// Helper to get base URL for callback
+const getBaseUrl = (req) => {
+  // If we're on localhost, we can't get a public callback anyway, 
+  // but we can try to use process.env.BASE_URL if it exists.
+  if (req.get('host').includes('localhost')) {
+    return process.env.BASE_URL || `http://${req.get('host')}`;
+  }
+  // On production (Render/Vercel), we should use https
+  return `https://${req.get('host')}`;
+};
+
 // POST /api/payment/create
-/**
- * @swagger
- * /api/payment/create:
- *   post:
- *     summary: Create a LiqPay payment for a fundraiser
- *     tags: [Payment]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - amount
- *               - collectionId
- *             properties:
- *               amount:
- *                 type: number
- *               collectionId:
- *                 type: string
- *               description:
- *                 type: string
- *     responses:
- *       200:
- *         description: Payment data and signature
- */
 router.post('/create', isAuthenticated, async (req, res) => {
   try {
     const { amount, collectionId, description } = req.body;
@@ -47,17 +26,19 @@ router.post('/create', isAuthenticated, async (req, res) => {
     }
 
     const userId = req.user.id;
-    // Format: donation_<collectionId>_<userId>_<timestamp>
     const orderId = `donation_${collectionId}_${userId}_${Date.now()}`;
     const desc = description || `Донат на збір ${collectionId}`;
 
+    const baseUrl = getBaseUrl(req);
     const { data, signature } = generateLiqPayData({
       amount,
       description: desc,
-      orderId
+      orderId,
+      serverUrl: `${baseUrl}/api/payment/callback`,
+      resultUrl: req.headers.origin ? `${req.headers.origin}/fundraisers` : undefined
     });
 
-    console.log(`[Payment] /create — userId=${userId} amount=${amount} collectionId=${collectionId} orderId=${orderId}`);
+    console.log(`[Payment] Created — userId=${userId} amount=${amount} orderId=${orderId} callback=${baseUrl}/api/payment/callback`);
 
     res.json({ data, signature, orderId });
   } catch (error) {
@@ -67,29 +48,6 @@ router.post('/create', isAuthenticated, async (req, res) => {
 });
 
 // POST /api/payment/support-project
-/**
- * @swagger
- * /api/payment/support-project:
- *   post:
- *     summary: Create a LiqPay payment to support the project
- *     tags: [Payment]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - amount
- *             properties:
- *               amount:
- *                 type: number
- *               description:
- *                 type: string
- *     responses:
- *       200:
- *         description: Payment data and signature
- */
 router.post('/support-project', async (req, res) => {
   try {
     const { amount, description } = req.body;
@@ -101,10 +59,13 @@ router.post('/support-project', async (req, res) => {
     const orderId = `support_${Date.now()}`;
     const desc = description || `Підтримка проекту ImpactPulse`;
 
+    const baseUrl = getBaseUrl(req);
     const { data, signature } = generateLiqPayData({
       amount,
       description: desc,
-      orderId
+      orderId,
+      serverUrl: `${baseUrl}/api/payment/callback`,
+      resultUrl: req.headers.origin ? `${req.headers.origin}/support` : undefined
     });
 
     res.json({ data, signature, orderId });
@@ -114,17 +75,39 @@ router.post('/support-project', async (req, res) => {
   }
 });
 
-// POST /api/payment/callback
+// GET /api/payment/status/:orderId
 /**
- * @swagger
- * /api/payment/callback:
- *   post:
- *     summary: LiqPay callback handler
- *     tags: [Payment]
- *     responses:
- *       200:
- *         description: Callback processed successfully
+ * Manual status check for LiqPay payments.
+ * Useful for local testing or when callback is delayed.
  */
+router.get('/status/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    console.log(`[Payment] Checking status for order: ${orderId}`);
+    
+    const result = await checkLiqPayStatus(orderId);
+    const { status, amount, currency, sender_email } = result;
+
+    if (status === 'success' || status === 'sandbox') {
+      await processSuccessfulPayment({
+        order_id: orderId,
+        status,
+        amount,
+        currency,
+        sender_email
+      }, req.io);
+      
+      return res.json({ success: true, status, msg: 'Payment verified and processed.' });
+    }
+
+    res.json({ success: false, status, msg: `Current status: ${status}` });
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    res.status(500).json({ error: 'Failed to check payment status' });
+  }
+});
+
+// POST /api/payment/callback
 router.post('/callback', async (req, res) => {
   try {
     const { data, signature } = req.body;
@@ -135,88 +118,26 @@ router.post('/callback', async (req, res) => {
 
     const isValid = verifyLiqPaySignature(data, signature);
     if (!isValid) {
-      console.error('LiqPay invalid signature');
+      console.error('[LiqPay] Invalid callback signature');
       return res.status(400).send('Invalid signature');
     }
 
     const decoded = decodeLiqPayData(data);
-    const { order_id, status, amount, currency, sender_email } = decoded;
+    const { status } = decoded;
 
-    // order_id is formatted as donation_<collectionId>_<userId>_<Date.now()>
-    const parts = order_id.split('_');
-    const collectionId = parts[1];
-    const userId = parts[2];
+    console.log(`[LiqPay] Callback received for ${decoded.order_id} status=${status}`);
 
     if (status === 'success' || status === 'sandbox') {
-      // Find if donation was already processed
-      const existingDonation = await Donation.findOne({ orderId: order_id });
-      
-      if (!existingDonation) {
-        // Save donation
-        await Donation.create({
-          collectionId,
-          amount,
-          currency,
-          orderId: order_id,
-          status,
-          payerEmail: sender_email
-        });
-
-        // Increment collectedAmount
-        const fundraiser = await Fundraiser.findById(collectionId);
-        if (fundraiser) {
-          fundraiser.collectedAmount += Number(amount);
-          
-          if (fundraiser.collectedAmount >= fundraiser.goalAmount) {
-            fundraiser.status = 'closed';
-          }
-          await fundraiser.save();
-        }
-
-        // Award points if we have a valid userId
-        if (userId && userId !== 'undefined') {
-          const COEFFICIENT = 0.1;
-          const pointsToAward = Math.floor(Number(amount) * COEFFICIENT);
-          
-          if (pointsToAward > 0) {
-            const user = await User.findById(userId);
-            if (user) {
-              user.points += pointsToAward;
-              
-              try {
-                await checkAndAwardBadges(user);
-                await handleStreak(user);
-                await updateDailyQuestProgress(user._id, 'donation', 1);
-
-                // Badge: "Швидка реакція"
-                if (fundraiser && (Date.now() - new Date(fundraiser.createdAt).getTime() < 60 * 60 * 1000)) {
-                  const hasQuickBadge = user.badges.some(b => b.badgeId === 'quick_reaction');
-                  if (!hasQuickBadge) {
-                    user.badges.push({
-                      badgeId: 'quick_reaction',
-                      level: 1,
-                      name: 'Швидка реакція',
-                      icon: '⚡',
-                      date: new Date()
-                    });
-                  }
-                }
-
-              } catch (err) {
-                console.error('Error awarding badges or updating quests/streaks:', err);
-              }
-              
-              await user.save();
-            }
-          }
-        }
-      }
+      await processSuccessfulPayment(decoded, req.io);
+    } else {
+      console.log(`[LiqPay] Payment ${decoded.order_id} not successful yet: ${status}`);
     }
 
-    // Always return 200 OK for LiqPay callback
     return res.status(200).send('OK');
   } catch (error) {
     console.error('Error in /api/payment/callback:', error);
+    // Always return 200 to LiqPay to stop retries if it's a code error, 
+    // unless we actually want them to retry.
     return res.status(200).send('OK');
   }
 });

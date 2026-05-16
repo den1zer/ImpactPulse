@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-export const generateLiqPayData = ({ amount, currency = 'UAH', description, orderId }) => {
+export const generateLiqPayData = ({ amount, currency = 'UAH', description, orderId, serverUrl, resultUrl }) => {
   const publicKey  = process.env.LIQPAY_PUBLIC_KEY;
   const privateKey = process.env.LIQPAY_PRIVATE_KEY;
 
@@ -20,8 +20,8 @@ export const generateLiqPayData = ({ amount, currency = 'UAH', description, orde
     description,
     order_id:    orderId,
     language:    'uk',
-    server_url:  `${process.env.BASE_URL || 'https://impactpulse-backend.onrender.com'}/api/payment/callback`,
-    result_url:  `${process.env.FRONTEND_URL || 'https://impact-pulse.vercel.app'}/fundraisers`,
+    server_url:  serverUrl || `${process.env.BASE_URL || 'https://impactpulse-backend.onrender.com'}/api/payment/callback`,
+    result_url:  resultUrl || `${process.env.FRONTEND_URL || 'https://impact-pulse.vercel.app'}/fundraisers`,
   };
 
   // In sandbox mode, set sandbox action explicitly
@@ -60,4 +60,43 @@ export const verifyLiqPaySignature = (data, signature) => {
 export const decodeLiqPayData = (data) => {
   const jsonString = Buffer.from(data, 'base64').toString('utf-8');
   return JSON.parse(jsonString);
+};
+
+export const checkLiqPayStatus = async (orderId) => {
+  const publicKey  = process.env.LIQPAY_PUBLIC_KEY;
+  const privateKey = process.env.LIQPAY_PRIVATE_KEY;
+
+  if (!publicKey || !privateKey) {
+    throw new Error('LiqPay keys are not configured');
+  }
+
+  const params = {
+    action: 'status',
+    version: 3,
+    public_key: publicKey,
+    order_id: orderId
+  };
+
+  const jsonString = JSON.stringify(params);
+  const data       = Buffer.from(jsonString).toString('base64');
+  const signature  = crypto
+    .createHash('sha1')
+    .update(privateKey + data + privateKey)
+    .digest('base64');
+
+  const body = new URLSearchParams({ data, signature }).toString();
+
+  try {
+    // using native fetch
+    const response = await fetch('https://www.liqpay.ua/api/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
+    });
+    const result = await response.json();
+    return result;
+  } catch (err) {
+    console.error('Error checking LiqPay status:', err);
+    throw err;
+  }
 };

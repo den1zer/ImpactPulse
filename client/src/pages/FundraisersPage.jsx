@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { io } from 'socket.io-client';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import AnimatedPage from '../components/AnimatedPage';
@@ -8,7 +9,6 @@ import '../styles/Dashboard.css';
 import '../styles/FundraisersPage.css';
 import API_BASE_URL from '../config/api.js';
 
-const IS_DEV = import.meta.env.DEV;
 const getToken = () => localStorage.getItem('userToken') || localStorage.getItem('token') || '';
 const authHeaders = () => ({
   'x-auth-token': getToken(),
@@ -28,39 +28,39 @@ const DonationForm = ({ fundraiser, onDonation }) => {
     if (!num || num <= 0) { setError('Вкажіть суму'); return; }
     setLoading(true);
     try {
-      if (IS_DEV) {
-        const res = await axios.post(
-          `${API_BASE_URL}/api/fundraisers/${fundraiser._id}/donate`,
-          { amount: num },
-          { headers: authHeaders() },
-        );
-        setSuccess(res.data.msg || `Дякуємо! Донат ${num} грн зараховано.`);
-        setAmount('');
+      const res = await axios.post(
+        `${API_BASE_URL}/api/payment/create`,
+        { amount: num, collectionId: fundraiser._id, description: fundraiser.title },
+        { headers: authHeaders() },
+      );
+      const { data, signature, orderId } = res.data;
+      const form = document.createElement('form');
+      form.method = 'POST'; form.action = 'https://www.liqpay.ua/api/3/checkout';
+      form.acceptCharset = 'utf-8'; form.target = '_blank';
+      [['data', data], ['signature', signature]].forEach(([name, value]) => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = name; inp.value = value;
+        form.appendChild(inp);
+      });
+      document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+      setAmount('');
+      let tries = 0;
+      const id = setInterval(async () => {
+        tries++;
+        if (tries > 20) { clearInterval(id); return; }
+        
+        try {
+          // Try to sync status manually (especially useful for local testing)
+          const statusRes = await axios.get(`${API_BASE_URL}/api/payment/status/${orderId}`, { headers: authHeaders() });
+          if (statusRes.data.success) {
+            clearInterval(id);
+          }
+        } catch (e) {
+          // Ignore errors during status check
+        }
+        
         await onDonation();
-      } else {
-        const res = await axios.post(
-          `${API_BASE_URL}/api/payment/create`,
-          { amount: num, collectionId: fundraiser._id, description: fundraiser.title },
-          { headers: authHeaders() },
-        );
-        const { data, signature } = res.data;
-        const form = document.createElement('form');
-        form.method = 'POST'; form.action = 'https://www.liqpay.ua/api/3/checkout';
-        form.acceptCharset = 'utf-8'; form.target = '_blank';
-        [['data', data], ['signature', signature]].forEach(([name, value]) => {
-          const inp = document.createElement('input');
-          inp.type = 'hidden'; inp.name = name; inp.value = value;
-          form.appendChild(inp);
-        });
-        document.body.appendChild(form); form.submit(); document.body.removeChild(form);
-        setAmount('');
-        let tries = 0;
-        const id = setInterval(async () => {
-          tries++;
-          if (tries > 24) { clearInterval(id); return; }
-          await onDonation();
-        }, 5000);
-      }
+      }, 5000);
     } catch (err) {
       const status = err.response?.status;
       const msg = err.response?.data?.msg || err.response?.data?.error || err.message;
@@ -74,7 +74,6 @@ const DonationForm = ({ fundraiser, onDonation }) => {
 
   return (
     <form className="fr-donation-form" onSubmit={handleSubmit}>
-      {IS_DEV && <div className="fr-dev-badge">DEV — без LiqPay</div>}
       {error   && <div className="fr-msg fr-msg-error">{error}</div>}
       {success && <div className="fr-msg fr-msg-success">{success}</div>}
       <div className="fr-input-group">
@@ -94,7 +93,7 @@ const DonationForm = ({ fundraiser, onDonation }) => {
         />
       </div>
       <button type="submit" className="fr-donate-btn" disabled={loading}>
-        {loading ? 'Обробка...' : IS_DEV ? 'Задонатити (тест)' : 'Підтримати'}
+        {loading ? 'Обробка...' : 'Підтримати'}
       </button>
     </form>
   );
@@ -150,6 +149,16 @@ const FundraisersPage = () => {
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('focus', onFocus);
+    };
+  }, [fetchFundraisers]);
+
+  useEffect(() => {
+    const socket = io(API_BASE_URL, { withCredentials: true });
+    socket.on('fundraiser_updated', () => {
+      fetchFundraisers();
+    });
+    return () => {
+      socket.disconnect();
     };
   }, [fetchFundraisers]);
 

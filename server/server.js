@@ -34,6 +34,7 @@ import './cron/resetWeekly.js';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 5000;
 
 // --- MIDDLEWARE ---
@@ -53,6 +54,8 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:5000',
+  'https://www.liqpay.ua',
+  'http://www.liqpay.ua',
 ].filter(Boolean);
 
 app.use(cors({
