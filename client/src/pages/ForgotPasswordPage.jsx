@@ -91,4 +91,5 @@ const ForgotPasswordPage = () => {
   );
 };
 
+// Version: 1.0.1 - Forced reload
 export default ForgotPasswordPage;

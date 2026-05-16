@@ -7,12 +7,9 @@ const router = express.Router();
 
 // Helper to get base URL for callback
 const getBaseUrl = (req) => {
-  // If we're on localhost, we can't get a public callback anyway, 
-  // but we can try to use process.env.BASE_URL if it exists.
   if (req.get('host').includes('localhost')) {
     return process.env.BASE_URL || `http://${req.get('host')}`;
   }
-  // On production (Render/Vercel), we should use https
   return `https://${req.get('host')}`;
 };
 
@@ -76,10 +73,6 @@ router.post('/support-project', async (req, res) => {
 });
 
 // GET /api/payment/status/:orderId
-/**
- * Manual status check for LiqPay payments.
- * Useful for local testing or when callback is delayed.
- */
 router.get('/status/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -136,11 +129,8 @@ router.post('/callback', async (req, res) => {
     return res.status(200).send('OK');
   } catch (error) {
     console.error('Error in /api/payment/callback:', error);
-    // Always return 200 to LiqPay to stop retries if it's a code error, 
-    // unless we actually want them to retry.
     return res.status(200).send('OK');
   }
 });
 
 export default router;
-

@@ -122,4 +122,5 @@ const ResetPasswordPage = () => {
   );
 };
 
+// Version: 1.0.1 - Forced reload
 export default ResetPasswordPage;

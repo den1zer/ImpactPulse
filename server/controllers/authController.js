@@ -157,20 +157,46 @@ export const forgotPassword = async (req, res) => {
     const clientUrl = req.headers.origin || process.env.FRONTEND_URL;
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
     const message = `
-      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-        <h1 style="color: #4F46E5;">Скидання пароля</h1>
-        <p>Ви отримали цей лист, оскільки зробили запит на скидання пароля.</p>
-        <p>Перейдіть за посиланням нижче для встановлення нового пароля (посилання дійсне 1 годину):</p>
-        <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;">Скинути пароль</a>
-        <p style="margin-top: 20px; font-size: 12px; color: #777;">Або скопіюйте це посилання: <br> ${resetUrl}</p>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6; }
+          .header { background: #5B1FA0; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+          .content { padding: 30px; background: #f9f9f9; border: 1px solid #eeeeee; border-top: none; border-radius: 0 0 8px 8px; }
+          .btn { display: inline-block; padding: 14px 28px; background-color: #5B1FA0; color: #ffffff !important; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
+          .footer { margin-top: 30px; font-size: 12px; color: #888; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h1>ImpactPulse</h1></div>
+          <div class="content">
+            <h2>Відновлення пароля</h2>
+            <p>Вітаємо! Ви отримали цей лист, оскільки було зроблено запит на скидання пароля для вашого акаунту в системі ImpactPulse.</p>
+            <p>Будь ласка, натисніть на кнопку нижче, щоб встановити новий пароль. Посилання дійсне протягом 1 години.</p>
+            <div style="text-align: center;">
+              <a href="${resetUrl}" class="btn">Встановити новий пароль</a>
+            </div>
+            <p>Якщо ви не робили цього запиту, просто ігноруйте цей лист.</p>
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            <p style="font-size: 11px;">Або скопіюйте це посилання у браузер:<br>${resetUrl}</p>
+          </div>
+          <div class="footer">
+            &copy; ${new Date().getFullYear()} ImpactPulse Team. Всі права захищено.
+          </div>
+        </div>
+      </body>
+      </html>
     `;
 
     try {
-      console.log(`[ForgotPassword] Відправка reset email на ${user.email}...`);
+      console.log(`[ForgotPassword] 🚀 Sending reset email to: ${user.email} (Token: ${resetToken.substring(0, 5)}...)`);
       await sendEmail({
         email: user.email,
-        subject: 'Скидання пароля на ImpactPulse',
+        subject: 'ImpactPulse: Відновлення пароля',
         html: message,
       });
       console.log(`[ForgotPassword] ✅ Email відправлено успішно`);
