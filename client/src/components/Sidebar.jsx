@@ -116,7 +116,17 @@ const Sidebar = () => {
         {/* Brand + toggle */}
         <div className="sidebar-top">
           <div className="sidebar-brand">
-            <div className="brand-icon">IP</div>
+            <img 
+              src="/impactpulse_logo.png" 
+              alt="ImpactPulse Logo" 
+              className="brand-icon"
+              style={{
+                borderRadius: '4px',
+                objectFit: 'contain',
+                background: '#fff',
+                padding: '2px'
+              }}
+            />
             {isExpanded && <h2>ImpactPulse</h2>}
           </div>
 

@@ -28,7 +28,6 @@ const LABELS = {
   '/profile':          'Профіль',
   '/instructions':     'Інструкція',
   '/support':          'Підтримка',
-  '/admin/dashboard':  'Адмін-панель',
   '/guilds':           'Гільдії',
 };
 

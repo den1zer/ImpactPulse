@@ -29,7 +29,7 @@ const LoginPage = () => {
     try {
       const { role } = await authService.login({ email, password });
       playSound('success');
-      navigate(role === 'admin' ? '/admin/dashboard' : '/dashboard');
+      navigate('/dashboard');
     } catch (error) {
       const msg = error.response?.data?.msg || '';
       if (error.response?.status === 401 && msg.includes('verify')) {
@@ -49,13 +49,22 @@ const LoginPage = () => {
         {/* ── Left: form ── */}
         <div className="auth-left-panel">
           {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 6,
-              background: 'var(--accent)', display: 'grid', placeItems: 'center',
-              color: '#fff', fontWeight: 700, fontSize: '0.8rem',
-            }}>IP</div>
-            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+            <img 
+              src="/impactpulse_logo.png" 
+              alt="ImpactPulse Logo" 
+              style={{ 
+                width: 38, 
+                height: 38, 
+                objectFit: 'contain',
+                borderRadius: 6,
+                border: '2px solid var(--black)',
+                background: '#fff',
+                padding: '2px',
+                boxShadow: 'var(--shadow-sm)'
+              }} 
+            />
+            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               ImpactPulse
             </span>
           </div>

@@ -59,7 +59,19 @@ const Footer = () => {
       <div className="footer-container">
         <div className="footer-left">
           <div className="footer-brand">
-            <span className="brand-icon">⚡</span>
+            <img 
+              src="/impactpulse_logo.png" 
+              alt="ImpactPulse Logo" 
+              style={{ 
+                width: '24px', 
+                height: '24px', 
+                objectFit: 'contain',
+                borderRadius: '4px',
+                border: '1.5px solid var(--black)',
+                background: '#fff',
+                padding: '1px'
+              }} 
+            />
             <h3>ImpactPulse</h3>
           </div>
           <p className="footer-description">

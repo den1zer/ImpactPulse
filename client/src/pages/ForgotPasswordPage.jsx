@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import API_BASE_URL from '../config/api';
+import playSound from '../utils/sounds';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -18,42 +19,80 @@ const ForgotPasswordPage = () => {
     try {
       const res = await axios.post(`${API_BASE_URL}/api/auth/forgot-password`, { email });
       setMessage(res.data.msg);
+      playSound('success');
     } catch (err) {
       setError(err.response?.data?.msg || 'Сталася помилка');
+      playSound('error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
-      <div className="bg-gray-800 p-8 rounded-xl shadow-2xl max-w-md w-full border border-gray-700">
-        <h2 className="text-3xl font-bold mb-6 text-indigo-400 text-center">Відновлення пароля</h2>
-        {message && <div className="mb-4 p-3 bg-green-900/50 border border-green-500 text-green-300 rounded">{message}</div>}
-        {error && <div className="mb-4 p-3 bg-red-900/50 border border-red-500 text-red-300 rounded">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-300 mb-1">Ваш Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
-              placeholder="Введіть ваш email"
+    <div className="auth-page">
+      <div className="auth-main-container">
+        <div className="auth-left-panel">
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+            <img 
+              src="/impactpulse_logo.png" 
+              alt="ImpactPulse Logo" 
+              style={{ 
+                width: 38, 
+                height: 38, 
+                objectFit: 'contain',
+                borderRadius: 6,
+                border: '2px solid var(--black)',
+                background: '#fff',
+                padding: '2px',
+                boxShadow: 'var(--shadow-sm)'
+              }} 
             />
+            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              ImpactPulse
+            </span>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Відправка...' : 'Надіслати посилання'}
-          </button>
-        </form>
-        <div className="mt-6 text-center">
-          <Link to="/login" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-            Повернутись до логіну
+
+          <h2 className="auth-title">Забули пароль?</h2>
+          <p className="auth-subtitle">Введіть ваш email, і ми надішлемо посилання для відновлення</p>
+
+          {message && <div className="success-message">{message}</div>}
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="forgot-email">Email</label>
+              <input
+                id="forgot-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="auth-button"
+            >
+              {loading ? 'Відправка...' : 'Надіслати посилання'}
+            </button>
+          </form>
+
+          <div className="auth-toggle">
+            Пам'ятаєте пароль? <Link to="/login">Увійти</Link>
+          </div>
+        </div>
+
+        <div className="auth-right-panel">
+          <h2>Безпека понад усе</h2>
+          <p>
+            Ми допоможемо вам повернути доступ до вашого профілю ImpactPulse. 
+            Просто дотримуйтесь інструкцій у листі.
+          </p>
+          <Link to="/login" className="auth-button ghost">
+            Назад до входу
           </Link>
         </div>
       </div>
@@ -61,4 +100,5 @@ const ForgotPasswordPage = () => {
   );
 };
 
+// Version: 1.0.1 - Forced reload
 export default ForgotPasswordPage;

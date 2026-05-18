@@ -14,18 +14,14 @@ export const sendEmail = async ({ email, subject, html }) => {
     throw new Error('Email configuration error: credentials missing');
   }
 
-  console.log(`[SendEmail] 📤 Спроба відправки на ${email}`);
+  console.log(`[SendEmail] 📤 Спроба відправки на ${email} (від: ${senderEmail})`);
 
   const data = {
     sender: {
       name: senderName,
       email: senderEmail
     },
-    to: [
-      {
-        email: email
-      }
-    ],
+    to: [{ email }],
     subject: subject,
     htmlContent: html
   };
@@ -39,7 +35,7 @@ export const sendEmail = async ({ email, subject, html }) => {
       }
     });
 
-    console.log(`[SendEmail] ✅ Успіх (з messageId: ${response.data.messageId})!`);
+    console.log(`[SendEmail] ✅ Успіх! MessageId: ${response.data.messageId}`);
     return response.data;
   } catch (error) {
     console.error(`[SendEmail] ❌ Помилка відправки на ${email}:`);
