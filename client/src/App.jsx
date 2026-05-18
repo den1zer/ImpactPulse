@@ -23,6 +23,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import GuildsPage from './pages/GuildsPage';
 import MessagesPage from './pages/MessagesPage';
 import Footer from './components/Footer/Footer';
+import PWAReloadPrompt from './components/PWAReloadPrompt';
 
 const ProtectedRoute = ({ children }) => {
   const isGuest = localStorage.getItem('userRole') === 'guest';
@@ -80,6 +81,7 @@ function App() {
         </Routes>
       </AnimatePresence>
       <Footer />
+      <PWAReloadPrompt />
     </>
   );
 }
