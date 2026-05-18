@@ -29,7 +29,7 @@ const LoginPage = () => {
     try {
       const { role } = await authService.login({ email, password });
       playSound('success');
-      navigate(role === 'admin' ? '/admin/dashboard' : '/dashboard');
+      navigate('/dashboard');
     } catch (error) {
       const msg = error.response?.data?.msg || '';
       if (error.response?.status === 401 && msg.includes('verify')) {

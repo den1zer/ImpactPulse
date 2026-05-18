@@ -5,7 +5,6 @@ import AnimatedPage from './components/AnimatedPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
 import AddHelpPage from './pages/AddHelpPage'; 
 import MyContributionsPage from './pages/MyContributionsPage';
 import ProfilePage from './pages/ProfilePage';
@@ -59,7 +58,6 @@ function App() {
           
           <Route path="/" element={<RootRedirect />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/add-help" element={<ProtectedRoute><AddHelpPage /></ProtectedRoute>} /> 
