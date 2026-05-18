@@ -227,8 +227,23 @@ const AdminDashboardPage = () => {
 
   return (
     <div className="admin-container">
-      <header className="admin-header">
-        <h2>АДМІН-ПАНЕЛЬ</h2>
+      <header className="admin-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img 
+            src="/impactpulse_logo.png" 
+            alt="ImpactPulse Logo" 
+            style={{ 
+              width: '36px', 
+              height: '36px', 
+              objectFit: 'contain',
+              borderRadius: '6px',
+              border: '2px solid var(--black)',
+              background: '#fff',
+              padding: '2px'
+            }} 
+          />
+          <h2>АДМІН-ПАНЕЛЬ</h2>
+        </div>
         <button onClick={logout} className="action-btn reject">ВИЙТИ</button>
       </header>
 
