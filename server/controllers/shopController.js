@@ -11,6 +11,32 @@ export const getAllItems = async (req, res) => {
   }
 };
 
+export const createItem = async (req, res) => {
+  try {
+    const { title, price, description, type } = req.body;
+    
+    // Check if the user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ msg: 'Доступ заборонено. Тільки для адміністраторів.' });
+    }
+
+    const newItem = new RewardItem({
+      name: title,
+      price: price,
+      description: description,
+      type: type || 'partner_coupon',
+      isActive: true,
+      stock: req.body.stock || -1 // infinite by default
+    });
+
+    await newItem.save();
+    res.status(201).json({ msg: 'Бонус успішно створено!', item: newItem });
+  } catch (err) {
+    console.error('Error creating shop item:', err);
+    res.status(500).json({ msg: 'Помилка сервера при створенні бонусу' });
+  }
+};
+
 export const buyItem = async (req, res) => {
   try {
     const { itemId } = req.body;

@@ -31,5 +31,19 @@ router.get('/', isAuthenticated, shopController.getAllItems);
  */
 router.post('/buy', isAuthenticated, shopController.buyItem);
 
+/**
+ * @swagger
+ * /api/shop/admin:
+ *   post:
+ *     summary: Create a new shop item (Admin)
+ *     tags: [Shop]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Item created successfully
+ */
+router.post('/admin', isAuthenticated, shopController.createItem);
+
 export default router;
 

@@ -95,6 +95,9 @@
         <button class="nav-item" data-tab="create-task">
           <span class="nav-label">NEW TASK</span>
         </button>
+        <button class="nav-item" data-tab="create-bonus">
+          <span class="nav-label">NEW BONUS</span>
+        </button>
       </nav>
       <div class="sidebar-footer">
         <div class="sidebar-user">
@@ -352,6 +355,36 @@
             </div>
             <div id="ct-message" class="form-message hidden"></div>
             <button type="submit" class="btn btn-primary">CREATE TASK</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- CREATE BONUS TAB -->
+      <section id="tab-create-bonus" class="tab-content">
+        <div class="form-card">
+          <h3 class="form-card-title">NEW STORE BONUS</h3>
+          <form id="create-bonus-form">
+            <div class="form-group">
+              <label class="form-label">BONUS TITLE *</label>
+              <input type="text" id="cb-title" class="form-input" placeholder="Min. 3 characters" minlength="3" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">PRICE (COINS) *</label>
+              <input type="number" id="cb-price" class="form-input" placeholder="100" min="1" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">DESCRIPTION *</label>
+              <textarea id="cb-description" class="form-textarea" placeholder="Bonus description" required rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">IMAGE / PHOTO</label>
+              <div class="file-drop-zone" id="cb-file-zone">
+                <span id="cb-file-label">SELECT OR DRAG FILE</span>
+                <input type="file" id="cb-file" class="file-input-hidden" accept="image/*" />
+              </div>
+            </div>
+            <div id="cb-message" class="form-message hidden"></div>
+            <button type="submit" class="btn btn-primary">CREATE BONUS</button>
           </form>
         </div>
       </section>

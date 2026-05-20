@@ -54,15 +54,21 @@ function openModal(title, bodyHTML, buttons = []) {
   document.getElementById('modal-body').innerHTML = bodyHTML;
   const footer = document.getElementById('modal-footer');
   footer.innerHTML = '';
-  buttons.forEach(({ label, cls, resolve }) => {
-    const btn = document.createElement('button');
-    btn.className = `btn ${cls}`;
-    btn.textContent = label.toUpperCase();
-    btn.onclick = () => { closeModal(); if (resolve) resolve(); };
-    footer.appendChild(btn);
+  return new Promise(res => {
+    _modalResolve = res;
+    buttons.forEach(({ label, cls, value }) => {
+      const btn = document.createElement('button');
+      btn.className = `btn ${cls}`;
+      btn.textContent = label.toUpperCase();
+      btn.onclick = () => {
+        const val = typeof value === 'function' ? value() : value;
+        document.getElementById('modal-overlay').classList.add('hidden');
+        if (_modalResolve) { _modalResolve(val); _modalResolve = null; }
+      };
+      footer.appendChild(btn);
+    });
+    document.getElementById('modal-overlay').classList.remove('hidden');
   });
-  document.getElementById('modal-overlay').classList.remove('hidden');
-  return new Promise(res => { _modalResolve = res; });
 }
 
 function closeModal() {
@@ -70,17 +76,24 @@ function closeModal() {
   if (_modalResolve) { _modalResolve(null); _modalResolve = null; }
 }
 
-function promptModal(title, label, defaultVal = '') {
+async function promptModal(title, label, defaultVal = '') {
   const id = 'modal-input-' + Date.now();
-  return new Promise(resolve => {
-    openModal(title,
-      `<div class="form-group"><label class="form-label">${label.toUpperCase()}</label><input id="${id}" class="form-input" value="${defaultVal}" /></div>`,
-      [
-        { label: 'CANCEL', cls: 'btn-secondary', resolve: () => resolve(null) },
-        { label: 'OK', cls: 'btn-primary', resolve: () => resolve(document.getElementById(id)?.value ?? null) }
-      ]
-    );
-  });
+  const val = await openModal(title,
+    `<div class="form-group"><label class="form-label">${label.toUpperCase()}</label><input id="${id}" class="form-input" value="${defaultVal}" /></div>`,
+    [
+      { label: 'CANCEL', cls: 'btn-secondary', value: null },
+      { label: 'OK', cls: 'btn-primary', value: () => document.getElementById(id)?.value ?? null }
+    ]
+  );
+  return val;
+}
+
+async function confirmModal(title, bodyHTML) {
+  const val = await openModal(title, bodyHTML, [
+    { label: 'Скасувати', cls: 'btn-secondary', value: false },
+    { label: 'Підтвердити', cls: 'btn-primary', value: true }
+  ]);
+  return !!val;
 }
 
 document.getElementById('modal-close').addEventListener('click', closeModal);
