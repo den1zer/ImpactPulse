@@ -17,31 +17,12 @@ async function api(method, path, body = null) {
 }
 
 async function apiMultipart(path, fields, filePath = null) {
-  const boundary = '----ImpactPulseBoundary' + Date.now();
-  const CRLF = '\r\n';
-
-  let body = '';
-  for (const [key, val] of Object.entries(fields)) {
-    if (val === null || val === undefined || val === '') continue;
-    body += `--${boundary}${CRLF}`;
-    body += `Content-Disposition: form-data; name="${key}"${CRLF}${CRLF}`;
-    body += `${val}${CRLF}`;
-  }
-
-  if (filePath) {
-    const fs = null;
-    body += `--${boundary}${CRLF}`;
-    body += `Content-Disposition: form-data; name="__filePath__"${CRLF}${CRLF}`;
-    body += `${filePath}${CRLF}`;
-  }
-  body += `--${boundary}--${CRLF}`;
-
-  const rawBody = btoa(unescape(encodeURIComponent(body)));
   const opts = {
     method: 'POST', path,
     token: getToken(),
-    isMultipart: true, boundary,
-    rawBody
+    isMultipart: true, 
+    fields,
+    filePath
   };
   const res = await window.electron.apiRequest(opts);
   if (res.status >= 400) {

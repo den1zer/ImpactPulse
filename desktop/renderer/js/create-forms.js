@@ -126,11 +126,15 @@ document.getElementById('create-bonus-form')?.addEventListener('submit', async (
   const fields = {
     title: document.getElementById('cb-title').value,
     description: document.getElementById('cb-description').value,
-    price: document.getElementById('cb-price').value
+    price: document.getElementById('cb-price').value,
+    promoCode: document.getElementById('cb-promo').value
   };
   try {
-    // Let's assume the backend expects POST /api/shop/admin for bonuses.
-    await api('POST', '/api/shop/admin', fields);
+    if (_cbFilePath) {
+      await apiMultipart('/api/shop/admin', fields, _cbFilePath);
+    } else {
+      await api('POST', '/api/shop/admin', fields);
+    }
     showMsg('cb-message', 'SUCCESS: BONUS CREATED', 'success');
     e.target.reset();
     _cbFilePath = null;

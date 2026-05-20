@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import Guild from '../models/Guild.js';
 import { generateDailyQuests } from '../utils/gameLogic.js';
 import { updateUserLevel } from '../utils/levelSystem.js';
+import { checkAndAwardBadges } from './contributionController.js';
 
 /**
  * Get daily quests for the current user. Generates new ones if they don't exist for today.
@@ -73,6 +74,7 @@ export const claimRewards = async (req, res) => {
     }
 
     updateUserLevel(user);
+    await checkAndAwardBadges(user);
     await user.save();
 
     // Guild XP aggregation — propagate quest XP to the user's guild

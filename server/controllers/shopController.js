@@ -13,7 +13,7 @@ export const getAllItems = async (req, res) => {
 
 export const createItem = async (req, res) => {
   try {
-    const { title, price, description, type } = req.body;
+    const { title, price, description, type, promoCode } = req.body;
     
     // Check if the user is admin
     if (req.user.role !== 'admin') {
@@ -25,6 +25,8 @@ export const createItem = async (req, res) => {
       price: price,
       description: description,
       type: type || 'partner_coupon',
+      imageUrl: req.file ? req.file.path : null,
+      promoCode: promoCode || '',
       isActive: true,
       stock: req.body.stock || -1 // infinite by default
     });
@@ -71,7 +73,7 @@ export const buyItem = async (req, res) => {
 
     // Process the reward based on type
     if (item.type === 'partner_coupon') {
-      const code = `COUPON-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const code = item.promoCode || `COUPON-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       user.rewards.push({
         type: item.type,
         name: item.name,
@@ -104,6 +106,7 @@ export const buyItem = async (req, res) => {
     res.json({
       msg: 'Покупка успішна!',
       currentCoins: user.coins,
+      code: item.type === 'partner_coupon' ? user.rewards[user.rewards.length - 1].code : null,
       user
     });
 

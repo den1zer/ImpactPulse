@@ -1,10 +1,11 @@
 import Contribution from '../models/Contribution.js';
 import User from '../models/User.js';
-import Badge from '../models/Badge.js';
+import Badge from '../models/Badge.js'; // Keep for legacy if needed, but we'll use constants
 import Task from '../models/Task.js';
 import Guild from '../models/Guild.js';
 import Activity from '../models/Activity.js';
 import { handleStreak, updateDailyQuestProgress } from '../utils/gameLogic.js';
+import { BADGE_DICTIONARY } from '../constants/badges.js';
 
 export const addContribution = async (req, res) => {
   const { title, description, type, amount, itemList, comment, location, taskId } = req.body;
@@ -43,43 +44,34 @@ export const addContribution = async (req, res) => {
 };
 
 export const checkAndAwardBadges = async (user) => {
-  const allBadges = await Badge.find(); 
-  for (const badge of allBadges) {
-    let currentValue = 0;
-    let currentLevel = 0;
-    const userBadge = user.badges.find(b => b.badgeId === badge.badgeId);
-    if (userBadge) {
-      currentLevel = userBadge.level;
-    }
-    if (badge.triggerType === 'POINTS') currentValue = user.points;
-    if (badge.triggerType === 'DONATION_COUNT') currentValue = user.stats.totalDonations;
-    if (badge.triggerType === 'VOLUNTEER_COUNT') currentValue = user.stats.totalVolunteering;
-    if (badge.triggerType === 'AID_COUNT') currentValue = user.stats.totalAid;
-    if (badge.triggerType === 'GEO') currentValue = user.stats.totalGeo;
-    if (badge.triggerType === 'REJECTED') currentValue = user.stats.totalRejections;
-    if (badge.triggerType === 'VERSATILE' && user.stats.hasDonation && user.stats.hasVolunteering && user.stats.hasAid) currentValue = 1;
-    if (badge.triggerType === 'PROFILE' && user.stats.profileComplete) currentValue = 1;
-    if (badge.triggerType === 'HIGH_ROLLER' && user.stats.highRoller) currentValue = 1;
-    let newLevel = null;
-    for (const level of badge.levels) { 
-      if (currentValue >= level.value && level.level > currentLevel) {
-        newLevel = level;
-      }
-    }
-    if (newLevel) {
-      if (userBadge) {
-        userBadge.level = newLevel.level;
-        userBadge.name = newLevel.name;
-        userBadge.icon = newLevel.icon_color;
-        userBadge.date = Date.now();
-      } else {
-        user.badges.push({
-          badgeId: badge.badgeId,
-          level: newLevel.level,
-          name: newLevel.name,
-          icon: newLevel.icon_color,
-        });
-      }
+  if (!user.badges) user.badges = [];
+  
+  for (const badge of BADGE_DICTIONARY) {
+    const hasBadge = user.badges.some(b => b.badgeId === badge.id);
+    if (hasBadge) continue; // Already awarded
+    
+    let isEligible = false;
+    const reqs = badge.requirements;
+
+    if (reqs.points && user.points >= reqs.points) isEligible = true;
+    if (reqs.totalDonations && user.stats.totalDonations >= reqs.totalDonations) isEligible = true;
+    if (reqs.totalVolunteering && user.stats.totalVolunteering >= reqs.totalVolunteering) isEligible = true;
+    if (reqs.totalAid && user.stats.totalAid >= reqs.totalAid) isEligible = true;
+    if (reqs.versatile && user.stats.hasDonation && user.stats.hasVolunteering && user.stats.hasAid) isEligible = true;
+    if (reqs.profileComplete && user.stats.profileComplete) isEligible = true;
+    if (reqs.longestStreak && user.streak && user.streak.longest >= reqs.longestStreak) isEligible = true;
+    if (reqs.highRoller && user.stats.highRoller) isEligible = true;
+    if (reqs.totalGeo && user.stats.totalGeo >= reqs.totalGeo) isEligible = true;
+    if (reqs.totalRejections && user.stats.totalRejections >= reqs.totalRejections) isEligible = true;
+
+    if (isEligible) {
+      user.badges.push({
+        badgeId: badge.id,
+        level: 1, // Legacy level field
+        name: badge.name,
+        icon: badge.icon,
+        date: Date.now()
+      });
     }
   }
 };

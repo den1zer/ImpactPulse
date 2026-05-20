@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import * as shopController from '../controllers/shopController.js';
 import { isAuthenticated } from '../middleware/authMiddleware.js';
+import uploadMiddleware from '../middleware/uploadMiddleware.js';
 
 /**
  * @swagger
@@ -43,7 +44,7 @@ router.post('/buy', isAuthenticated, shopController.buyItem);
  *       201:
  *         description: Item created successfully
  */
-router.post('/admin', isAuthenticated, shopController.createItem);
+router.post('/admin', [isAuthenticated, uploadMiddleware.single('image')], shopController.createItem);
 
 export default router;
 

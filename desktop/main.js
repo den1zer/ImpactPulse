@@ -100,8 +100,9 @@ app.on('before-quit', () => {
 // so we relay all API calls through main via IPC.
 
 const https = require('https');
+const fs = require('fs');
 
-function doRequest({ method, path: apiPath, token, body, isMultipart, boundary, rawBody }) {
+function doRequest({ method, path: apiPath, token, body, fields, filePath, isMultipart }) {
     return new Promise((resolve, reject) => {
         const url = new URL(`${API_BASE}${apiPath}`);
         const isHttps = url.protocol === 'https:';
@@ -110,17 +111,46 @@ function doRequest({ method, path: apiPath, token, body, isMultipart, boundary, 
         const headers = {};
         if (token) headers['x-auth-token'] = token;
 
-        if (isMultipart && boundary) {
-            headers['Content-Type'] = `multipart/form-data; boundary=${boundary}`;
-        } else if (body && !isMultipart) {
-            headers['Content-Type'] = 'application/json';
-        }
+        let bodyBuffer = null;
 
-        const bodyBuffer = rawBody
-            ? Buffer.from(rawBody, 'base64')
-            : body
-                ? Buffer.from(JSON.stringify(body))
-                : null;
+        if (isMultipart) {
+            const boundary = '----ImpactPulseBoundary' + Date.now();
+            headers['Content-Type'] = `multipart/form-data; boundary=${boundary}`;
+            const CRLF = '\r\n';
+            const parts = [];
+
+            for (const [key, val] of Object.entries(fields || {})) {
+                if (val === null || val === undefined || val === '') continue;
+                parts.push(Buffer.from(`--${boundary}${CRLF}Content-Disposition: form-data; name="${key}"${CRLF}${CRLF}${val}${CRLF}`));
+            }
+
+            if (filePath) {
+                try {
+                    const fileContent = fs.readFileSync(filePath);
+                    const fileName = path.basename(filePath);
+                    const fileField = apiPath.includes('/shop') ? 'image' : 'taskFile';
+                    
+                    let mimeType = 'application/octet-stream';
+                    const ext = path.extname(fileName).toLowerCase();
+                    if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+                    else if (ext === '.png') mimeType = 'image/png';
+                    else if (ext === '.gif') mimeType = 'image/gif';
+                    else if (ext === '.webp') mimeType = 'image/webp';
+                    else if (ext === '.pdf') mimeType = 'application/pdf';
+
+                    parts.push(Buffer.from(`--${boundary}${CRLF}Content-Disposition: form-data; name="${fileField}"; filename="${fileName}"${CRLF}Content-Type: ${mimeType}${CRLF}${CRLF}`));
+                    parts.push(fileContent);
+                    parts.push(Buffer.from(CRLF));
+                } catch (e) {
+                    console.error('Failed to read file:', e);
+                }
+            }
+            parts.push(Buffer.from(`--${boundary}--${CRLF}`));
+            bodyBuffer = Buffer.concat(parts);
+        } else if (body) {
+            headers['Content-Type'] = 'application/json';
+            bodyBuffer = Buffer.from(JSON.stringify(body));
+        }
 
         if (bodyBuffer) headers['Content-Length'] = bodyBuffer.length;
 
