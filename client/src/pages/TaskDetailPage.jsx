@@ -10,7 +10,13 @@ import {
   FiUsers, FiZap, FiClock, FiTag, FiShield, FiCheck,
   FiX, FiSend, FiHeart, FiTrash2, FiMessageCircle,
   FiUpload, FiChevronLeft, FiAlertCircle, FiStar,
+  FiMapPin, FiEdit, FiImage, FiFileText,
 } from 'react-icons/fi';
+import {
+  MapContainer, TileLayer, Marker,
+} from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import confetti from 'canvas-confetti';
 import '../styles/TasksPage.css';
 import './TaskDetailPage2.css';
@@ -81,7 +87,7 @@ const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
           <p className="td2-proof-text">{p.proofText}</p>
           {p.proofFile && (
             <a className="td2-proof-link" href={p.proofFile.startsWith('http') ? p.proofFile : `${API_BASE_URL}/${p.proofFile}`} target="_blank" rel="noreferrer">
-              📎 Файл підтвердження
+              <FiUpload size={14} /> Файл підтвердження
             </a>
           )}
         </div>
@@ -110,7 +116,7 @@ const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
       {/* Review result */}
       {['approved', 'rejected'].includes(p.status) && p.reviewComment && (
         <div className={`td2-review-result ${p.status}`}>
-          💬 {p.reviewComment}
+          <FiMessageCircle size={13} /> {p.reviewComment}
         </div>
       )}
     </div>
@@ -173,7 +179,7 @@ const SuccessOverlay = ({ onClose, points }) => (
       <div className="success-icon-wrap">
         <FiStar className="success-star-icon" />
       </div>
-      <h2>Дякуємо за допомогу! 💙💛</h2>
+      <h2>Дякуємо за допомогу!</h2>
       <p>Ваш звіт успішно відправлено на перевірку. Автор завдання перегляне його найближчим часом.</p>
       <div className="success-reward">
         <span>Ви отримаєте</span>
@@ -257,7 +263,7 @@ const JoinControls = ({ task, myGuild, currentUserId, onJoin, onLeave }) => {
           </>
         )}
         {myParticipant.status === 'review' && (
-          <p className="td2-review-pending">⏳ Ваш звіт на перевірці у автора завдання</p>
+          <p className="td2-review-pending"><FiClock size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} /> Ваш звіт на перевірці у автора завдання</p>
         )}
       </div>
     );
@@ -289,6 +295,7 @@ const TaskDetailPage = () => {
   const [postingComment, setPostingComment] = useState(false);
   const [toast, setToast]       = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const commentsEndRef = useRef(null);
 
   const token      = localStorage.getItem('userToken');
@@ -474,7 +481,13 @@ const TaskDetailPage = () => {
 
                 {/* Header card */}
                 <div className="td2-header-card">
-                  <div className="td2-cover-emoji">{task.coverEmoji || '📋'}</div>
+                  <div className="td2-cover-emoji">
+                    {task.coverImage ? (
+                      <img src={task.coverImage.startsWith('http') ? task.coverImage : `${API_BASE_URL}/${task.coverImage}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                    ) : (
+                      <FiFileText size={28} />
+                    )}
+                  </div>
                   <div className="td2-header-info">
                     <div className="td2-header-top">
                       <h1 className="td2-title">{task.title}</h1>
@@ -493,7 +506,10 @@ const TaskDetailPage = () => {
                       <Avatar user={task.createdBy} size={24} />
                       <span>Автор: <strong>{task.createdBy?.username}</strong></span>
                       {isCreator && task.status !== 'closed' && (
-                        <button className="btn-close-task" onClick={handleCloseTask}>Закрити завдання</button>
+                        <>
+                          <button className="btn-close-task" onClick={handleCloseTask}>Закрити завдання</button>
+                          <button className="btn-close-task" style={{ background: 'var(--accent)', color: 'var(--accent-text)', marginLeft: '8px' }} onClick={() => setShowEdit(true)}><FiEdit size={13} /> Редагувати</button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -501,18 +517,32 @@ const TaskDetailPage = () => {
 
                 {/* Description */}
                 <div className="td2-section">
-                  <h3 className="td2-section-title">📝 Опис</h3>
+                  <h3 className="td2-section-title"><FiFileText size={15} /> Опис</h3>
                   <p className="td2-description">{task.description}</p>
                   {task.filePath && (
                     <a className="td2-attachment" href={task.filePath.startsWith('http') ? task.filePath : `${API_BASE_URL}/${task.filePath}`} target="_blank" rel="noreferrer">
-                      📎 Завантажити інструкцію
+                      <FiUpload size={14} /> Завантажити інструкцію
                     </a>
                   )}
                 </div>
 
+                {/* Location map */}
+                {task.lat && task.lng && (
+                  <div className="td2-section">
+                    <h3 className="td2-section-title"><FiMapPin size={15} /> Місце виконання</h3>
+                    {task.address && <p className="td2-description" style={{ marginBottom: '12px' }}>{task.address}</p>}
+                    <div style={{ height: '250px', width: '100%', border: 'var(--border)', overflow: 'hidden' }}>
+                      <MapContainer center={[task.lat, task.lng]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                        <Marker position={[task.lat, task.lng]} />
+                      </MapContainer>
+                    </div>
+                  </div>
+                )}
+
                 {/* Join controls */}
                 <div className="td2-section">
-                  <h3 className="td2-section-title">🚀 Участь</h3>
+                  <h3 className="td2-section-title"><FiZap size={15} /> Участь</h3>
                   <JoinControls
                     task={task}
                     myGuild={myGuild}
@@ -626,12 +656,112 @@ const TaskDetailPage = () => {
                     <p>{task.targetGuild?.logo} {task.targetGuild?.name}</p>
                   </div>
                 )}
+
+                {task.lat && task.lng && (
+                  <div className="td2-info-card">
+                    <h4><FiMapPin /> Локація</h4>
+                    {task.address && <p style={{ fontSize: '0.82rem', marginBottom: '4px' }}>{task.address}</p>}
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', opacity: 0.5 }}>
+                      {task.lat.toFixed(4)}, {task.lng.toFixed(4)}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Edit Modal */}
+            <AnimatePresence>
+              {showEdit && (
+                <EditTaskModal task={task} onClose={() => setShowEdit(false)} onUpdated={(updated) => { setTask(updated); setShowEdit(false); showToast('Завдання оновлено'); }} />
+              )}
+            </AnimatePresence>
           </div>
         </AnimatedPage>
       </main>
     </div>
+  );
+};
+
+// ── Edit Task Modal ───────────────────────────────────────────
+const EditTaskModal = ({ task, onClose, onUpdated }) => {
+  const [form, setForm] = useState({
+    title: task.title, description: task.description,
+    category: task.category, points: task.points,
+    endDate: task.endDate ? new Date(task.endDate).toISOString().split('T')[0] : '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const token = localStorage.getItem('userToken');
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const res = await axios.put(`${API_BASE_URL}/api/tasks/${task._id}/edit`, form, {
+        headers: { 'x-auth-token': token },
+      });
+      onUpdated(res.data);
+    } catch (err) {
+      setError(err.response?.data?.msg || 'Помилка');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+      <motion.div
+        className="modal-card task-modal-card"
+        initial={{ scale: 0.88, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.88, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 24 }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h2>Редагувати завдання</h2>
+          <button className="modal-close-btn" onClick={onClose}><FiX /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="modal-form">
+          <div className="form-group">
+            <label>Назва</label>
+            <input value={form.title} onChange={e => set('title', e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label>Опис</label>
+            <textarea rows={4} value={form.description} onChange={e => set('description', e.target.value)} required />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Категорія</label>
+              <select value={form.category} onChange={e => set('category', e.target.value)}>
+                <option value="volunteering">Волонтерство</option>
+                <option value="aid">Допомога</option>
+                <option value="donation">Донат</option>
+                <option value="education">Освіта</option>
+                <option value="ecology">Екологія</option>
+                <option value="military">Армія</option>
+                <option value="other">Інше</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Балів</label>
+              <input type="number" min={1} value={form.points} onChange={e => set('points', e.target.value)} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Дедлайн</label>
+            <input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} />
+          </div>
+          {error && <div className="modal-error">{error}</div>}
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'Збереження...' : 'Зберегти зміни'}
+          </button>
+        </form>
+      </motion.div>
+    </motion.div>
   );
 };
 

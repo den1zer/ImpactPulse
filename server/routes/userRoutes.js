@@ -17,7 +17,8 @@ import {
   searchUsers,
   getFriends,
   addFriend,
-  removeFriend
+  removeFriend,
+  deleteUser
 } from '../controllers/userController.js';
 
 import multer from 'multer';
@@ -137,6 +138,26 @@ router.get('/', [isAuthenticated, isAdmin], getAllUsers);
  *         description: Role updated successfully
  */
 router.put('/role/:id', [isAuthenticated, isAdmin], updateUserRole);
+
+/**
+ * @swagger
+ * /api/users/{id}/admin:
+ *   delete:
+ *     summary: Delete user (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ */
+router.delete('/:id/admin', [isAuthenticated, isAdmin], deleteUser);
 
 /**
  * @swagger

@@ -11,6 +11,7 @@ const TABS = {
   'manage-fundraisers':  { title: 'Керування зборами',        sub: 'Редагуйте та видаляйте збори коштів',              load: loadManageFundraisers },
   'create-fundraiser':   { title: 'Новий збір коштів',        sub: 'Створіть новий благодійний збір',                   load: null },
   'create-task':         { title: 'Нове завдання',            sub: 'Створіть нове завдання для волонтерів',             load: null },
+  'create-bonus':        { title: 'Новий бонус',              sub: 'Створіть новий бонус для магазину',                 load: null },
 };
 
 let _activeTab = 'contributions';
@@ -63,7 +64,7 @@ const rootEl = document.documentElement;
 // Load saved theme
 if (localStorage.getItem('theme') === 'light') {
   rootEl.classList.add('theme-light');
-  if (themeBtn) themeBtn.textContent = '☀️';
+  if (themeBtn) themeBtn.textContent = 'LIGHT';
 }
 
 if (themeBtn) {
@@ -71,6 +72,6 @@ if (themeBtn) {
     rootEl.classList.toggle('theme-light');
     const isLight = rootEl.classList.contains('theme-light');
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    themeBtn.textContent = isLight ? '☀️' : '🌙';
+    themeBtn.textContent = isLight ? 'LIGHT' : 'DARK';
   });
 }

@@ -23,11 +23,11 @@ document.getElementById('create-fundraiser-form').addEventListener('submit', asy
   };
   try {
     await api('POST', '/api/fundraisers', body);
-    showMsg('cf-message', '✅ Збір успішно створено!', 'success');
+    showMsg('cf-message', 'SUCCESS: CAMPAIGN CREATED', 'success');
     e.target.reset();
     document.getElementById('cf-bonuses-container').innerHTML = '';
   } catch (err) {
-    showMsg('cf-message', '❌ ' + err.message, 'error');
+    showMsg('cf-message', 'ERROR: ' + err.message, 'error');
   } finally { btn.disabled = false; }
 });
 
@@ -41,7 +41,7 @@ document.getElementById('cf-add-bonus-btn')?.addEventListener('click', () => {
     <div class="form-group" style="flex:1;"><label class="form-label">Мін. сума</label><input type="number" class="form-input b-min" placeholder="1000" min="1" required></div>
     <div class="form-group" style="flex:1;"><label class="form-label">Промокод</label><input type="text" class="form-input b-code" placeholder="SALE20" required></div>
     <div class="form-group" style="flex:2;"><label class="form-label">Опис</label><input type="text" class="form-input b-desc" placeholder="Знижка 20% на мерч" required></div>
-    <button type="button" class="btn-icon reject" onclick="this.parentElement.remove()" style="margin-bottom:8px;">🗑</button>
+    <button type="button" class="btn-icon reject" onclick="this.parentElement.remove()" style="margin-bottom:8px;">DEL</button>
   `;
   container.appendChild(div);
 });
@@ -56,7 +56,7 @@ document.getElementById('ct-file-zone').addEventListener('click', async (e) => {
   const p = await window.electron.openFileDialog();
   if (p) {
     _ctFilePath = p;
-    document.getElementById('ct-file-label').textContent = '📎 ' + p.split('/').pop();
+    document.getElementById('ct-file-label').textContent = 'FILE: ' + p.split('/').pop();
     document.getElementById('ct-file-zone').classList.add('has-file');
   }
 });
@@ -66,7 +66,7 @@ document.getElementById('ct-file').addEventListener('change', (e) => {
   const f = e.target.files[0];
   if (f) {
     _ctFilePath = f.path || f.name;
-    document.getElementById('ct-file-label').textContent = '📎 ' + f.name;
+    document.getElementById('ct-file-label').textContent = 'FILE: ' + f.name;
     document.getElementById('ct-file-zone').classList.add('has-file');
   }
 });
@@ -87,12 +87,60 @@ document.getElementById('create-task-form').addEventListener('submit', async (e)
     // JSON POST when no file is selected for simplicity.
     // The server accepts both (file is optional).
     await api('POST', '/api/tasks', fields);
-    showMsg('ct-message', '✅ Завдання успішно створено!', 'success');
+    showMsg('ct-message', 'SUCCESS: TASK CREATED', 'success');
     e.target.reset();
     _ctFilePath = null;
-    document.getElementById('ct-file-label').textContent = '📁 Натисніть або перетягніть файл';
+    document.getElementById('ct-file-label').textContent = 'SELECT OR DRAG FILE';
     document.getElementById('ct-file-zone').classList.remove('has-file');
   } catch (err) {
-    showMsg('ct-message', '❌ ' + err.message, 'error');
+    showMsg('ct-message', 'ERROR: ' + err.message, 'error');
+  } finally { btn.disabled = false; }
+});
+
+// ── Create Bonus Form ──────────────────────────────────────
+let _cbFilePath = null;
+
+document.getElementById('cb-file-zone')?.addEventListener('click', async (e) => {
+  if (e.target.id === 'cb-file') return;
+  const p = await window.electron.openFileDialog();
+  if (p) {
+    _cbFilePath = p;
+    document.getElementById('cb-file-label').textContent = 'FILE: ' + p.split('/').pop();
+    document.getElementById('cb-file-zone').classList.add('has-file');
+  }
+});
+
+document.getElementById('cb-file')?.addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (f) {
+    _cbFilePath = f.path || f.name;
+    document.getElementById('cb-file-label').textContent = 'FILE: ' + f.name;
+    document.getElementById('cb-file-zone').classList.add('has-file');
+  }
+});
+
+document.getElementById('create-bonus-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true;
+  const fields = {
+    title: document.getElementById('cb-title').value,
+    description: document.getElementById('cb-description').value,
+    price: document.getElementById('cb-price').value,
+    promoCode: document.getElementById('cb-promo').value
+  };
+  try {
+    if (_cbFilePath) {
+      await apiMultipart('/api/shop/admin', fields, _cbFilePath);
+    } else {
+      await api('POST', '/api/shop/admin', fields);
+    }
+    showMsg('cb-message', 'SUCCESS: BONUS CREATED', 'success');
+    e.target.reset();
+    _cbFilePath = null;
+    document.getElementById('cb-file-label').textContent = 'SELECT OR DRAG FILE';
+    document.getElementById('cb-file-zone').classList.remove('has-file');
+  } catch (err) {
+    showMsg('cb-message', 'ERROR: ' + err.message, 'error');
   } finally { btn.disabled = false; }
 });

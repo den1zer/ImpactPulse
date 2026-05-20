@@ -11,6 +11,34 @@ export const getAllItems = async (req, res) => {
   }
 };
 
+export const createItem = async (req, res) => {
+  try {
+    const { title, price, description, type, promoCode } = req.body;
+    
+    // Check if the user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ msg: 'Доступ заборонено. Тільки для адміністраторів.' });
+    }
+
+    const newItem = new RewardItem({
+      name: title,
+      price: price,
+      description: description,
+      type: type || 'partner_coupon',
+      imageUrl: req.file ? req.file.path : null,
+      promoCode: promoCode || '',
+      isActive: true,
+      stock: req.body.stock || -1 // infinite by default
+    });
+
+    await newItem.save();
+    res.status(201).json({ msg: 'Бонус успішно створено!', item: newItem });
+  } catch (err) {
+    console.error('Error creating shop item:', err);
+    res.status(500).json({ msg: 'Помилка сервера при створенні бонусу' });
+  }
+};
+
 export const buyItem = async (req, res) => {
   try {
     const { itemId } = req.body;
@@ -45,7 +73,7 @@ export const buyItem = async (req, res) => {
 
     // Process the reward based on type
     if (item.type === 'partner_coupon') {
-      const code = `COUPON-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const code = item.promoCode || `COUPON-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       user.rewards.push({
         type: item.type,
         name: item.name,
@@ -78,6 +106,7 @@ export const buyItem = async (req, res) => {
     res.json({
       msg: 'Покупка успішна!',
       currentCoins: user.coins,
+      code: item.type === 'partner_coupon' ? user.rewards[user.rewards.length - 1].code : null,
       user
     });
 

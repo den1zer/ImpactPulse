@@ -24,6 +24,7 @@ const FundraiserSchema = new mongoose.Schema({
   },
   cardName: { type: String, required: true },
   cardNumber: { type: String, required: true },
+  coverImage: { type: String, default: null },
 
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

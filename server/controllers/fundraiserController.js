@@ -9,6 +9,7 @@ export const createFundraiser = async (req, res) => {
     const newFundraiser = new Fundraiser({
       title, description, goalAmount, cardName, cardNumber,
       bonuses: bonuses || [],
+      coverImage: req.file ? req.file.path : null,
       createdBy: req.user.id
     });
     await newFundraiser.save();
@@ -16,7 +17,7 @@ export const createFundraiser = async (req, res) => {
     if (req.io) {
       const user = await User.findById(req.user.id);
       if (user) {
-        const message = `${user.username} оголосив новий збір: "${newFundraiser.title}" 📢`;
+        const message = `${user.username} оголосив новий збір: "${newFundraiser.title}"`;
         await Activity.create({ message, type: 'fundraiser_created' });
         req.io.emit('activity_feed', { message });
       }
@@ -104,7 +105,7 @@ export const simulateDonation = async (req, res) => {
       await user.save();
 
       if (req.io) {
-        const message = `${user.username} зробив внесок ${amount} грн на збір "${fundraiser.title}" ❤️`;
+        const message = `${user.username} зробив внесок ${amount} грн на збір "${fundraiser.title}"`;
         await Activity.create({ message, type: 'donation_made' });
         req.io.emit('activity_feed', { message });
       }

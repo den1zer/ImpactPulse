@@ -27,6 +27,9 @@ const RewardItemSchema = new mongoose.Schema({
   },
   imageUrl: {
     type: String, // Optional image for the item
+  },
+  promoCode: {
+    type: String, // Optional specific promo code
   }
 }, { timestamps: true });
 

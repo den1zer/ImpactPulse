@@ -1,21 +1,26 @@
 // ── Manage Tasks Tab ──────────────────────────────────────
-let _tasks = [], _editingTask = null;
+let _tasks = [], _editingTask = null, _tasksPage = 1;
+const TASKS_PER_PAGE = 10;
 
 async function loadManageTasks() {
   setLoading('manage-tasks-content');
   try {
     _tasks = await api('GET', '/api/tasks/admin/all');
     _editingTask = null;
+    _tasksPage = 1;
     renderManageTasks();
   } catch(e) { setError('manage-tasks-content', e.message); }
 }
 
 function renderManageTasks() {
-  if (!_tasks.length) { setEmpty('manage-tasks-content', 'Завдань не знайдено'); return; }
+  if (!_tasks.length) { setEmpty('manage-tasks-content', 'Завдань не знайдено'); renderPagination('manage-tasks-pagination',1,0,()=>{}); return; }
+  
+  const page = paginate(_tasks, _tasksPage, TASKS_PER_PAGE);
+  
   document.getElementById('manage-tasks-content').innerHTML = `
     <table>
       <thead><tr><th>Назва</th><th>Категорія</th><th>Статус</th><th>Бали</th><th>Дата</th><th>Дії</th></tr></thead>
-      <tbody>${_tasks.map(t => {
+      <tbody>${page.map(t => {
         const isEdit = _editingTask === t._id;
         return `<tr>
           <td>${isEdit ? `<input class="edit-input" id="et-title" value="${t.title}">` : t.title}</td>
@@ -33,15 +38,17 @@ function renderManageTasks() {
           <td class="secondary">${fmtDate(t.createdAt)}</td>
           <td><div class="td-actions">
             ${isEdit
-              ? `<button class="btn-icon save"   data-save="${t._id}">💾</button>
-                 <button class="btn-icon cancel" data-cancel>✕</button>`
-              : `<button class="btn-icon edit"   data-edit="${t._id}">✏️</button>
-                 <button class="btn-icon reject" data-del="${t._id}">🗑</button>`}
+              ? `<button class="btn-icon save"   data-save="${t._id}">SAVE</button>
+                 <button class="btn-icon cancel" data-cancel>CANC</button>`
+              : `<button class="btn-icon edit"   data-edit="${t._id}">EDIT</button>
+                 <button class="btn-icon reject" data-del="${t._id}">DEL</button>`}
           </div></td>
         </tr>`;
       }).join('')}
       </tbody>
     </table>`;
+
+  renderPagination('manage-tasks-pagination', _tasksPage, Math.ceil(_tasks.length/TASKS_PER_PAGE), p => { _tasksPage=p; renderManageTasks(); });
 
   document.querySelectorAll('[data-edit]').forEach(btn =>
     btn.addEventListener('click', () => { _editingTask = btn.dataset.edit; renderManageTasks(); }));
@@ -68,10 +75,9 @@ async function saveTask(id) {
 }
 
 async function deleteTask(id) {
-  const ok = await openModal('Видалити завдання?',
-    '<p>Цю дію неможливо скасувати.</p>',
-    [{ label:'Скасувати',cls:'btn-secondary',resolve:()=>{}},
-     { label:'Видалити', cls:'btn-primary',  resolve:()=>{}}]);
+  const ok = await confirmModal('Видалити завдання?',
+    '<p>Цю дію неможливо скасувати.</p>');
+  if (!ok) return;
   try {
     await api('DELETE', `/api/tasks/${id}/admin`);
     await loadManageTasks();

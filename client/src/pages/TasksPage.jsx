@@ -106,10 +106,11 @@ const LocationPicker = ({ onSelect, selectedPos }) => {
 const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
   const [form, setForm] = useState({
     title: '', description: '', category: 'volunteering',
-    points: 100, endDate: '', coverEmoji: '📋',
+    points: 100, endDate: '', coverEmoji: '',
     guildOnly: false, targetGuild: '', maxParticipants: '',
     lat: null, lng: null, address: '',
   });
+  const [coverFile, setCoverFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const token = localStorage.getItem('userToken');
@@ -121,13 +122,21 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
     setError('');
     setLoading(true);
     try {
-      const body = { ...form };
-      if (!body.endDate) delete body.endDate;
-      if (!body.maxParticipants) delete body.maxParticipants;
-      if (!body.targetGuild) delete body.targetGuild;
+      const fd = new FormData();
+      fd.append('title', form.title);
+      fd.append('description', form.description);
+      fd.append('category', form.category);
+      fd.append('points', form.points);
+      if (form.endDate) fd.append('endDate', form.endDate);
+      if (form.maxParticipants) fd.append('maxParticipants', form.maxParticipants);
+      if (form.targetGuild) fd.append('targetGuild', form.targetGuild);
+      fd.append('guildOnly', form.guildOnly);
+      if (form.lat) { fd.append('lat', form.lat); fd.append('lng', form.lng); }
+      if (form.address) fd.append('address', form.address);
+      if (coverFile) fd.append('taskFile', coverFile);
 
-      const res = await axios.post(`${API_BASE_URL}/api/tasks`, body, {
-        headers: { 'x-auth-token': token },
+      const res = await axios.post(`${API_BASE_URL}/api/tasks`, fd, {
+        headers: { 'x-auth-token': token, 'Content-Type': 'multipart/form-data' },
       });
       onCreated(res.data);
     } catch (err) {
@@ -209,6 +218,15 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
               </label>
             </div>
           )}
+
+          {/* Cover Image */}
+          <div className="form-group">
+            <label>Фото завдання (необов'язково)</label>
+            <label className="file-upload-label" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', border: 'var(--border)', background: 'var(--bg-surface)' }}>
+              <input type="file" accept="image/*" onChange={e => setCoverFile(e.target.files[0])} hidden />
+              <FiPlus size={14} /> {coverFile ? coverFile.name : 'Обрати зображення'}
+            </label>
+          </div>
 
           {/* Location Picker */}
           <div className="form-group">

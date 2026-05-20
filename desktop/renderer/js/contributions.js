@@ -45,10 +45,10 @@ function renderContribs() {
           <td>${typeTag(c.type)}</td>
           <td>${c.title}</td>
           <td class="secondary">${fmtDate(c.createdAt)}</td>
-          <td><a class="proof-link" href="http://localhost:5000/${c.filePath}" target="_blank">👁 Переглянути</a></td>
+          <td><a class="proof-link" href="http://localhost:5000/${c.filePath}" target="_blank">VIEW PROOF</a></td>
           <td><div class="td-actions">
-            <button class="btn-icon approve" title="Схвалити" data-id="${c._id}">✓</button>
-            <button class="btn-icon reject"  title="Відхилити" data-id="${c._id}" data-reject>✕</button>
+            <button class="btn-icon approve" title="Схвалити" data-id="${c._id}">OK</button>
+            <button class="btn-icon reject"  title="Відхилити" data-id="${c._id}" data-reject>NO</button>
           </div></td>
         </tr>`).join('')}
       </tbody>

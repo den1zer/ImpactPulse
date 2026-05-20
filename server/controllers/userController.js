@@ -1,11 +1,20 @@
 import User from '../models/User.js';
 import { checkAndAwardBadges } from './contributionController.js'; 
 import cloudinary from '../config/cloudinary.js';
+import { sendEmail } from '../utils/sendEmail.js';
 
 export const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
+    
+    // Sync badges on load
+    const prevBadgesLength = user.badges?.length || 0;
+    await checkAndAwardBadges(user);
+    if ((user.badges?.length || 0) > prevBadgesLength) {
+      await user.save();
+    }
+
     res.json(user);
   } catch (err) {
     console.error(err.message);
@@ -120,6 +129,43 @@ export const updateUserRole = async (req, res) => {
     user.role = role;
     await user.save();
     res.json({ msg: 'Роль користувача оновлено' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Помилка на сервері');
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
+
+    const { comment } = req.body;
+    
+    // Send email
+    if (user.email) {
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #d9534f; text-align: center;">Ваш обліковий запис було видалено</h2>
+          <p>Привіт, <strong>${user.username}</strong>.</p>
+          <p>Ваш обліковий запис на платформі <strong>ImpactPulse</strong> було видалено адміністратором.</p>
+          ${comment ? `<p><strong>Причина видалення:</strong></p><blockquote style="border-left: 4px solid #d9534f; padding-left: 15px; color: #555;">${comment}</blockquote>` : ''}
+          <p style="margin-top: 30px; font-size: 14px; color: #777; text-align: center;">Якщо ви вважаєте, що сталася помилка, будь ласка, зв'яжіться з нашою підтримкою.</p>
+        </div>
+      `;
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Ваш обліковий запис ImpactPulse видалено',
+          html: emailHtml
+        });
+      } catch (emailErr) {
+        console.error('Failed to send deletion email:', emailErr.message);
+      }
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ msg: 'Користувача успішно видалено' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Помилка на сервері');

@@ -15,6 +15,7 @@ const ShopPage = () => {
   const [error, setError] = useState(null);
   const [purchaseMessage, setPurchaseMessage] = useState(null);
   const [animatingCoin, setAnimatingCoin] = useState(false);
+  const [purchasedCodes, setPurchasedCodes] = useState({});
   const token = localStorage.getItem('userToken');
 
   useEffect(() => {
@@ -69,6 +70,10 @@ const ShopPage = () => {
       setCoins(res.data.currentCoins);
       setPurchaseMessage({ type: 'success', text: 'Покупка успішна!' });
       setTimeout(() => setPurchaseMessage(null), 3000);
+
+      if (res.data.code) {
+        setPurchasedCodes(prev => ({ ...prev, [item._id]: res.data.code }));
+      }
       
       // Update items (decrease stock visually if not infinite)
       setItems(prevItems => prevItems.map(i => {
@@ -147,7 +152,9 @@ const ShopPage = () => {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
                 <div className="card-image-placeholder">
-                  {item.type === 'partner_coupon' ? <FiTag size={48} color="var(--text-secondary)" /> : 
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${API_BASE_URL}/${item.imageUrl}`} alt={item.name} className="card-image" />
+                  ) : item.type === 'partner_coupon' ? <FiTag size={48} color="var(--text-secondary)" /> : 
                    item.type === 'badge' ? <FiAward size={48} color="var(--text-secondary)" /> : 
                    <FiImage size={48} color="var(--text-secondary)" />}
                 </div>
@@ -161,13 +168,18 @@ const ShopPage = () => {
                       <img src="/impact-coin.svg" alt="IC" className="small-coin" onError={(e) => {e.target.onerror = null; e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v12m-3-6h6' stroke='%23B8860B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"}} />
                     </div>
                     <button 
-                      className={`buy-btn ${coins < item.price ? 'disabled' : ''}`}
+                      className={`buy-btn ${coins < item.price || purchasedCodes[item._id] ? 'disabled' : ''}`}
                       onClick={() => handleBuy(item)}
-                      disabled={coins < item.price}
+                      disabled={coins < item.price || purchasedCodes[item._id]}
                     >
-                      Придбати
+                      {purchasedCodes[item._id] ? 'ОТРИМАНО' : 'Придбати'}
                     </button>
                   </div>
+                  {purchasedCodes[item._id] && (
+                    <div className="promo-code-display" style={{ marginTop: '10px', padding: '10px', background: 'var(--green-bg)', border: '2px dashed var(--green)', color: 'var(--green)', fontWeight: 'bold', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
+                      Ваш код: {purchasedCodes[item._id]}
+                    </div>
+                  )}
                   {item.stock > 0 && <div className="stock-info">Залишилось: {item.stock} шт.</div>}
                 </div>
               </motion.div>
