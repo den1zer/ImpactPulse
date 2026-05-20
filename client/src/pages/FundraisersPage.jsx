@@ -26,6 +26,11 @@ const DonationForm = ({ fundraiser, onDonation }) => {
     setSuccess(''); setError('');
     const num = Number(amount);
     if (!num || num <= 0) { setError('Вкажіть суму'); return; }
+
+    // CRITICAL iOS PWA FIX: Open window synchronously on user click to bypass Safari/WebKit popup blocker
+    // We must do this BEFORE any async await calls like axios.post
+    const paymentWindow = window.open('', '_blank');
+    
     setLoading(true);
     try {
       const res = await axios.post(
@@ -34,15 +39,39 @@ const DonationForm = ({ fundraiser, onDonation }) => {
         { headers: authHeaders() },
       );
       const { data, signature, orderId } = res.data;
-      const form = document.createElement('form');
-      form.method = 'POST'; form.action = 'https://www.liqpay.ua/api/3/checkout';
-      form.acceptCharset = 'utf-8'; form.target = '_blank';
-      [['data', data], ['signature', signature]].forEach(([name, value]) => {
-        const inp = document.createElement('input');
-        inp.type = 'hidden'; inp.name = name; inp.value = value;
-        form.appendChild(inp);
-      });
-      document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+      
+      // Inject LiqPay form into the pre-opened window
+      if (paymentWindow) {
+        const formHtml = `
+          <html>
+            <head><title>Перенаправлення на LiqPay...</title></head>
+            <body>
+              <p>Зачекайте, перенаправляємо на сторінку оплати...</p>
+              <form id="liqpayForm" method="POST" action="https://www.liqpay.ua/api/3/checkout" accept-charset="utf-8">
+                <input type="hidden" name="data" value="${data}" />
+                <input type="hidden" name="signature" value="${signature}" />
+              </form>
+              <script>
+                document.getElementById('liqpayForm').submit();
+              </script>
+            </body>
+          </html>
+        `;
+        paymentWindow.document.write(formHtml);
+        paymentWindow.document.close();
+      } else {
+        // Fallback if window.open was still blocked
+        const form = document.createElement('form');
+        form.method = 'POST'; form.action = 'https://www.liqpay.ua/api/3/checkout';
+        form.acceptCharset = 'utf-8'; form.target = '_blank';
+        [['data', data], ['signature', signature]].forEach(([name, value]) => {
+          const inp = document.createElement('input');
+          inp.type = 'hidden'; inp.name = name; inp.value = value;
+          form.appendChild(inp);
+        });
+        document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+      }
+
       setAmount('');
       let tries = 0;
       const id = setInterval(async () => {
@@ -62,6 +91,7 @@ const DonationForm = ({ fundraiser, onDonation }) => {
         await onDonation();
       }, 5000);
     } catch (err) {
+      if (paymentWindow) paymentWindow.close(); // Close the window on error
       const status = err.response?.status;
       const msg = err.response?.data?.msg || err.response?.data?.error || err.message;
       if (status === 401) setError('Сесія закінчилась. Увійдіть знову.');
@@ -71,6 +101,7 @@ const DonationForm = ({ fundraiser, onDonation }) => {
       setLoading(false);
     }
   };
+
 
   return (
     <form className="fr-donation-form" onSubmit={handleSubmit}>
