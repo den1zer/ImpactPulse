@@ -3,6 +3,7 @@ const router = express.Router();
 import { body } from 'express-validator';
 import { validate } from '../middleware/validation.js';
 import { isAuthenticated, isAdmin } from '../middleware/authMiddleware.js';
+import uploadMiddleware from '../middleware/uploadMiddleware.js';
 import {
   createFundraiser,
   getAllFundraisers,
@@ -30,6 +31,7 @@ router.post(
   [
     isAuthenticated,
     isAdmin,
+    uploadMiddleware.single('coverImage'),
     body('title', 'Назва є обов\'язковою').not().isEmpty(),
     body('description', 'Опис є обов\'язковим').not().isEmpty(),
     body('goalAmount', 'Ціль має бути додатнім числом').isInt({ gt: 0 }),

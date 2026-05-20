@@ -37,9 +37,10 @@ export const createTask = async (req, res) => {
       category,
       points: pointsNum,
       endDate: endDate || null,
-      filePath: req.file ? req.file.path : null,
+      filePath: null,
+      coverImage: req.file ? req.file.path : null,
       createdBy: req.user.id,
-      coverEmoji: coverEmoji || '📋',
+      coverEmoji: coverEmoji || '',
       guildOnly: guildOnly === true || guildOnly === 'true',
       targetGuild: targetGuild || null,
       maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
@@ -55,7 +56,7 @@ export const createTask = async (req, res) => {
     if (req.io) {
       const user = await User.findById(req.user.id);
       if (user) {
-        const message = `${user.username} створив нове завдання '${task.title}' 🆕`;
+        const message = `${user.username} створив нове завдання '${task.title}'`;
         await Activity.create({ message, type: 'task_created' });
         req.io.emit('activity_feed', { message });
       }
@@ -382,7 +383,7 @@ export const closeTask = async (req, res) => {
     if (req.io) {
       const user = await User.findById(req.user.id);
       if (user) {
-        const message = `${user.username} щойно закрив завдання '${task.title}' 🔒`;
+        const message = `${user.username} щойно закрив завдання '${task.title}'`;
         await Activity.create({ message, type: 'task_closed' });
         req.io.emit('activity_feed', { message });
       }
@@ -390,6 +391,35 @@ export const closeTask = async (req, res) => {
 
     res.json({ msg: 'Завдання закрито' });
   } catch (err) {
+    res.status(500).json({ msg: 'Помилка сервера' });
+  }
+};
+
+// ── UPDATE TASK BY CREATOR ────────────────────────────────────────────────────
+export const updateTaskByCreator = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
+    if (task.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ msg: 'Тільки автор може редагувати завдання' });
+    }
+
+    const { title, description, category, points, endDate, address, lat, lng } = req.body;
+    if (title)       task.title       = title;
+    if (description) task.description = description;
+    if (category)    task.category    = category;
+    if (points)      task.points      = parseInt(points);
+    if (endDate)     task.endDate     = endDate;
+    if (address !== undefined) task.address = address;
+    if (lat !== undefined) task.lat = parseFloat(lat);
+    if (lng !== undefined) task.lng = parseFloat(lng);
+    if (req.file) task.coverImage = req.file.path;
+
+    await task.save();
+    await task.populate([{ path: 'createdBy', select: 'username avatar avatarUrl xp level' }]);
+    res.json(task);
+  } catch (err) {
+    console.error('updateTaskByCreator:', err.message);
     res.status(500).json({ msg: 'Помилка сервера' });
   }
 };

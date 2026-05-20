@@ -16,6 +16,7 @@ import {
   likeComment,
   getMyTasks,
   closeTask,
+  updateTaskByCreator,
   getAllTasksAdmin,
   updateTask,
   deleteTask,
@@ -210,6 +211,9 @@ router.post('/:id/review',  isAuthenticated, reviewParticipant);
  *         description: Task closed successfully
  */
 router.post('/:id/close',   isAuthenticated, closeTask);
+
+// ── Creator edit ─────────────────────────────────────────────────────────────
+router.put('/:id/edit', [isAuthenticated, uploadMiddleware.single('taskFile')], updateTaskByCreator);
 
 // ── Comments ─────────────────────────────────────────────────────────────────
 /**

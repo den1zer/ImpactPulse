@@ -43,6 +43,7 @@ const TaskSchema = new mongoose.Schema({
   endDate:   { type: Date },
   filePath:  { type: String },     // attachment/instruction
   coverEmoji:{ type: String, default: '📋' },
+  coverImage:{ type: String, default: null },  // Cloudinary URL
 
   // Who created it (any authenticated user)
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

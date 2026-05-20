@@ -235,6 +235,11 @@ const FundraisersPage = () => {
               <div className="fr-grid">
                 {fundraisers.map(item => (
                   <div key={item._id} className="fr-card">
+                    {item.coverImage && (
+                      <div className="fr-card-cover">
+                        <img src={item.coverImage.startsWith('http') ? item.coverImage : `${API_BASE_URL}/${item.coverImage}`} alt={item.title} />
+                      </div>
+                    )}
                     <div className="fr-card-head">
                       <Link to={`/fundraisers/${item._id}`} className="fr-card-title-link">
                         <h3 className="fr-card-title">{item.title}</h3>
