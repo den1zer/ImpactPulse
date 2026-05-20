@@ -9,7 +9,7 @@ import { io } from 'socket.io-client';
 import { FiSend, FiMessageSquare, FiCheck, FiX, FiArrowLeft } from 'react-icons/fi';
 import playSound from '../utils/sounds';
 import '../styles/Dashboard.css';
-
+import '../styles/MessagesPage.css';
 const MessagesPage = () => {
   const [conversations, setConversations] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
@@ -189,17 +189,17 @@ const MessagesPage = () => {
       <main className="dashboard-main">
         <DashboardHeader />
         <AnimatedPage>
-          <div className="dashboard-content-wrapper" style={{ height: 'calc(100vh - 100px)', paddingBottom: '0' }}>
-            <div style={{ display: 'flex', height: '100%', gap: '24px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+          <div className="dashboard-content-wrapper messages-wrapper">
+            <div className={`messages-container ${activeChat ? 'chat-active' : ''}`}>
               
               {/* Sidebar List */}
-              <div style={{ width: '300px', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--border)' }}>
-                  <h3 style={{ margin: 0 }}>Повідомлення</h3>
+              <div className="messages-sidebar">
+                <div className="messages-sidebar-header">
+                  <h3>Повідомлення</h3>
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto' }}>
-                  {loading ? <div style={{ padding: '20px', textAlign: 'center' }}>Завантаження...</div> :
-                   conversations.length === 0 ? <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>Немає діалогів</div> :
+                <div className="messages-list">
+                  {loading ? <div style={{ padding: '20px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>Завантаження...</div> :
+                   conversations.length === 0 ? <div style={{ padding: '20px', textAlign: 'center', color: 'var(--black)', opacity: 0.5, fontFamily: 'var(--font-mono)' }}>Немає діалогів</div> :
                    conversations.map(chat => {
                      const otherUser = chat.participants.find(p => p._id !== currentUser?._id);
                      if (!otherUser) return null;
@@ -209,23 +209,15 @@ const MessagesPage = () => {
                        <div 
                          key={chat._id}
                          onClick={() => selectChat(chat)}
-                         style={{
-                           padding: '16px',
-                           borderBottom: '1px solid var(--border)',
-                           cursor: 'pointer',
-                           background: activeChat?._id === chat._id ? 'var(--bg-subtle)' : 'transparent',
-                           display: 'flex',
-                           gap: '12px',
-                           alignItems: 'center'
-                         }}
+                         className={`messages-list-item ${activeChat?._id === chat._id ? 'active' : ''}`}
                        >
-                         <img src={otherUser.avatarUrl || '/default-avatar.svg'} alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-                         <div style={{ flex: 1, overflow: 'hidden' }}>
-                           <div style={{ fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', color: 'var(--black)' }}>
+                         <img src={otherUser.avatarUrl || '/default-avatar.svg'} alt="" className="msg-avatar" />
+                         <div className="msg-preview">
+                           <div className="msg-preview-header">
                              {otherUser.username}
-                             {isPending && <span style={{ fontSize: '0.7rem', background: 'var(--yellow)', color: 'var(--black)', padding: '2px 6px', border: '1px solid var(--black)' }}>Новий</span>}
+                             {isPending && <span className="msg-new-badge">Новий</span>}
                            </div>
-                           <div style={{ fontSize: '0.85rem', color: 'var(--black)', opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                           <div className="msg-text-snippet">
                              {chat.lastMessage ? chat.lastMessage.text : '...'}
                            </div>
                          </div>
@@ -237,48 +229,35 @@ const MessagesPage = () => {
               </div>
 
               {/* Chat Window */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div className="messages-chat-area">
                 {activeChat ? (
                   <>
-                    <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="chat-header">
+                      <button className="mobile-back-btn" onClick={() => setActiveChat(null)}>
+                        <FiArrowLeft size={18} />
+                      </button>
                       {(() => {
                         const otherUser = activeChat.participants.find(p => p._id !== currentUser?._id);
                         return (
                           <>
-                            <img src={otherUser?.avatarUrl || '/default-avatar.svg'} alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                            <img src={otherUser?.avatarUrl || '/default-avatar.svg'} alt="" className="msg-avatar" style={{ width: '36px', height: '36px' }} />
                             <div>
-                              <h4 style={{ margin: 0 }}><Link to={`/user/${otherUser?._id}`} style={{ color: 'inherit', textDecoration: 'none' }}>{otherUser?.username}</Link></h4>
+                              <h4><Link to={`/user/${otherUser?._id}`}>{otherUser?.username}</Link></h4>
                             </div>
                           </>
                         );
                       })()}
                     </div>
 
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="chat-messages">
                       {messages.map((m, idx) => {
                         const isMe = m.sender._id === currentUser?._id || m.sender === currentUser?._id;
                         return (
-                          <div key={idx} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%' }}>
-                            <div style={{
-                              background: isMe ? 'var(--accent)' : 'var(--bg)',
-                              color: isMe ? 'var(--accent-text)' : 'var(--black)',
-                              padding: '14px 18px',
-                              borderRadius: isMe ? '0' : '0',
-                              border: 'var(--border)',
-                              boxShadow: 'var(--shadow-sm)',
-                              fontFamily: 'var(--font-sans)',
-                              lineHeight: '1.5'
-                            }}>
+                          <div key={idx} className={`chat-bubble-wrapper ${isMe ? 'me' : 'other'}`}>
+                            <div className="chat-bubble">
                               {m.text}
                             </div>
-                            <div style={{ 
-                                fontSize: '0.7rem', 
-                                color: 'var(--black)', 
-                                opacity: 0.6,
-                                marginTop: '6px', 
-                                textAlign: isMe ? 'right' : 'left',
-                                fontFamily: 'var(--font-mono)'
-                            }}>
+                            <div className="chat-time">
                               {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                           </div>
@@ -287,38 +266,38 @@ const MessagesPage = () => {
                       <div ref={messagesEndRef} />
                     </div>
 
-                    <div style={{ padding: '20px', borderTop: '1px solid var(--border)' }}>
+                    <div className="chat-input-area">
                       {activeChat.status === 'pending' && activeChat.initiator !== currentUser?._id ? (
-                        <div style={{ textAlign: 'center', padding: '20px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>
-                          <p style={{ marginBottom: '16px' }}>Цей користувач не у вашому списку друзів. Прийняти повідомлення?</p>
+                        <div style={{ textAlign: 'center', padding: '20px', background: 'var(--bg)', border: 'var(--border)' }}>
+                          <p style={{ marginBottom: '16px', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>Цей користувач не у вашому списку друзів. Прийняти повідомлення?</p>
                           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                            <button className="btn btn-primary" onClick={handleAccept} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button onClick={handleAccept} style={{ background: 'var(--black)', color: 'var(--bg-surface)', border: 'var(--border)', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700 }}>
                               <FiCheck /> Прийняти
                             </button>
-                            <button className="btn btn-secondary" onClick={handleDelete} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--danger)' }}>
+                            <button onClick={handleDelete} style={{ background: 'var(--red)', color: '#fff', border: 'var(--border)', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700 }}>
                               <FiX /> Видалити
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <form onSubmit={handleSend} style={{ display: 'flex', gap: '12px' }}>
+                        <form onSubmit={handleSend} className="chat-form">
                           <input 
                             type="text" 
-                            style={{ flex: 1, padding: '12px 16px', border: 'var(--border)', background: 'var(--bg)', color: 'var(--black)', fontFamily: 'var(--font-sans)', fontSize: '0.9rem', outline: 'none' }}
+                            className="chat-input"
                             value={input} 
                             onChange={(e) => setInput(e.target.value)} 
                             placeholder="Напишіть повідомлення..."
                           />
-                          <button type="submit" className="btn btn-primary" disabled={!input.trim()} style={{ padding: '0 24px' }}>
-                            <FiSend />
+                          <button type="submit" className="chat-send-btn" disabled={!input.trim()}>
+                            <FiSend size={18} />
                           </button>
                         </form>
                       )}
                     </div>
                   </>
                 ) : (
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-                    <FiMessageSquare style={{ fontSize: '4rem', marginBottom: '16px', opacity: 0.5 }} />
+                  <div className="chat-empty">
+                    <FiMessageSquare />
                     <p>Оберіть діалог для початку спілкування</p>
                   </div>
                 )}
