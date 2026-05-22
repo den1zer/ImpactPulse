@@ -10,6 +10,10 @@ const options = {
     },
     servers: [
       {
+        url: process.env.VITE_API_URL || process.env.BASE_URL || 'https://impactpulse.onrender.com',
+        description: 'Production server',
+      },
+      {
         url: 'http://localhost:5000',
         description: 'Development server',
       },
