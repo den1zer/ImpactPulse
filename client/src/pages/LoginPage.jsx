@@ -8,7 +8,7 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { email, password } = formData;
 
@@ -50,19 +50,19 @@ const LoginPage = () => {
         <div className="auth-left-panel">
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-            <img 
-              src="/impactpulse_logo.png" 
-              alt="ImpactPulse Logo" 
-              style={{ 
-                width: 38, 
-                height: 38, 
+            <img
+              src="/impactpulse_logo.png"
+              alt="ImpactPulse Logo"
+              style={{
+                width: 38,
+                height: 38,
                 objectFit: 'contain',
                 borderRadius: 6,
                 border: '2px solid var(--black)',
                 background: '#fff',
                 padding: '2px',
                 boxShadow: 'var(--shadow-sm)'
-              }} 
+              }}
             />
             <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               ImpactPulse
@@ -137,7 +137,7 @@ const LoginPage = () => {
 
         {/* ── Right: promo ── */}
         <div className="auth-right-panel">
-          <h2>Разом ми робимо різницю</h2>
+          <h2>Разом до кращого майбутнього з ImpactPulse!</h2>
           <p>
             Приєднуйтесь до спільноти волонтерів ImpactPulse — відстежуйте внески,
             збирайте нагороди та допомагайте тим, хто потребує підтримки.

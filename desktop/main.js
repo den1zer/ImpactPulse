@@ -6,10 +6,45 @@ const http = require('http');
 let mainWindow;
 let serverProcess;
 
+const fs = require('fs');
+
 const SERVER_DIR = path.join(__dirname, '..', 'server');
 const SERVER_PORT = 5000;
+
+// Try to load and parse environment variables from server/.env if available
+let envServerUrl = '';
+try {
+  const envPath = path.join(SERVER_DIR, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    const lines = envContent.split(/\r?\n/);
+    const envVars = {};
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const match = trimmed.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let value = match[2] || '';
+        // Remove quotes if present
+        if (value.length > 0 && value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') {
+          value = value.substring(1, value.length - 1);
+        }
+        if (value.length > 0 && value.charAt(0) === "'" && value.charAt(value.length - 1) === "'") {
+          value = value.substring(1, value.length - 1);
+        }
+        envVars[key] = value.trim();
+      }
+    }
+    // Prioritize VITE_API_URL (active deployed server) over other URL variables
+    envServerUrl = envVars.VITE_API_URL || envVars.SERVER_URL || envVars.BASE_URL || '';
+  }
+} catch (err) {
+  console.error('[Main] Failed to parse server/.env:', err);
+}
+
 // Allow overriding server URL via environment variable for production (e.g., Render URL)
-const SERVER_URL = process.env.SERVER_URL || `http://127.0.0.1:${SERVER_PORT}`;
+const SERVER_URL = process.env.SERVER_URL || envServerUrl || `http://127.0.0.1:${SERVER_PORT}`;
 const API_BASE = SERVER_URL;
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-setuid-sandbox');
@@ -100,7 +135,6 @@ app.on('before-quit', () => {
 // so we relay all API calls through main via IPC.
 
 const https = require('https');
-const fs = require('fs');
 
 function doRequest({ method, path: apiPath, token, body, fields, filePath, isMultipart }) {
     return new Promise((resolve, reject) => {
