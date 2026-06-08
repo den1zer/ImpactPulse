@@ -11,7 +11,8 @@ import {
   simulateDonation,
   getAllFundraisersAdmin,
   updateFundraiser,
-  deleteFundraiser
+  deleteFundraiser,
+  addFundraiserReport
 } from '../controllers/fundraiserController.js';
 
 /**
@@ -135,6 +136,47 @@ router.post(
  *         description: Fundraiser updated
  */
 router.put('/:id/admin', [isAuthenticated, isAdmin], updateFundraiser);
+
+/**
+ * @swagger
+ * /api/fundraisers/{id}/report:
+ *   put:
+ *     summary: Add completion report to a closed fundraiser (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reportDescription:
+ *                 type: string
+ *               reportImages:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Report added successfully
+ */
+router.put(
+  '/:id/report',
+  [
+    isAuthenticated,
+    isAdmin,
+    uploadMiddleware.array('reportImages', 5),
+  ],
+  addFundraiserReport
+);
 
 /**
  * @swagger
