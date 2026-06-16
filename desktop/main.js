@@ -136,7 +136,7 @@ app.on('before-quit', () => {
 
 const https = require('https');
 
-function doRequest({ method, path: apiPath, token, body, fields, filePath, isMultipart }) {
+function doRequest({ method, path: apiPath, token, body, fields, filePath, filePaths, fileFieldName, isMultipart }) {
     return new Promise((resolve, reject) => {
         const url = new URL(`${API_BASE}${apiPath}`);
         const isHttps = url.protocol === 'https:';
@@ -179,6 +179,30 @@ function doRequest({ method, path: apiPath, token, body, fields, filePath, isMul
                     console.error('Failed to read file:', e);
                 }
             }
+
+            // Support multiple file uploads via filePaths array
+            const multiFiles = filePaths || [];
+            const fieldName = fileFieldName || 'files';
+            for (const fp of multiFiles) {
+                try {
+                    const fileContent = fs.readFileSync(fp);
+                    const fileName = path.basename(fp);
+                    let mimeType = 'application/octet-stream';
+                    const ext = path.extname(fileName).toLowerCase();
+                    if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+                    else if (ext === '.png') mimeType = 'image/png';
+                    else if (ext === '.gif') mimeType = 'image/gif';
+                    else if (ext === '.webp') mimeType = 'image/webp';
+                    else if (ext === '.pdf') mimeType = 'application/pdf';
+
+                    parts.push(Buffer.from(`--${boundary}${CRLF}Content-Disposition: form-data; name="${fieldName}"; filename="${fileName}"${CRLF}Content-Type: ${mimeType}${CRLF}${CRLF}`));
+                    parts.push(fileContent);
+                    parts.push(Buffer.from(CRLF));
+                } catch (e) {
+                    console.error('Failed to read file:', fp, e);
+                }
+            }
+
             parts.push(Buffer.from(`--${boundary}--${CRLF}`));
             bodyBuffer = Buffer.concat(parts);
         } else if (body) {
@@ -234,4 +258,16 @@ ipcMain.handle('open-file-dialog', async () => {
     });
     if (result.canceled || result.filePaths.length === 0) return null;
     return result.filePaths[0];
+});
+
+// Multi-file open dialog for report images
+ipcMain.handle('open-files-dialog', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile', 'multiSelections'],
+        filters: [
+            { name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] }
+        ]
+    });
+    if (result.canceled || result.filePaths.length === 0) return [];
+    return result.filePaths.slice(0, 5); // Max 5 images
 });

@@ -31,3 +31,20 @@ async function apiMultipart(path, fields, filePath = null) {
   }
   return res.data;
 }
+
+async function apiMultipartFiles(method, path, fields, filePaths = [], fileFieldName = 'reportImages') {
+  const opts = {
+    method, path,
+    token: getToken(),
+    isMultipart: true,
+    fields,
+    filePaths,
+    fileFieldName
+  };
+  const res = await window.electron.apiRequest(opts);
+  if (res.status >= 400) {
+    const msg = res.data?.msg || res.data?.errors?.[0]?.msg || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return res.data;
+}

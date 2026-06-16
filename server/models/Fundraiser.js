@@ -19,8 +19,13 @@ const FundraiserSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['open', 'closed'],
+    enum: ['open', 'closed', 'reported'],
     default: 'open',
+  },
+  report: {
+    description: { type: String, default: null },
+    images: [{ type: String }],
+    reportedAt: { type: Date, default: null },
   },
   cardName: { type: String, required: true },
   cardNumber: { type: String, required: true },

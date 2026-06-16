@@ -32,7 +32,14 @@ export const createFundraiser = async (req, res) => {
 
 export const getAllFundraisers = async (req, res) => {
   try {
-    const fundraisers = await Fundraiser.find({ status: 'open' }).sort({ createdAt: -1 });
+    const { filter } = req.query;
+    let query = { status: 'open' };
+    if (filter === 'completed') {
+      query = { status: { $in: ['closed', 'reported'] } };
+    } else if (filter === 'all') {
+      query = {};
+    }
+    const fundraisers = await Fundraiser.find(query).sort({ createdAt: -1 });
     res.json(fundraisers);
   } catch (err) {
     res.status(500).send('Помилка на сервері');
@@ -148,6 +155,43 @@ export const updateFundraiser = async (req, res) => {
     if (bonuses !== undefined) fundraiser.bonuses = bonuses;
 
     await fundraiser.save();
+    res.json(fundraiser);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Помилка на сервері');
+  }
+};
+
+export const addFundraiserReport = async (req, res) => {
+  try {
+    const fundraiser = await Fundraiser.findById(req.params.id);
+    if (!fundraiser) return res.status(404).json({ msg: 'Збір не знайдено' });
+
+    if (fundraiser.status === 'open') {
+      return res.status(400).json({ msg: 'Не можна додати звіт до відкритого збору' });
+    }
+
+    const { reportDescription } = req.body;
+    if (!reportDescription || !reportDescription.trim()) {
+      return res.status(400).json({ msg: 'Опис звіту є обов\'язковим' });
+    }
+
+    const imageUrls = req.files ? req.files.map(f => f.path) : [];
+
+    fundraiser.report = {
+      description: reportDescription.trim(),
+      images: imageUrls,
+      reportedAt: new Date(),
+    };
+    fundraiser.status = 'reported';
+    await fundraiser.save();
+
+    if (req.io) {
+      const message = `Звіт по збору "${fundraiser.title}" опубліковано!`;
+      await Activity.create({ message, type: 'fundraiser_reported' });
+      req.io.emit('activity_feed', { message });
+    }
+
     res.json(fundraiser);
   } catch (err) {
     console.error(err.message);

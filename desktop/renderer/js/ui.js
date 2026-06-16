@@ -8,8 +8,8 @@ function typeTag(type) {
   return `<span class="tag ${cls[type]||'tag-gray'}">${map[type]||type}</span>`;
 }
 function statusTag(s) {
-  const map = { open:'OPEN', closed:'CLOSED', in_progress:'IN PROGRESS', completed:'COMPLETED', pending:'PENDING', approved:'APPROVED', rejected:'REJECTED' };
-  const cls = { open:'tag-green', closed:'tag-gray', in_progress:'tag-blue', completed:'tag-green', pending:'tag-yellow', approved:'tag-green', rejected:'tag-red' };
+  const map = { open:'OPEN', closed:'CLOSED', reported:'REPORTED', in_progress:'IN PROGRESS', completed:'COMPLETED', pending:'PENDING', approved:'APPROVED', rejected:'REJECTED' };
+  const cls = { open:'tag-green', closed:'tag-gray', reported:'tag-green', in_progress:'tag-blue', completed:'tag-green', pending:'tag-yellow', approved:'tag-green', rejected:'tag-red' };
   return `<span class="tag ${cls[s]||'tag-gray'}">${map[s]||s}</span>`;
 }
 function roleTag(r) {
