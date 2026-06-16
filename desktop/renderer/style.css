@@ -210,13 +210,19 @@ html, body {
 
 .btn-icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border: var(--border);
+  padding: 4px 8px; min-width: 28px; height: 28px; border: var(--border);
   cursor: pointer; background: var(--surface); color: var(--text);
   box-shadow: var(--shadow-sm); transition: var(--t-shadow);
+  font-size: 10px; font-weight: 800; font-family: var(--font-mono);
+  text-transform: uppercase; white-space: nowrap;
 }
 .btn-icon:hover { transform: translate(2px, 2px); box-shadow: none; }
 .btn-icon.approve:hover { background: var(--green); color: #000; }
 .btn-icon.reject:hover  { background: var(--red);   color: #000; }
+
+.td-actions {
+  display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+}
 
 /* ═══════════════════ LAYOUT ═══════════════════════════ */
 #app { display: flex; height: 100%; background: var(--bg); }

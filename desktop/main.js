@@ -8,43 +8,49 @@ let serverProcess;
 
 const fs = require('fs');
 
-const SERVER_DIR = path.join(__dirname, '..', 'server');
-const SERVER_PORT = 5000;
+// ─── Server URL Resolution ────────────────────────────────────────────────────
+// Priority: process.env.SERVER_URL  →  desktop/.env  →  production fallback
+// NOTE: In a packaged Electron app, __dirname points inside app.asar,
+// so we CANNOT rely on ../server/.env. Instead we ship our own .env
+// next to main.js or fall back to the production URL.
 
-// Try to load and parse environment variables from server/.env if available
-let envServerUrl = '';
-try {
-  const envPath = path.join(SERVER_DIR, '.env');
-  if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    const lines = envContent.split(/\r?\n/);
-    const envVars = {};
-    for (const line of lines) {
+const PRODUCTION_API_URL = 'https://impactpulse.onrender.com';
+
+function parseEnvFile(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return {};
+    const content = fs.readFileSync(filePath, 'utf8');
+    const vars = {};
+    for (const line of content.split(/\r?\n/)) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) continue;
-      const match = trimmed.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      const match = trimmed.match(/^([\w.-]+)\s*=\s*(.*)$/);
       if (match) {
-        const key = match[1];
-        let value = match[2] || '';
-        // Remove quotes if present
-        if (value.length > 0 && value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') {
-          value = value.substring(1, value.length - 1);
+        let value = match[2].trim();
+        // Strip surrounding quotes
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
         }
-        if (value.length > 0 && value.charAt(0) === "'" && value.charAt(value.length - 1) === "'") {
-          value = value.substring(1, value.length - 1);
-        }
-        envVars[key] = value.trim();
+        vars[match[1]] = value;
       }
     }
-    // Prioritize VITE_API_URL (active deployed server) over other URL variables
-    envServerUrl = envVars.VITE_API_URL || envVars.SERVER_URL || envVars.BASE_URL || '';
+    return vars;
+  } catch (err) {
+    console.error('[Main] Failed to parse env file:', filePath, err.message);
+    return {};
   }
-} catch (err) {
-  console.error('[Main] Failed to parse server/.env:', err);
 }
 
-// Allow overriding server URL via environment variable for production (e.g., Render URL)
-const SERVER_URL = process.env.SERVER_URL || envServerUrl || `http://127.0.0.1:${SERVER_PORT}`;
+// Try desktop-local .env first (works both in dev and if shipped alongside the app)
+const desktopEnv = parseEnvFile(path.join(__dirname, '.env'));
+
+const SERVER_URL = process.env.SERVER_URL
+  || desktopEnv.SERVER_URL
+  || desktopEnv.API_URL
+  || PRODUCTION_API_URL;
+
+console.log('[Main] Using API server:', SERVER_URL);
 const API_BASE = SERVER_URL;
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-setuid-sandbox');

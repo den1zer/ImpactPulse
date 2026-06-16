@@ -5,10 +5,14 @@
   "main": "main.js",
   "scripts": {
     "start": "electron . --no-sandbox",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "dist:linux": "electron-builder --linux",
+    "dist:win": "electron-builder --win --config.win.target=portable",
+    "dist:win:nsis": "electron-builder --win --config.win.target=nsis",
+    "dist:all": "electron-builder --linux --win --config.win.target=portable"
   },
   "keywords": [],
-  "author": "",
+  "author": "Denys Sharavarsyi",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.9.0",
@@ -22,8 +26,35 @@
     "appId": "com.impactpulse.admin",
     "productName": "ImpactPulse Admin",
     "afterPack": "build/after-pack.js",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "node_modules/**/*"
+    ],
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "category": "Utility",
+      "icon": "build/icon.png"
+    },
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.png",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Portable.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ImpactPulse Admin"
     }
   }
 }
