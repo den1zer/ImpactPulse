@@ -46,6 +46,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isGuest = localStorage.getItem('userRole') === 'guest';
+  const isAdmin = localStorage.getItem('userRole') === 'admin';
 
   /* body class helpers */
   useEffect(() => {
@@ -167,6 +168,7 @@ const Sidebar = () => {
         <nav className="sidebar-links">
           {NAV_MAIN.map(item => {
             if (item.authOnly && isGuest) return null;
+            if (isAdmin && item.to !== '/dashboard') return null; // Admin sees ONLY Dashboard in the main nav
             return (
               <NavLink
                 key={item.to}
@@ -184,17 +186,20 @@ const Sidebar = () => {
 
         {/* Bottom nav */}
         <div className="sidebar-bottom">
-          {NAV_BOTTOM.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-              onClick={close}
-            >
-              <span className="sidebar-icon">{item.icon}</span>
-              {isExpanded && <span className="sidebar-text">{item.label}</span>}
-            </NavLink>
-          ))}
+          {NAV_BOTTOM.map(item => {
+            if (isAdmin && item.to !== '/support' && item.to !== '/instructions') return null; // Let them keep support/instructions just in case
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+                onClick={close}
+              >
+                <span className="sidebar-icon">{item.icon}</span>
+                {isExpanded && <span className="sidebar-text">{item.label}</span>}
+              </NavLink>
+            );
+          })}
 
           <button
             type="button"
@@ -211,6 +216,7 @@ const Sidebar = () => {
       <nav className="bottom-nav">
         {BOTTOM_NAV.map(item => {
           if (item.to === '/profile' && isGuest) return null;
+          if (isAdmin && item.to !== '/dashboard' && item.to !== '/profile') return null; // Admins only get Home and Profile on mobile bottom nav
           const isActive = location.pathname === item.to ||
             (item.to !== '/dashboard' && location.pathname.startsWith(item.to));
           return (
