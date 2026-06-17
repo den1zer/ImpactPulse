@@ -345,6 +345,19 @@ button { font-family: inherit; cursor: pointer; }
 
 .auth-button.secondary:hover { transform: translate(2px, 2px); box-shadow: none; }
 
+.auth-button.google-btn {
+  background: var(--bg-surface);
+  color: var(--black);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 0;
+}
+.auth-button.google-btn:hover {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+  background: var(--bg-subtle);
+}
+
 .forgot-password-link {
   font-size: 0.75rem;
   font-family: var(--font-mono);

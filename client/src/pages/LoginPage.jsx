@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import authService from '../api/authService';
 import playSound from '../utils/sounds';
+import API_BASE_URL from '../config/api.js';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -10,7 +12,38 @@ const LoginPage = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { email, password } = formData;
+
+  // ── Google OAuth callback handler ──
+  // After Google auth, backend redirects here with ?token=...&role=...&userId=...
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const role = searchParams.get('role');
+    const userId = searchParams.get('userId');
+    const error = searchParams.get('error');
+
+    if (error) {
+      const errorMessages = {
+        google_no_code: 'Помилка авторизації через Google: не отримано код.',
+        google_auth_failed: 'Не вдалося увійти через Google. Спробуйте ще раз.',
+      };
+      setErrorMsg(errorMessages[error] || 'Помилка авторизації через Google.');
+      // Clean URL params
+      window.history.replaceState({}, '', '/login');
+      return;
+    }
+
+    if (token && role && userId) {
+      localStorage.setItem('userToken', token);
+      localStorage.setItem('userRole', role);
+      localStorage.setItem('userId', userId);
+      playSound('success');
+      // Clean URL params before navigating
+      window.history.replaceState({}, '', '/login');
+      navigate('/dashboard');
+    }
+  }, [searchParams, navigate]);
 
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -20,6 +53,12 @@ const LoginPage = () => {
     localStorage.setItem('userRole', 'guest');
     playSound('click');
     navigate('/dashboard');
+  };
+
+  const handleGoogleLogin = () => {
+    playSound('click');
+    // Redirect to backend Google OAuth endpoint
+    window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 
   const onSubmit = async e => {
@@ -73,6 +112,19 @@ const LoginPage = () => {
           <p className="auth-subtitle">Увійдіть, щоб продовжити</p>
 
           {errorMsg && <div className="error-message">{errorMsg}</div>}
+
+          {/* ── Google Login Button ── */}
+          <button
+            type="button"
+            className="auth-button google-btn"
+            onClick={handleGoogleLogin}
+            id="google-login-btn"
+          >
+            <FcGoogle size={20} />
+            Увійти через Google
+          </button>
+
+          <div className="divider">або</div>
 
           <form onSubmit={onSubmit} className="auth-form">
             <div className="form-group">
