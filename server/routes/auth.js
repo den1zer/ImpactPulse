@@ -3,6 +3,7 @@ const router = express.Router();
 import { body } from 'express-validator';
 import { validate } from '../middleware/validation.js';
 import { registerUser, loginUser, verifyEmail, forgotPassword, resetPassword } from '../controllers/authController.js';
+import { googleAuthRedirect, googleAuthCallback } from '../controllers/googleAuthController.js';
 
 /**
  * @swagger
@@ -171,5 +172,35 @@ router.post(
   validate,
   resetPassword
 );
+
+/**
+ * @swagger
+ * /api/auth/google:
+ *   get:
+ *     summary: Initiate Google OAuth 2.0 login
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirects to Google consent screen
+ */
+router.get('/google', googleAuthRedirect);
+
+/**
+ * @swagger
+ * /api/auth/google/callback:
+ *   get:
+ *     summary: Google OAuth 2.0 callback
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       302:
+ *         description: Redirects to frontend with JWT token
+ */
+router.get('/google/callback', googleAuthCallback);
 
 export default router;

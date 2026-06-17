@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import authService from '../api/authService';
 import playSound from '../utils/sounds';
+import API_BASE_URL from '../config/api.js';
 
 const RegisterPage = () => {
   const [formData, setFormData]   = useState({ 
@@ -27,6 +29,11 @@ const RegisterPage = () => {
     localStorage.setItem('userRole', 'guest');
     playSound('click');
     navigate('/dashboard');
+  };
+
+  const handleGoogleSignup = () => {
+    playSound('click');
+    window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 
   const validatePassword = (pass) => {
@@ -106,6 +113,19 @@ const RegisterPage = () => {
 
           {successMsg && <div className="success-message">{successMsg}</div>}
           {errorMsg   && <div className="error-message">{errorMsg}</div>}
+
+          {/* ── Google Signup Button ── */}
+          <button
+            type="button"
+            className="auth-button google-btn"
+            onClick={handleGoogleSignup}
+            id="google-signup-btn"
+          >
+            <FcGoogle size={20} />
+            Зареєструватись через Google
+          </button>
+
+          <div className="divider">або</div>
 
           <form onSubmit={onSubmit} className="auth-form">
             <div className="form-group">
