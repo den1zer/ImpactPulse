@@ -6,19 +6,26 @@ dotenv.config();
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.BASE_URL}/api/auth/google/callback`
+  process.env.GOOGLE_CLIENT_SECRET
 );
+
+// Build redirect URI from BASE_URL (strip trailing slash for safety)
+const getRedirectUri = () => {
+  const base = (process.env.BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
+  return `${base}/api/auth/google/callback`;
+};
 
 /**
  * GET /api/auth/google
  * Redirects user to Google consent screen
  */
 export const googleAuthRedirect = (req, res) => {
+  const redirectUri = getRedirectUri();
   const authorizeUrl = client.generateAuthUrl({
     access_type: 'offline',
     scope: ['openid', 'profile', 'email'],
     prompt: 'consent',
+    redirect_uri: redirectUri,
   });
   res.redirect(authorizeUrl);
 };
@@ -36,8 +43,9 @@ export const googleAuthCallback = async (req, res) => {
   }
 
   try {
-    // Exchange authorization code for tokens
-    const { tokens } = await client.getToken(code);
+    // Exchange authorization code for tokens — must use same redirect_uri
+    const redirectUri = getRedirectUri();
+    const { tokens } = await client.getToken({ code, redirect_uri: redirectUri });
     client.setCredentials(tokens);
 
     // Verify the ID token and extract user info
@@ -136,4 +144,19 @@ export const googleAuthCallback = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
+};
+
+/**
+ * GET /api/auth/google/debug
+ * Temporary debug endpoint — shows what redirect_uri the server is using.
+ * DELETE THIS after OAuth is working!
+ */
+export const googleAuthDebug = (req, res) => {
+  res.json({
+    BASE_URL: process.env.BASE_URL || '❌ NOT SET',
+    redirect_uri: getRedirectUri(),
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? `✅ ...${process.env.GOOGLE_CLIENT_ID.slice(-15)}` : '❌ NOT SET',
+    FRONTEND_URL: process.env.FRONTEND_URL || '❌ NOT SET',
+    instruction: 'This redirect_uri MUST exactly match what is in Google Cloud Console → Authorized redirect URIs',
+  });
 };
