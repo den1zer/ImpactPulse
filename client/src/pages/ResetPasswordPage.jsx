@@ -5,6 +5,12 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import API_BASE_URL from '../config/api';
 import playSound from '../utils/sounds';
 
+/**
+ * ResetPasswordPage Component
+ * Allows users to set a new password using a token received via email.
+ *
+ * @returns {JSX.Element} The rendered reset password page.
+ */
 const ResetPasswordPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -14,11 +20,24 @@ const ResetPasswordPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Validates password strength.
+   * Requires at least 8 characters, one uppercase letter, one lowercase letter,
+   * one number, and one special character.
+   *
+   * @param {string} pass - The password to validate.
+   * @returns {boolean} True if the password meets the criteria.
+   */
   const validatePassword = (pass) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d\s]).{8,}$/;
     return regex.test(pass);
   };
 
+  /**
+   * Handles the form submission to reset the password.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} e - The form submission event.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -50,7 +69,6 @@ const ResetPasswordPage = () => {
     <div className="auth-page">
       <div className="auth-main-container">
         <div className="auth-left-panel">
-          {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
             <img 
               src="/impactpulse_logo.png" 
@@ -131,5 +149,4 @@ const ResetPasswordPage = () => {
   );
 };
 
-// Version: 1.0.1 - Forced reload
 export default ResetPasswordPage;

@@ -11,6 +11,13 @@ import API_BASE_URL from '../config/api.js';
 
 const useAlertHook = () => ({ showAlert: (message) => { alert(message); } });
 
+/**
+ * ProfilePage Component
+ * Displays and allows editing of user profile data, including avatars, badges,
+ * and aesthetic profile customizations like frames and themes.
+ *
+ * @returns {JSX.Element} The rendered Profile Page.
+ */
 const ProfilePage = () => {
   const { showAlert } = useAlertHook();
   const [user, setUser] = useState(null);
@@ -25,6 +32,10 @@ const ProfilePage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    /**
+     * Fetches the authenticated user's profile and merges unlocked badges
+     * with the full badge definitions available from the game API.
+     */
     const fetchProfileData = async () => {
       try {
         const token = localStorage.getItem('userToken');
@@ -54,7 +65,7 @@ const ProfilePage = () => {
           const has = earned.some(b => b.badgeId === def.id);
           return {
             badgeId: def.id,
-            level: 1, // Flattened
+            level: 1,
             name: def.name,
             icon: def.icon,
             unlocked: has
@@ -62,12 +73,16 @@ const ProfilePage = () => {
         });
         
         setBadges(merged);
-        // Treat {badgeId: null, ...} (DB default) the same as "none selected"
+        
+        // Бізнес-логіка: Якщо у БД встановлено {badgeId: null}, це вважається відсутністю обраного бейджа.
         const rawBadge = userData.selectedBadge;
         setSelectedBadge(rawBadge?.badgeId ? rawBadge : null);
         if (userData.createdAt) setCreatedAt(new Date(userData.createdAt).toLocaleDateString('uk-UA'));
         setIsLoading(false);
-      } catch (err) { showAlert('Помилка завантаження профілю'); setIsLoading(false); }
+      } catch (err) { 
+        showAlert('Помилка завантаження профілю'); 
+        setIsLoading(false); 
+      }
     };
     fetchProfileData();
   }, []);
@@ -76,6 +91,12 @@ const ProfilePage = () => {
   const onCustomizationChange = (e) => { setProfileCustomization({ ...profileCustomization, [e.target.name]: e.target.value }); };
   const onFileChange = (e) => { if (e.target.files.length > 0) { setAvatar(e.target.files[0]); setAvatarPreview(URL.createObjectURL(e.target.files[0])); } };
 
+  /**
+   * Handles profile update submission.
+   * Compiles text fields, customizations, and avatar files into FormData.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} e - The form submission event.
+   */
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!formData.username || formData.username.length < 3) return showAlert('Username має бути мін. 3 символи');
@@ -103,6 +124,11 @@ const ProfilePage = () => {
     }
   };
 
+  /**
+   * Handles the selection and saving of a featured profile badge.
+   *
+   * @param {React.ChangeEvent<HTMLSelectElement>} e - The select input change event.
+   */
   const onBadgeChange = async (e) => {
     const value = e.target.value;
     let selected = null;
@@ -114,7 +140,7 @@ const ProfilePage = () => {
     try {
       const token = localStorage.getItem('userToken');
       const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.put(`${API_BASE_URL}/api/users/selected-badge`, {
+      await axios.put(`${API_BASE_URL}/api/users/selected-badge`, {
         badgeId: selected ? selected.badgeId : null,
         level: selected ? selected.level : null,
         name: selected ? selected.name : null,

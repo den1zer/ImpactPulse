@@ -1,12 +1,19 @@
 import Contribution from '../models/Contribution.js';
 import User from '../models/User.js';
-import Badge from '../models/Badge.js'; // Keep for legacy if needed, but we'll use constants
 import Task from '../models/Task.js';
 import Guild from '../models/Guild.js';
 import Activity from '../models/Activity.js';
 import { handleStreak, updateDailyQuestProgress } from '../utils/gameLogic.js';
 import { BADGE_DICTIONARY } from '../constants/badges.js';
 
+/**
+ * Creates a new contribution (donation, volunteering, or aid report).
+ * If linked to a task, updates the task status to completed.
+ *
+ * @param {import('express').Request} req - The Express request object containing contribution data and a file.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response indicating successful submission.
+ */
 export const addContribution = async (req, res) => {
   const { title, description, type, amount, itemList, comment, location, taskId } = req.body;
   const userId = req.user.id; 
@@ -43,12 +50,18 @@ export const addContribution = async (req, res) => {
   }
 };
 
+/**
+ * Checks the user's statistics against the badge dictionary and awards new badges.
+ *
+ * @param {Object} user - The user Mongoose document.
+ * @returns {Promise<void>} Modifies the user object in place.
+ */
 export const checkAndAwardBadges = async (user) => {
   if (!user.badges) user.badges = [];
   
   for (const badge of BADGE_DICTIONARY) {
     const hasBadge = user.badges.some(b => b.badgeId === badge.id);
-    if (hasBadge) continue; // Already awarded
+    if (hasBadge) continue;
     
     let isEligible = false;
     const reqs = badge.requirements;
@@ -67,7 +80,7 @@ export const checkAndAwardBadges = async (user) => {
     if (isEligible) {
       user.badges.push({
         badgeId: badge.id,
-        level: 1, // Legacy level field
+        level: 1,
         name: badge.name,
         icon: badge.icon,
         date: Date.now()
@@ -76,15 +89,25 @@ export const checkAndAwardBadges = async (user) => {
   }
 };
 
+/**
+ * Approves a pending contribution, awards points, updates user statistics,
+ * processes daily quests, and broadcasts an activity feed event.
+ *
+ * @param {import('express').Request} req - The Express request object containing the contribution ID in params.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming approval.
+ */
 export const approveContribution = async (req, res) => {
   try {
     const contribution = await Contribution.findById(req.params.id);
     if (!contribution) return res.status(404).json({ msg: 'Заявку не знайдено' });
     if (contribution.status !== 'pending') return res.status(400).json({ msg: 'Заявка вже була оброблена' });
+    
     const pointsToAward = parseInt(req.body.points) || 100;
     contribution.status = 'approved';
     contribution.pointsAwarded = pointsToAward;
     await contribution.save();
+    
     const user = await User.findById(contribution.user);
     user.points += pointsToAward;
     if (contribution.type === 'donation') {
@@ -105,14 +128,14 @@ export const approveContribution = async (req, res) => {
     if (pointsToAward >= 1000) {
       user.stats.highRoller = true;
     }
-    await checkAndAwardBadges(user);
     
-    // Process streak and daily quests
+    await checkAndAwardBadges(user);
     await handleStreak(user);
+    
     const questType = contribution.type === 'volunteering' ? 'volunteer' : contribution.type;
     await updateDailyQuestProgress(user._id, questType, 1);
 
-    // Badge: Командний гравець
+    // Логіка унікального бейджа "Командний гравець": перевіряємо, чи має юзер активність усіх трьох типів одночасно.
     if (user.stats.hasDonation && user.stats.hasVolunteering && user.stats.hasAid) {
       const hasTeamBadge = user.badges.some(b => b.badgeId === 'team_player');
       if (!hasTeamBadge) {
@@ -128,8 +151,7 @@ export const approveContribution = async (req, res) => {
 
     await user.save();
 
-    // ── Guild XP aggregation ──
-    // pointsToAward XP is added to the user's guild (if any)
+    // Синхронізація гільдій: бали за внесок нараховуються також на рахунок гільдії користувача.
     await Guild.addXPForUser(user._id, pointsToAward);
 
     if (req.io) {
@@ -145,18 +167,28 @@ export const approveContribution = async (req, res) => {
   }
 };
 
+/**
+ * Rejects a pending contribution and records the rejection in user stats.
+ *
+ * @param {import('express').Request} req - The Express request object containing the contribution ID and a comment.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming rejection.
+ */
 export const rejectContribution = async (req, res) => {
   const { comment } = req.body; 
   try {
     const contribution = await Contribution.findById(req.params.id);
     if (!contribution) return res.status(404).json({ msg: 'Заявку не знайдено' });
+    
     contribution.status = 'rejected';
     contribution.rejectionComment = comment || 'Причину не вказано';
     await contribution.save();
+    
     const user = await User.findById(contribution.user);
     user.stats.totalRejections += 1;
     await checkAndAwardBadges(user);
     await user.save();
+    
     res.json({ msg: 'Заявку відхилено' });
   } catch (err) {
     console.error(err.message);
@@ -164,6 +196,13 @@ export const rejectContribution = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves all pending contributions for administrative review.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of pending contributions.
+ */
 export const getPendingContributions = async (req, res) => {
   try {
     const contributions = await Contribution.find({ status: 'pending' })
@@ -175,6 +214,13 @@ export const getPendingContributions = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves all contributions submitted by the authenticated user.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of the user's contributions.
+ */
 export const getMyContributions = async (req, res) => {
   try {
     const contributions = await Contribution.find({ user: req.user.id })

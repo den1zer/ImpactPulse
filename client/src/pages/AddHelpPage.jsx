@@ -16,6 +16,13 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
+/**
+ * AddHelpPage Component
+ * Provides a universal form to submit volunteer help, donations, or direct task proof reports.
+ * Includes dynamic fields based on the selected contribution type and a map picker for locations.
+ *
+ * @returns {JSX.Element} The rendered Add Help page.
+ */
 const AddHelpPage = () => {
   const { showAlert } = useAlertHook();
   const query = useQuery(); 

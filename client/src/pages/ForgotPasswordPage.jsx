@@ -4,12 +4,23 @@ import { Link } from 'react-router-dom';
 import API_BASE_URL from '../config/api';
 import playSound from '../utils/sounds';
 
+/**
+ * ForgotPasswordPage Component
+ * Provides a form for users to request a password reset link via email.
+ *
+ * @returns {JSX.Element} The rendered forgot password page.
+ */
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Handles the form submission to request a password reset.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} e - The form submission event.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -32,7 +43,6 @@ const ForgotPasswordPage = () => {
     <div className="auth-page">
       <div className="auth-main-container">
         <div className="auth-left-panel">
-          {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
             <img 
               src="/impactpulse_logo.png" 
@@ -100,5 +110,4 @@ const ForgotPasswordPage = () => {
   );
 };
 
-// Version: 1.0.1 - Forced reload
 export default ForgotPasswordPage;

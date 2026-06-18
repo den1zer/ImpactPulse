@@ -9,6 +9,13 @@ import { FiMapPin, FiUserPlus, FiUserMinus, FiAward, FiStar, FiActivity, FiArrow
 import API_BASE_URL from '../config/api.js';
 import '../styles/Dashboard.css';
 
+/**
+ * PublicProfilePage Component
+ * Displays the public view of a user's profile, including their stats, badges, and customizations.
+ * Allows the authenticated user to add/remove this user as a friend or send them a message.
+ *
+ * @returns {JSX.Element} The rendered public profile page.
+ */
 const PublicProfilePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,6 +31,10 @@ const PublicProfilePage = () => {
     fetchData();
   }, [id]);
 
+  /**
+   * Fetches the target user's public profile data and checks friendship status
+   * relative to the currently authenticated user.
+   */
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -42,6 +53,9 @@ const PublicProfilePage = () => {
     }
   };
 
+  /**
+   * Toggles the friendship status between the authenticated user and the target profile.
+   */
   const handleFriendAction = async () => {
     try {
       if (isFriend) {

@@ -8,7 +8,6 @@ import {
   FiClipboard, FiMenu, FiX, FiChevronLeft, FiShoppingBag, FiShield, FiMessageSquare
 } from 'react-icons/fi';
 
-/* ── Navigation items ─────────────────────────────── */
 const NAV_MAIN = [
   { to: '/dashboard', icon: <FiGrid />,      label: 'Дашборд',       alwaysVisible: true },
   { to: '/my-contributions', icon: <FiClipboard />, label: 'Мої заявки',    authOnly: true },
@@ -27,7 +26,6 @@ const NAV_BOTTOM = [
   { to: '/support',      icon: <FiHelpCircle />, label: 'Підтримка' },
 ];
 
-/* ── Bottom nav items (mobile) ───────────────────── */
 const BOTTOM_NAV = [
   { to: '/dashboard',   icon: <FiGrid />,      label: 'Головна' },
   { to: '/tasks',       icon: <FiClipboard />, label: 'Завдання' },
@@ -36,9 +34,13 @@ const BOTTOM_NAV = [
   { to: '/profile',     icon: <FiUser />,      label: 'Профіль' },
 ];
 
-/* ════════════════════════════════════════════════════
-   Sidebar component
-   ════════════════════════════════════════════════════ */
+/**
+ * Sidebar Component
+ * Manages the application's primary navigation, including responsive behavior (desktop/mobile).
+ * Filters navigation links based on user roles (guest vs authenticated user vs admin).
+ *
+ * @returns {JSX.Element} The rendered Sidebar and mobile bottom navigation.
+ */
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -48,7 +50,6 @@ const Sidebar = () => {
   const isGuest = localStorage.getItem('userRole') === 'guest';
   const isAdmin = localStorage.getItem('userRole') === 'admin';
 
-  /* body class helpers */
   useEffect(() => {
     document.body.classList.add('has-sidebar');
     return () => {
@@ -62,13 +63,11 @@ const Sidebar = () => {
     else document.body.classList.remove('sidebar-expanded');
   }, [isExpanded]);
 
-  /* lock body scroll when drawer is open */
   useEffect(() => {
     document.body.style.overflow = isMobileOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isMobileOpen]);
 
-  /* fetch avatar */
   useEffect(() => {
     if (isGuest) return;
     const fetchAvatar = async () => {
@@ -82,8 +81,12 @@ const Sidebar = () => {
       } catch (_) {}
     };
     fetchAvatar();
-  }, []);
+  }, [isGuest]);
 
+  /**
+   * Logs out the user by clearing local storage session tokens and roles,
+   * then redirects to the login page.
+   */
   const handleLogout = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userRole');
@@ -92,14 +95,12 @@ const Sidebar = () => {
 
   const close = () => setIsMobileOpen(false);
 
-  /* helper: build avatar src */
   const avatarSrc = avatar
     ? (avatar.startsWith('http') ? avatar : `${API_BASE_URL}/${avatar}`)
     : '/default-avatar.svg';
 
   return (
     <>
-      {/* ── Mobile hamburger ── */}
       <button
         className="mobile-menu-btn"
         onClick={() => setIsMobileOpen(true)}
@@ -108,13 +109,10 @@ const Sidebar = () => {
         <FiMenu />
       </button>
 
-      {/* ── Overlay ── */}
       {isMobileOpen && <div className="sidebar-overlay" onClick={close} />}
 
-      {/* ── Sidebar ── */}
       <aside className={`sidebar ${isExpanded ? '' : 'collapsed'} ${isMobileOpen ? 'mobile-open' : ''}`}>
 
-        {/* Brand + toggle */}
         <div className="sidebar-top">
           <div className="sidebar-brand">
             <img 
@@ -131,7 +129,6 @@ const Sidebar = () => {
             {isExpanded && <h2>ImpactPulse</h2>}
           </div>
 
-          {/* Desktop collapse toggle */}
           <button
             className="sidebar-toggle desktop-toggle"
             onClick={() => setIsExpanded(v => !v)}
@@ -140,13 +137,11 @@ const Sidebar = () => {
             {isExpanded ? <FiChevronLeft /> : <FiMenu />}
           </button>
 
-          {/* Mobile close */}
           <button className="sidebar-toggle mobile-close-btn" onClick={close}>
             <FiX />
           </button>
         </div>
 
-        {/* Profile link */}
         {!isGuest && (
           <div className="sidebar-profile-link">
             <NavLink
@@ -164,11 +159,11 @@ const Sidebar = () => {
           </div>
         )}
 
-        {/* Main nav */}
         <nav className="sidebar-links">
           {NAV_MAIN.map(item => {
             if (item.authOnly && isGuest) return null;
-            if (isAdmin && item.to !== '/dashboard') return null; // Admin sees ONLY Dashboard in the main nav
+            // Бізнес-логіка: Адміністратори бачать лише Дашборд у головному меню навігації.
+            if (isAdmin && item.to !== '/dashboard') return null;
             return (
               <NavLink
                 key={item.to}
@@ -184,10 +179,10 @@ const Sidebar = () => {
           })}
         </nav>
 
-        {/* Bottom nav */}
         <div className="sidebar-bottom">
           {NAV_BOTTOM.map(item => {
-            if (isAdmin && item.to !== '/support' && item.to !== '/instructions') return null; // Let them keep support/instructions just in case
+            // Бізнес-логіка: Дозволяємо адміністраторам доступ лише до розділів підтримки та інструкцій.
+            if (isAdmin && item.to !== '/support' && item.to !== '/instructions') return null;
             return (
               <NavLink
                 key={item.to}
@@ -212,11 +207,11 @@ const Sidebar = () => {
         </div>
       </aside>
 
-      {/* ── Bottom Nav (mobile only) ── */}
       <nav className="bottom-nav">
         {BOTTOM_NAV.map(item => {
           if (item.to === '/profile' && isGuest) return null;
-          if (isAdmin && item.to !== '/dashboard' && item.to !== '/profile') return null; // Admins only get Home and Profile on mobile bottom nav
+          // Бізнес-логіка: У мобільному нижньому меню адміністратори мають доступ лише до Дашборду та Профілю.
+          if (isAdmin && item.to !== '/dashboard' && item.to !== '/profile') return null;
           const isActive = location.pathname === item.to ||
             (item.to !== '/dashboard' && location.pathname.startsWith(item.to));
           return (

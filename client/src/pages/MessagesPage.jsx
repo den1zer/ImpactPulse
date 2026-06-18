@@ -10,6 +10,14 @@ import { FiSend, FiMessageSquare, FiCheck, FiX, FiArrowLeft } from 'react-icons/
 import playSound from '../utils/sounds';
 import '../styles/Dashboard.css';
 import '../styles/MessagesPage.css';
+
+/**
+ * MessagesPage Component
+ * Provides a real-time messaging interface using Socket.IO.
+ * Users can interact with existing conversations or initiate new ones.
+ *
+ * @returns {JSX.Element} The rendered messages page.
+ */
 const MessagesPage = () => {
   const [conversations, setConversations] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
@@ -37,7 +45,7 @@ const MessagesPage = () => {
       withCredentials: true
     });
 
-    socketRef.current.emit('join_support', userId); // Reusing this event since it puts user in `user_${userId}`
+    socketRef.current.emit('join_support', userId);
 
     socketRef.current.on('new_message', (data) => {
       const { conversation, message } = data;
@@ -66,6 +74,10 @@ const MessagesPage = () => {
     };
   }, []);
 
+  /**
+   * Fetches the user's active conversations and handles potential redirects
+   * from user profiles (virtual chats).
+   */
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -77,14 +89,12 @@ const MessagesPage = () => {
       setCurrentUser(userRes.data);
       let convs = convRes.data;
       
-      // If we came from a profile with a receiverId
       if (location.state?.receiverId) {
         const existing = convs.find(c => c.participants.some(p => p._id === location.state.receiverId));
         if (existing) {
           setActiveChat(existing);
           fetchMessages(existing._id);
         } else {
-          // Virtual conversation
           const virtualChat = {
              _id: 'virtual',
              participants: [
@@ -105,6 +115,11 @@ const MessagesPage = () => {
     }
   };
 
+  /**
+   * Loads message history for a specific conversation.
+   *
+   * @param {string} chatId - The ID of the conversation.
+   */
   const fetchMessages = async (chatId) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/chats/${chatId}/messages`, {
@@ -126,6 +141,11 @@ const MessagesPage = () => {
     }
   };
 
+  /**
+   * Submits a new message to the active chat.
+   *
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || !activeChat) return;
@@ -192,7 +212,6 @@ const MessagesPage = () => {
           <div className="dashboard-content-wrapper messages-wrapper">
             <div className={`messages-container ${activeChat ? 'chat-active' : ''}`}>
               
-              {/* Sidebar List */}
               <div className="messages-sidebar">
                 <div className="messages-sidebar-header">
                   <h3>Повідомлення</h3>
@@ -228,7 +247,6 @@ const MessagesPage = () => {
                 </div>
               </div>
 
-              {/* Chat Window */}
               <div className="messages-chat-area">
                 {activeChat ? (
                   <>

@@ -3,12 +3,19 @@ import { checkAndAwardBadges } from './contributionController.js';
 import cloudinary from '../config/cloudinary.js';
 import { sendEmail } from '../utils/sendEmail.js';
 
+/**
+ * Retrieves the profile of the currently authenticated user.
+ * Automatically checks and awards any pending badges upon loading.
+ *
+ * @param {import('express').Request} req - The Express request object containing user ID in req.user.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the user profile data.
+ */
 export const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
     
-    // Sync badges on load
     const prevBadgesLength = user.badges?.length || 0;
     await checkAndAwardBadges(user);
     if ((user.badges?.length || 0) > prevBadgesLength) {
@@ -22,16 +29,26 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
+/**
+ * Updates the user's profile information, including avatar and customization.
+ * Validates the updated data and checks for new badge qualifications.
+ *
+ * @param {import('express').Request} req - The Express request object containing profile fields and optional file.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated user data.
+ */
 export const updateUserProfile = async (req, res) => {
   try {
     const { username, age, backupEmail, city, gender, profileCustomization } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
+    
     user.username = username || user.username;
     user.age = age || user.age;
     user.backupEmail = backupEmail || user.backupEmail;
     user.city = city || user.city;
     user.gender = gender || user.gender;
+    
     if (profileCustomization) {
       let parsedCustomization = profileCustomization;
       if (typeof profileCustomization === 'string') {
@@ -41,6 +58,7 @@ export const updateUserProfile = async (req, res) => {
       if (parsedCustomization.avatarFrame !== undefined) user.profileCustomization.avatarFrame = parsedCustomization.avatarFrame;
       if (parsedCustomization.profileTheme !== undefined) user.profileCustomization.profileTheme = parsedCustomization.profileTheme;
     }
+    
     if (req.file) {
       const b64 = Buffer.from(req.file.buffer).toString('base64');
       let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
@@ -75,6 +93,13 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
+/**
+ * Updates only the user's avatar image via Cloudinary.
+ *
+ * @param {import('express').Request} req - The Express request object containing the image file.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the new avatar URL.
+ */
 export const updateAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -107,6 +132,13 @@ export const updateAvatar = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves a list of all users.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of user objects (passwords excluded).
+ */
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -117,6 +149,13 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+/**
+ * Updates a user's administrative role.
+ *
+ * @param {import('express').Request} req - The Express request object containing the new role and user ID in params.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming the role update.
+ */
 export const updateUserRole = async (req, res) => {
   try {
     const { role } = req.body;
@@ -135,6 +174,13 @@ export const updateUserRole = async (req, res) => {
   }
 };
 
+/**
+ * Deletes a user account and sends a notification email.
+ *
+ * @param {import('express').Request} req - The Express request object containing user ID and optional admin comment.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming deletion.
+ */
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -142,7 +188,6 @@ export const deleteUser = async (req, res) => {
 
     const { comment } = req.body;
     
-    // Send email
     if (user.email) {
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
@@ -172,6 +217,13 @@ export const deleteUser = async (req, res) => {
   }
 };
 
+/**
+ * Fetches data for the various leaderboard rankings (all-time, weekly, donors, streaks).
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON object containing the top 10 users for each category.
+ */
 export const getLeaderboard = async (req, res) => {
   try {
     const topAllTime = await User.find({ role: 'user' })
@@ -206,13 +258,20 @@ export const getLeaderboard = async (req, res) => {
   }
 };
 
+/**
+ * Updates the badge selected by the user for display on their profile.
+ *
+ * @param {import('express').Request} req - The Express request object containing badge details.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the newly selected badge.
+ */
 export const updateSelectedBadge = async (req, res) => {
   try {
     const { badgeId, level, name, icon } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
 
-    // Validate that the user has earned this badge
+    // Перевірка прав на бейдж: юзер може встановити лише той бейдж, який дійсно отримав.
     const hasBadge = user.badges.some(badge =>
       badge.badgeId === badgeId && badge.level === level
     );
@@ -236,6 +295,13 @@ export const updateSelectedBadge = async (req, res) => {
   }
 };
 
+/**
+ * Calculates aggregate statistics for the entire platform (total users, points, distributions).
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON object containing global platform statistics.
+ */
 export const getUserStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({ role: 'user' });
@@ -297,6 +363,13 @@ export const getUserStats = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves limited public profile information for a specific user.
+ *
+ * @param {import('express').Request} req - The Express request object containing the user ID in params.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON object with the user's public profile data.
+ */
 export const getPublicProfile = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
@@ -316,6 +389,13 @@ export const getPublicProfile = async (req, res) => {
   }
 };
 
+/**
+ * Searches for users by their username (case-insensitive).
+ *
+ * @param {import('express').Request} req - The Express request object containing the search query 'q'.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of matching users.
+ */
 export const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
@@ -335,6 +415,13 @@ export const searchUsers = async (req, res) => {
   }
 };
 
+/**
+ * Fetches the populated list of friends for the authenticated user.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of friend profile objects.
+ */
 export const getFriends = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('friends', 'username avatar avatarUrl city level points xp selectedBadge profileCustomization');
@@ -345,6 +432,14 @@ export const getFriends = async (req, res) => {
   }
 };
 
+/**
+ * Adds another user to the authenticated user's friend list.
+ * Automatically creates a mutual friendship.
+ *
+ * @param {import('express').Request} req - The Express request object containing the friend's user ID.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated friends list.
+ */
 export const addFriend = async (req, res) => {
   try {
     const friendId = req.params.id;
@@ -366,7 +461,7 @@ export const addFriend = async (req, res) => {
     user.friends.push(friendId);
     await user.save();
 
-    // Optionally also add the user to the friend's friend list
+    // Синхронізація дружби: якщо ми додаємо користувача, автоматично додаємо себе до його списку
     if (!friend.friends.includes(req.user.id)) {
       friend.friends.push(req.user.id);
       await friend.save();
@@ -379,6 +474,14 @@ export const addFriend = async (req, res) => {
   }
 };
 
+/**
+ * Removes a user from the authenticated user's friend list.
+ * Automatically removes the mutual friendship.
+ *
+ * @param {import('express').Request} req - The Express request object containing the friend's user ID.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated friends list.
+ */
 export const removeFriend = async (req, res) => {
   try {
     const friendId = req.params.id;

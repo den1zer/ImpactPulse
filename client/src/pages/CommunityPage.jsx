@@ -17,6 +17,16 @@ const FRAME_BORDERS = {
   diamond: '2px solid #00bfff',
 };
 
+/**
+ * UserCard Component
+ * Displays a summarized view of a user's profile within the community directory.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.user - The user data object.
+ * @param {boolean} props.isFriendSection - Flag indicating if this card is rendered in the friends list.
+ * @param {Function} [props.onRemove] - Callback triggered when the remove friend action is initiated.
+ * @returns {JSX.Element} The rendered user card.
+ */
 const UserCard = ({ user, isFriendSection, onRemove }) => {
   const frame = user.profileCustomization?.avatarFrame;
   const border = FRAME_BORDERS[frame] || 'var(--border)';
@@ -60,6 +70,12 @@ const UserCard = ({ user, isFriendSection, onRemove }) => {
   );
 };
 
+/**
+ * CommunityPage Component
+ * Provides a searchable directory of platform users and manages the authenticated user's friends list.
+ *
+ * @returns {JSX.Element} The rendered community page.
+ */
 const CommunityPage = () => {
   const [searchQuery,   setSearchQuery]   = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -67,15 +83,22 @@ const CommunityPage = () => {
   const [loading,       setLoading]       = useState(false);
   const token = localStorage.getItem('userToken');
 
-  useEffect(() => { fetchFriends(); }, []);
+  useEffect(() => { 
+    fetchFriends(); 
+  }, []);
 
+  /**
+   * Fetches the current user's friends list from the backend.
+   */
   const fetchFriends = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/users/friends`, {
         headers: { 'x-auth-token': token },
       });
       setFriends(res.data);
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+    }
   };
 
   useEffect(() => {
@@ -83,6 +106,8 @@ const CommunityPage = () => {
       setSearchResults([]);
       return;
     }
+    
+    // Бізнес-логіка: Використовуємо debounce 300мс для оптимізації запитів до API під час живого пошуку.
     const delayDebounceFn = setTimeout(async () => {
       setLoading(true);
       try {
@@ -90,7 +115,9 @@ const CommunityPage = () => {
           headers: { 'x-auth-token': token },
         });
         setSearchResults(res.data);
-      } catch (err) { console.error(err); }
+      } catch (err) { 
+        console.error(err); 
+      }
       setLoading(false);
     }, 300);
 
@@ -101,13 +128,20 @@ const CommunityPage = () => {
     e.preventDefault();
   };
 
+  /**
+   * Removes a user from the authenticated user's friends list.
+   *
+   * @param {string} id - The ID of the friend to remove.
+   */
   const handleRemoveFriend = async (id) => {
     try {
       await axios.post(`${API_BASE_URL}/api/users/friends/remove/${id}`, {}, {
         headers: { 'x-auth-token': token },
       });
       setFriends(friends.filter(f => f._id !== id));
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+    }
   };
 
   return (
@@ -118,7 +152,6 @@ const CommunityPage = () => {
         <AnimatedPage>
           <div className="dashboard-content-wrapper">
 
-            {/* Hero */}
             <div className="comm-hero">
               <div>
                 <p className="small-title">ImpactPulse / Ком'юніті</p>
@@ -130,7 +163,6 @@ const CommunityPage = () => {
             </div>
 
             <div className="comm-grid">
-              {/* Search */}
               <section className="comm-panel">
                 <div className="comm-panel-header">
                   <h2 className="comm-panel-title">
@@ -167,7 +199,6 @@ const CommunityPage = () => {
                 </div>
               </section>
 
-              {/* Friends */}
               <section className="comm-panel">
                 <div className="comm-panel-header">
                   <h2 className="comm-panel-title">

@@ -6,6 +6,13 @@ import authService from '../api/authService';
 import playSound from '../utils/sounds';
 import API_BASE_URL from '../config/api.js';
 
+/**
+ * LoginPage Component
+ * Handles user authentication via traditional email/password and Google OAuth.
+ * Listens for OAuth redirect parameters in the URL to automatically log in the user.
+ *
+ * @returns {JSX.Element} The rendered login page.
+ */
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -15,8 +22,6 @@ const LoginPage = () => {
   const [searchParams] = useSearchParams();
   const { email, password } = formData;
 
-  // ── Google OAuth callback handler ──
-  // After Google auth, backend redirects here with ?token=...&role=...&userId=...
   useEffect(() => {
     const token = searchParams.get('token');
     const role = searchParams.get('role');
@@ -29,17 +34,17 @@ const LoginPage = () => {
         google_auth_failed: 'Не вдалося увійти через Google. Спробуйте ще раз.',
       };
       setErrorMsg(errorMessages[error] || 'Помилка авторизації через Google.');
-      // Clean URL params
       window.history.replaceState({}, '', '/login');
       return;
     }
 
+    // Бізнес-логіка: Якщо після Google Auth ми отримали токен, роль та ID у параметрах URL,
+    // зберігаємо їх локально та очищуємо URL з міркувань безпеки перед редіректом.
     if (token && role && userId) {
       localStorage.setItem('userToken', token);
       localStorage.setItem('userRole', role);
       localStorage.setItem('userId', userId);
       playSound('success');
-      // Clean URL params before navigating
       window.history.replaceState({}, '', '/login');
       navigate('/dashboard');
     }
@@ -47,6 +52,9 @@ const LoginPage = () => {
 
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  /**
+   * Initializes a guest session by clearing persistent user tokens.
+   */
   const handleGuestLogin = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userId');
@@ -55,18 +63,25 @@ const LoginPage = () => {
     navigate('/dashboard');
   };
 
+  /**
+   * Redirects the user to the backend Google OAuth flow.
+   */
   const handleGoogleLogin = () => {
     playSound('click');
-    // Redirect to backend Google OAuth endpoint
     window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 
+  /**
+   * Handles the standard login form submission.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} e - The form submission event.
+   */
   const onSubmit = async e => {
     e.preventDefault();
     setErrorMsg('');
     setLoading(true);
     try {
-      const { role } = await authService.login({ email, password });
+      await authService.login({ email, password });
       playSound('success');
       navigate('/dashboard');
     } catch (error) {
@@ -85,9 +100,7 @@ const LoginPage = () => {
     <div className="auth-page">
       <div className="auth-main-container">
 
-        {/* ── Left: form ── */}
         <div className="auth-left-panel">
-          {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
             <img
               src="/impactpulse_logo.png"
@@ -113,7 +126,6 @@ const LoginPage = () => {
 
           {errorMsg && <div className="error-message">{errorMsg}</div>}
 
-          {/* ── Google Login Button ── */}
           <button
             type="button"
             className="auth-button google-btn"
@@ -187,7 +199,6 @@ const LoginPage = () => {
           </p>
         </div>
 
-        {/* ── Right: promo ── */}
         <div className="auth-right-panel">
           <h2>Разом до кращого майбутнього з ImpactPulse!</h2>
           <p>

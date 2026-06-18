@@ -11,12 +11,18 @@ import {
 import API_BASE_URL from '../config/api.js';
 import './GuildsPage.css';
 
-// ──────────────────────────────────────────────────────────────
-// Constants
-// ──────────────────────────────────────────────────────────────
 const GUILD_LEVEL_THRESHOLDS = [0, 500, 1500, 3000, 6000, 10000, 16000, 24000, 35000, 50000];
-const EMOJI_OPTIONS = ['⚔️','🛡️','🔥','🌟','⚡','🦁','🐉','🌊','🗡️','🏆','🎯','🌿','💎','🦅','🌙'];
+const SYMBOL_OPTIONS = ['⚔️','🛡️','🔥','🌟','⚡','🦁','🐉','🌊','🗡️','🏆','🎯','🌿','💎','🦅','🌙'];
 
+/**
+ * Calculates the current progress percentage and bounds for a guild's level based on its total XP.
+ * 
+ * Бізнес-логіка: Розраховує поточний прогрес гільдії між початковим та наступним порогом XP. 
+ * Якщо гільдія досягла максимального рівня, повертає 100%.
+ *
+ * @param {Object} guild - The guild object containing totalXP and level.
+ * @returns {Object} An object containing { pct, start, end }.
+ */
 function getLevelProgress(guild) {
   const lvlIdx = (guild.level ?? 1) - 1;
   const start  = GUILD_LEVEL_THRESHOLDS[lvlIdx]   ?? 0;
@@ -26,9 +32,6 @@ function getLevelProgress(guild) {
   return { pct, start, end };
 }
 
-// ──────────────────────────────────────────────────────────────
-// Sub-components
-// ──────────────────────────────────────────────────────────────
 const LevelBadge = ({ level }) => (
   <span className="guild-level-badge">Lv.{level}</span>
 );
@@ -54,13 +57,20 @@ const XPBar = ({ guild, large }) => {
   );
 };
 
-// ──────────────────────────────────────────────────────────────
-// Modal: Create Guild
-// ──────────────────────────────────────────────────────────────
+/**
+ * CreateGuildModal Component
+ * Provides an interface to create a new guild. Evaluates user eligibility based on minimum XP requirements.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {Function} props.onCreated - Callback invoked with new guild data upon success.
+ * @param {number} props.userXP - The current authenticated user's XP amount.
+ * @returns {JSX.Element} The rendered creation modal.
+ */
 const CreateGuildModal = ({ onClose, onCreated, userXP }) => {
   const [name, setName]         = useState('');
   const [description, setDesc]  = useState('');
-  const [logo, setLogo]         = useState('[SW]');
+  const [logo, setLogo]         = useState('⚔️');
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const token = localStorage.getItem('userToken');
@@ -105,7 +115,6 @@ const CreateGuildModal = ({ onClose, onCreated, userXP }) => {
         )}
 
         <form onSubmit={handleSubmit} className="modal-form">
-          {/* Emoji picker */}
           <div className="form-group">
             <label>Символ гільдії</label>
             <div className="emoji-grid">
@@ -164,11 +173,17 @@ const CreateGuildModal = ({ onClose, onCreated, userXP }) => {
   );
 };
 
-// ──────────────────────────────────────────────────────────────
-// My Guild Card
-// ──────────────────────────────────────────────────────────────
+/**
+ * MyGuildCard Component
+ * Displays detailed information and member hierarchy for the guild the authenticated user belongs to.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.guild - The guild object to display.
+ * @param {string} props.currentUserId - The ID of the authenticated user.
+ * @param {Function} props.onLeave - Callback triggered when the user leaves the guild.
+ * @returns {JSX.Element} The rendered guild detailed view.
+ */
 const MyGuildCard = ({ guild, currentUserId, onLeave }) => {
-  const { pct } = getLevelProgress(guild);
   const isLeader = guild.leader?._id === currentUserId || guild.leader === currentUserId;
 
   return (
@@ -198,7 +213,6 @@ const MyGuildCard = ({ guild, currentUserId, onLeave }) => {
         </button>
       </div>
 
-      {/* Stats row */}
       <div className="guild-stats-row">
         <div className="guild-stat">
           <FiZap className="guild-stat-icon xp" />
@@ -223,10 +237,8 @@ const MyGuildCard = ({ guild, currentUserId, onLeave }) => {
         </div>
       </div>
 
-      {/* XP progress bar */}
       <XPBar guild={guild} large />
 
-      {/* Member list */}
       <div className="guild-members-section">
         <h3><FiUsers /> Учасники</h3>
         <div className="guild-members-list">
@@ -253,9 +265,17 @@ const MyGuildCard = ({ guild, currentUserId, onLeave }) => {
   );
 };
 
-// ──────────────────────────────────────────────────────────────
-// Guild Card (leaderboard / list)
-// ──────────────────────────────────────────────────────────────
+/**
+ * GuildCard Component
+ * Displays a summarized view of a guild for use within a list or leaderboard context.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.guild - The guild object.
+ * @param {number} props.rank - The rank or index of the guild in the leaderboard.
+ * @param {Function} props.onJoin - Callback triggered when the user requests to join the guild.
+ * @param {boolean} props.inGuild - Flag indicating if the user is already part of another guild.
+ * @returns {JSX.Element} The rendered guild card.
+ */
 const GuildCard = ({ guild, rank, onJoin, inGuild }) => (
   <motion.div
     className="guild-card"
@@ -296,9 +316,13 @@ const GuildCard = ({ guild, rank, onJoin, inGuild }) => (
   </motion.div>
 );
 
-// ──────────────────────────────────────────────────────────────
-// Main Page
-// ──────────────────────────────────────────────────────────────
+/**
+ * GuildsPage Component
+ * Provides a comprehensive interface for viewing the global guild leaderboard, managing the user's current guild,
+ * and creating new guilds. 
+ *
+ * @returns {JSX.Element} The rendered guilds page.
+ */
 const GuildsPage = () => {
   const [guilds, setGuilds]         = useState([]);
   const [myGuild, setMyGuild]       = useState(null);
@@ -306,7 +330,7 @@ const GuildsPage = () => {
   const [loading, setLoading]       = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [toast, setToast]           = useState(null);
-  const [activeTab, setActiveTab]   = useState('leaderboard'); // 'leaderboard' | 'all'
+  const [activeTab, setActiveTab]   = useState('leaderboard'); 
 
   const token      = localStorage.getItem('userToken');
   const currentId  = localStorage.getItem('userId');
@@ -384,7 +408,6 @@ const GuildsPage = () => {
         <AnimatedPage>
           <div className="dashboard-content-wrapper guilds-page">
 
-            {/* ── Hero ── */}
             <div className="guilds-hero">
               <div className="guilds-hero-text">
                 <p className="small-title">ImpactPulse Guilds</p>
@@ -405,7 +428,6 @@ const GuildsPage = () => {
               )}
             </div>
 
-            {/* ── Toast ── */}
             <AnimatePresence>
               {toast && (
                 <motion.div
@@ -426,7 +448,6 @@ const GuildsPage = () => {
               </div>
             ) : (
               <>
-                {/* ── My Guild ── */}
                 {myGuild && (
                   <section className="guilds-section">
                     <h2 className="section-title"><FiShield /> Моя Гільдія</h2>
@@ -438,7 +459,6 @@ const GuildsPage = () => {
                   </section>
                 )}
 
-                {/* ── Leaderboard / All ── */}
                 <section className="guilds-section">
                   <div className="guilds-section-header">
                     <h2 className="section-title"><FiAward /> Рейтинг Гільдій</h2>
@@ -490,7 +510,6 @@ const GuildsPage = () => {
         </AnimatedPage>
       </main>
 
-      {/* ── Create Modal ── */}
       <AnimatePresence>
         {showCreate && (
           <CreateGuildModal

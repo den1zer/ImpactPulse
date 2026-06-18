@@ -18,7 +18,7 @@ import 'leaflet/dist/leaflet.css';
 import '../styles/TasksPage.css';
 import './TasksPage2.css';
 
-// Fix Leaflet default icon issues
+// Бізнес-логіка: Виправлення шляхів до стандартних іконок Leaflet у середовищі Webpack/React.
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -26,7 +26,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { key: 'all',          label: 'Всі' },
   { key: 'volunteering', label: 'Волонтерство' },
@@ -61,7 +60,6 @@ const CATEGORY_LABELS = {
   other:        'ІНШ',
 };
 
-// Category color accent bars for map markers
 const CAT_COLORS = {
   volunteering: '#FFE500',
   aid:          '#FF5C00',
@@ -72,6 +70,12 @@ const CAT_COLORS = {
   other:        '#888',
 };
 
+/**
+ * Creates a custom HTML Leaflet icon for task markers based on the task category.
+ *
+ * @param {string} category - The category of the task to determine color and label.
+ * @returns {L.DivIcon} The configured Leaflet DivIcon instance.
+ */
 const createCategoryIcon = (category) => {
   const color = CAT_COLORS[category] || '#FFE500';
   const label = CATEGORY_LABELS[category] || 'TSK';
@@ -91,7 +95,16 @@ const createCategoryIcon = (category) => {
   });
 };
 
-// ── Location Picker ───────────────────────────────────────────────────────────
+/**
+ * LocationPicker Component
+ * Renders a map marker at the selected position and listens for click events
+ * to update the selected coordinates.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Function} props.onSelect - Callback invoked when a location on the map is clicked.
+ * @param {Object} props.selectedPos - The currently selected coordinates {lat, lng}.
+ * @returns {JSX.Element|null} The Leaflet Marker component.
+ */
 const LocationPicker = ({ onSelect, selectedPos }) => {
   const map = useMapEvents({
     click(e) {
@@ -102,7 +115,17 @@ const LocationPicker = ({ onSelect, selectedPos }) => {
   return selectedPos ? <Marker position={selectedPos} /> : null;
 };
 
-// ── Create Task Modal ─────────────────────────────────────────────────────────
+/**
+ * CreateTaskModal Component
+ * Provides a form to create a new task, including location picking, category selection,
+ * and optional guild-only restrictions.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {Function} props.onCreated - Callback invoked with the new task data upon successful creation.
+ * @param {Object} props.myGuild - The authenticated user's guild data, if any.
+ * @returns {JSX.Element} The rendered modal component.
+ */
 const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
   const [form, setForm] = useState({
     title: '', description: '', category: 'volunteering',
@@ -202,7 +225,6 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
             </div>
           </div>
 
-          {/* Guild options */}
           {myGuild && (
             <div className="form-group guild-option-row">
               <label className="checkbox-label">
@@ -219,7 +241,6 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
             </div>
           )}
 
-          {/* Cover Image */}
           <div className="form-group">
             <label>Фото завдання (необов'язково)</label>
             <label className="file-upload-label" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', border: 'var(--border)', background: 'var(--bg-surface)' }}>
@@ -228,7 +249,6 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
             </label>
           </div>
 
-          {/* Location Picker */}
           <div className="form-group">
             <label>Місце виконання (натисніть на мапі)</label>
             <div className="modal-map-picker">
@@ -271,7 +291,15 @@ const CreateTaskModal = ({ onClose, onCreated, myGuild }) => {
   );
 };
 
-// ── Task Card ─────────────────────────────────────────────────────────────────
+/**
+ * TaskCard Component
+ * Displays a summarized view of a task including its status, category, participants, and timeline.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.task - The task data object.
+ * @param {number} props.index - Index in the list to calculate animation delay.
+ * @returns {JSX.Element} The rendered task card.
+ */
 const TaskCard = ({ task, index }) => {
   const s = STATUS_META[task.status] || STATUS_META.open;
   const approvedCount = task.participants?.filter(p => p.status === 'approved').length ?? 0;
@@ -330,7 +358,14 @@ const TaskCard = ({ task, index }) => {
   );
 };
 
-// ── Map View ──────────────────────────────────────────────────────────────────
+/**
+ * TaskMapView Component
+ * Renders an interactive map with pins representing available tasks with geographical locations.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Array} props.tasks - The array of task objects to display.
+ * @returns {JSX.Element} The rendered Leaflet map component.
+ */
 const TaskMapView = ({ tasks }) => {
   const tasksWithLocation = tasks.filter(t => t.lat && t.lng);
 
@@ -379,7 +414,13 @@ const TaskMapView = ({ tasks }) => {
   );
 };
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+/**
+ * TasksPage Component
+ * Provides a comprehensive view of all available platform tasks.
+ * Includes search, categorization, status filtering, and toggling between list and map views.
+ *
+ * @returns {JSX.Element} The rendered tasks page.
+ */
 const TasksPage = () => {
   const [tasks, setTasks]         = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -388,11 +429,14 @@ const TasksPage = () => {
   const [filter, setFilter]       = useState('all');
   const [catFilter, setCatFilter] = useState('all');
   const [search, setSearch]       = useState('');
-  const [viewMode, setViewMode]   = useState('list'); // 'list' | 'map'
+  const [viewMode, setViewMode]   = useState('list');
 
   const token   = localStorage.getItem('userToken');
   const isGuest = localStorage.getItem('userRole') === 'guest';
 
+  /**
+   * Fetches tasks matching current filter criteria.
+   */
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -432,7 +476,6 @@ const TasksPage = () => {
         <AnimatedPage>
           <div className="dashboard-content-wrapper tasks-v2-page">
 
-            {/* ── Hero ── */}
             <div className="tasks-v2-hero">
               <div>
                 <p className="small-title">ImpactPulse / Tasks</p>
@@ -448,7 +491,6 @@ const TasksPage = () => {
               )}
             </div>
 
-            {/* ── Toolbar ── */}
             <div className="tasks-toolbar">
               <div className="tasks-search-wrap">
                 <FiSearch className="search-icon" />
@@ -496,7 +538,6 @@ const TasksPage = () => {
               </div>
             </div>
 
-            {/* ── Content (Map or List) ── */}
             {loading ? (
               <div className="tasks-loading">
                 <div className="guilds-spinner" />

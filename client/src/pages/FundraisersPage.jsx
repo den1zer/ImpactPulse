@@ -15,6 +15,15 @@ const authHeaders = () => ({
   'Authorization': `Bearer ${getToken()}`,
 });
 
+/**
+ * DonationForm Component
+ * Renders the form allowing users to submit financial donations to a specific fundraiser via LiqPay.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.fundraiser - The fundraiser object being donated to.
+ * @param {Function} props.onDonation - Callback triggered to refresh data after donation processing.
+ * @returns {JSX.Element} The rendered donation form.
+ */
 const DonationForm = ({ fundraiser, onDonation }) => {
   const [amount,  setAmount]  = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,8 +36,7 @@ const DonationForm = ({ fundraiser, onDonation }) => {
     const num = Number(amount);
     if (!num || num <= 0) { setError('Вкажіть суму'); return; }
 
-    // CRITICAL iOS PWA FIX: Open window synchronously on user click to bypass Safari/WebKit popup blocker
-    // We must do this BEFORE any async await calls like axios.post
+    // Бізнес-логіка: Відкриття вікна синхронно з подією кліку для обходу блокування спливаючих вікон (Safari/iOS PWA).
     const paymentWindow = window.open('', '_blank');
     
     setLoading(true);
@@ -40,7 +48,6 @@ const DonationForm = ({ fundraiser, onDonation }) => {
       );
       const { data, signature, orderId } = res.data;
       
-      // Inject LiqPay form into the pre-opened window
       if (paymentWindow) {
         const formHtml = `
           <html>
@@ -60,7 +67,6 @@ const DonationForm = ({ fundraiser, onDonation }) => {
         paymentWindow.document.write(formHtml);
         paymentWindow.document.close();
       } else {
-        // Fallback if window.open was still blocked
         const form = document.createElement('form');
         form.method = 'POST'; form.action = 'https://www.liqpay.ua/api/3/checkout';
         form.acceptCharset = 'utf-8'; form.target = '_blank';
@@ -79,19 +85,18 @@ const DonationForm = ({ fundraiser, onDonation }) => {
         if (tries > 20) { clearInterval(id); return; }
         
         try {
-          // Try to sync status manually (especially useful for local testing)
           const statusRes = await axios.get(`${API_BASE_URL}/api/payment/status/${orderId}`, { headers: authHeaders() });
           if (statusRes.data.success) {
             clearInterval(id);
           }
         } catch (e) {
-          // Ignore errors during status check
+          // Ignore polling errors
         }
         
         await onDonation();
       }, 5000);
     } catch (err) {
-      if (paymentWindow) paymentWindow.close(); // Close the window on error
+      if (paymentWindow) paymentWindow.close();
       const status = err.response?.status;
       const msg = err.response?.data?.msg || err.response?.data?.error || err.message;
       if (status === 401) setError('Сесія закінчилась. Увійдіть знову.');
@@ -101,7 +106,6 @@ const DonationForm = ({ fundraiser, onDonation }) => {
       setLoading(false);
     }
   };
-
 
   return (
     <form className="fr-donation-form" onSubmit={handleSubmit}>
@@ -130,6 +134,15 @@ const DonationForm = ({ fundraiser, onDonation }) => {
   );
 };
 
+/**
+ * ProgressBar Component
+ * Visualizes the progression towards a fundraising goal.
+ *
+ * @param {Object} props - Component properties.
+ * @param {number} props.collected - The current collected amount.
+ * @param {number} props.goal - The target goal amount.
+ * @returns {JSX.Element} The rendered progress bar.
+ */
 const ProgressBar = ({ collected, goal }) => {
   const pct = goal > 0 ? Math.min((collected / goal) * 100, 100) : 0;
   return (
@@ -148,7 +161,18 @@ const ProgressBar = ({ collected, goal }) => {
   );
 };
 
-/* ── Lightbox for report photos ────────────────────────────── */
+/**
+ * Lightbox Component
+ * A fullscreen overlay for viewing report photos with keyboard navigation.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Array<string>} props.images - List of image URLs.
+ * @param {number} props.currentIndex - The currently displayed image index.
+ * @param {Function} props.onClose - Callback to close the lightbox.
+ * @param {Function} props.onPrev - Callback to view the previous image.
+ * @param {Function} props.onNext - Callback to view the next image.
+ * @returns {JSX.Element} The rendered lightbox.
+ */
 const Lightbox = ({ images, currentIndex, onClose, onPrev, onNext }) => {
   useEffect(() => {
     const handleKey = (e) => {
@@ -194,7 +218,14 @@ const Lightbox = ({ images, currentIndex, onClose, onPrev, onNext }) => {
   );
 };
 
-/* ── Report section inside a closed card ───────────────────── */
+/**
+ * ReportSection Component
+ * Displays the organizer's report once a fundraiser has been completed and reported on.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.report - The report data object.
+ * @returns {JSX.Element} The rendered report section.
+ */
 const ReportSection = ({ report }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -258,7 +289,6 @@ const ReportSection = ({ report }) => {
   );
 };
 
-/* ── Status helpers ────────────────────────────────────────── */
 const statusLabel = (status) => {
   if (status === 'open') return 'Активний';
   if (status === 'reported') return 'Звітовано';
@@ -271,12 +301,18 @@ const statusClass = (status) => {
   return 'closed';
 };
 
-/* ═══════════════════════════════════════════════════════════ */
+/**
+ * FundraisersPage Component
+ * Displays a list of active and completed fundraising campaigns.
+ * Allows users to donate directly or view usage reports for closed campaigns.
+ *
+ * @returns {JSX.Element} The rendered fundraisers directory page.
+ */
 const FundraisersPage = () => {
   const [fundraisers, setFundraisers] = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [activeTab,   setActiveTab]   = useState('active'); // 'active' | 'completed'
+  const [activeTab,   setActiveTab]   = useState('active'); 
   const isGuest = localStorage.getItem('userRole') === 'guest';
 
   const fetchFundraisers = useCallback(async () => {
@@ -329,7 +365,6 @@ const FundraisersPage = () => {
         <AnimatedPage>
           <div className="dashboard-content-wrapper">
 
-            {/* Hero */}
             <div className="fr-hero">
               <div className="fr-hero-text">
                 <p className="small-title">ImpactPulse / Збори</p>
@@ -354,7 +389,6 @@ const FundraisersPage = () => {
               </div>
             </div>
 
-            {/* Tab Filter */}
             <div className="fr-tabs">
               <button
                 className={`fr-tab ${activeTab === 'active' ? 'fr-tab-active' : ''}`}

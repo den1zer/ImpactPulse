@@ -4,13 +4,20 @@ import User from '../models/User.js';
 const MAX_MEMBERS      = 20;
 const MIN_LEADER_XP   = 100;
 
-// ─── CREATE GUILD ──────────────────────────────────────────────────────────────
+/**
+ * Creates a new guild.
+ * Enforces a minimum XP requirement for the creator and uniqueness constraints.
+ *
+ * @param {import('express').Request} req - The Express request object containing guild details.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the created guild.
+ */
 export const createGuild = async (req, res) => {
   try {
     const { name, description, logo } = req.body;
     const userId = req.user.id;
 
-    // Validation: leader must have ≥ 100 XP
+    // Обмеження створення гільдії: лідер повинен мати достатній рівень досвіду (XP).
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ msg: 'Користувача не знайдено' });
     if ((user.xp || 0) < MIN_LEADER_XP) {
@@ -19,13 +26,11 @@ export const createGuild = async (req, res) => {
       });
     }
 
-    // Validation: user must not already be in a guild
     const existing = await Guild.findOne({ members: userId });
     if (existing) {
       return res.status(400).json({ msg: `Ви вже є членом гільдії "${existing.name}"` });
     }
 
-    // Validation: guild name uniqueness is handled by schema, but give friendly message
     if (!name || name.trim().length < 3) {
       return res.status(400).json({ msg: 'Назва гільдії має містити мінімум 3 символи' });
     }
@@ -55,13 +60,19 @@ export const createGuild = async (req, res) => {
   }
 };
 
-// ─── JOIN GUILD ────────────────────────────────────────────────────────────────
+/**
+ * Adds the authenticated user to an existing guild.
+ * Checks capacity and validates the user's current guild status.
+ *
+ * @param {import('express').Request} req - The Express request object containing the guild ID in params.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated guild.
+ */
 export const joinGuild = async (req, res) => {
   try {
     const userId  = req.user.id;
     const guildId = req.params.id;
 
-    // Check user not already in any guild
     const alreadyIn = await Guild.findOne({ members: userId });
     if (alreadyIn) {
       return res.status(400).json({ msg: `Ви вже є членом гільдії "${alreadyIn.name}"` });
@@ -92,7 +103,14 @@ export const joinGuild = async (req, res) => {
   }
 };
 
-// ─── LEAVE GUILD ───────────────────────────────────────────────────────────────
+/**
+ * Removes the authenticated user from their current guild.
+ * Handles leadership transfer or guild disbandment if the leader leaves.
+ *
+ * @param {import('express').Request} req - The Express request object containing the guild ID.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming departure.
+ */
 export const leaveGuild = async (req, res) => {
   try {
     const userId  = req.user.id;
@@ -105,13 +123,13 @@ export const leaveGuild = async (req, res) => {
       return res.status(400).json({ msg: 'Ви не є членом цієї гільдії' });
     }
 
+    // Логіка розпуску гільдії: якщо її покидає лідер і більше немає учасників — гільдія видаляється.
+    // В іншому випадку — лідерство передається першому учаснику за списком.
     if (guild.leader.toString() === userId) {
-      // Leader leaving → disband if no other members, else transfer to first member
       if (guild.members.length === 1) {
         await Guild.findByIdAndDelete(guildId);
         return res.json({ msg: 'Гільдію розпущено — ви були єдиним учасником' });
       }
-      // Transfer leadership
       const newLeader = guild.members.find((m) => m.toString() !== userId);
       guild.leader = newLeader;
     }
@@ -129,7 +147,13 @@ export const leaveGuild = async (req, res) => {
   }
 };
 
-// ─── GET ALL GUILDS ────────────────────────────────────────────────────────────
+/**
+ * Retrieves a list of all guilds, sorted by total XP.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of all guilds.
+ */
 export const getAllGuilds = async (req, res) => {
   try {
     const guilds = await Guild.find()
@@ -142,7 +166,13 @@ export const getAllGuilds = async (req, res) => {
   }
 };
 
-// ─── GET GUILD BY ID ───────────────────────────────────────────────────────────
+/**
+ * Retrieves detailed information about a specific guild by its ID.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON object with guild details.
+ */
 export const getGuildById = async (req, res) => {
   try {
     const guild = await Guild.findById(req.params.id)
@@ -156,7 +186,13 @@ export const getGuildById = async (req, res) => {
   }
 };
 
-// ─── GET MY GUILD ──────────────────────────────────────────────────────────────
+/**
+ * Retrieves the guild that the authenticated user currently belongs to.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON object with the user's guild, or null if none.
+ */
 export const getMyGuild = async (req, res) => {
   try {
     const guild = await Guild.findOne({ members: req.user.id })
@@ -170,7 +206,13 @@ export const getMyGuild = async (req, res) => {
   }
 };
 
-// ─── LEADERBOARD ──────────────────────────────────────────────────────────────
+/**
+ * Retrieves the top 50 guilds ranked by total XP for the leaderboard.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of ranked guilds.
+ */
 export const getGuildLeaderboard = async (req, res) => {
   try {
     const guilds = await Guild.find()
@@ -197,4 +239,3 @@ export const getGuildLeaderboard = async (req, res) => {
     res.status(500).json({ msg: 'Помилка на сервері' });
   }
 };
-

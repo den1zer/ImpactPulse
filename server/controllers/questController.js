@@ -6,7 +6,12 @@ import { updateUserLevel } from '../utils/levelSystem.js';
 import { checkAndAwardBadges } from './contributionController.js';
 
 /**
- * Get daily quests for the current user. Generates new ones if they don't exist for today.
+ * Retrieves the daily quests for the authenticated user.
+ * If no quests exist for today, generates a new set.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the user's daily quests.
  */
 export const getTodayQuests = async (req, res) => {
   try {
@@ -28,7 +33,12 @@ export const getTodayQuests = async (req, res) => {
 };
 
 /**
- * Claim reward for a specific completed quest
+ * Claims the reward for a completed specific quest.
+ * Updates user XP, ImpactCoins, level, and propagates XP to the user's guild.
+ *
+ * @param {import('express').Request} req - The Express request object containing the questId.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with updated stats and quest status.
  */
 export const claimRewards = async (req, res) => {
   try {
@@ -62,12 +72,11 @@ export const claimRewards = async (req, res) => {
       return res.status(404).json({ msg: 'Користувача не знайдено' });
     }
 
-    // Add XP and update level
     const oldXp = user.xp || 0;
     user.xp = oldXp + quest.xpReward;
     user.points = (user.points || 0) + quest.xpReward; 
     
-    // ImpactCoin reward: 1 coin per 10 XP
+    // Економіка винагород: ImpactCoin нараховується у співвідношенні 1 монета за кожні 10 отриманих XP.
     const coinsToAdd = Math.floor(user.xp / 10) - Math.floor(oldXp / 10);
     if (coinsToAdd > 0) {
       user.coins = (user.coins || 0) + coinsToAdd;
@@ -77,13 +86,12 @@ export const claimRewards = async (req, res) => {
     await checkAndAwardBadges(user);
     await user.save();
 
-    // Guild XP aggregation — propagate quest XP to the user's guild
+    // Синхронізація гільдій: XP, отримані користувачем, також додаються до загального прогресу його гільдії.
     await Guild.addXPForUser(userId, quest.xpReward);
 
-    // Mark specific quest as claimed
     quest.claimed = true;
     
-    // Check if all quests are claimed, then mark dailyQuest as claimed
+    // Перевірка повного закриття щоденних квестів: якщо всі виконані та отримані, закриваємо загальний щоденний прогрес.
     if (dailyQuest.quests.every(q => q.claimed)) {
       dailyQuest.claimed = true;
     }
@@ -105,4 +113,3 @@ export const claimRewards = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
-

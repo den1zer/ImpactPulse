@@ -9,6 +9,14 @@ import DashboardHeader from '../components/DashboardHeader';
 import '../styles/Dashboard.css';
 import API_BASE_URL from '../config/api.js';
 
+/**
+ * DashboardPage Component
+ * The main user interface for the application, displaying activity feeds, 
+ * personal statistics, community leaderboards, and administrative actions (if applicable).
+ * Real-time updates for the activity feed are handled via WebSockets.
+ *
+ * @returns {JSX.Element} The rendered dashboard layout.
+ */
 const DashboardPage = () => {
   const [contributions, setContributions] = useState([]);
   const [leaderboard, setLeaderboard]     = useState([]);
@@ -19,6 +27,10 @@ const DashboardPage = () => {
   const isAdmin = userRole === 'admin';
 
   useEffect(() => {
+    /**
+     * Initializes the live activity feed by fetching recent historical data 
+     * and establishing a WebSocket connection for real-time updates.
+     */
     const fetchActivities = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/api/activities`);
@@ -41,7 +53,8 @@ const DashboardPage = () => {
 
     socket.on('activity_feed', (data) => {
       console.log('Received activity_feed event:', data);
-      setFeed(prev => [data, ...prev].slice(0, 10)); // keep last 10
+      // Бізнес-логіка: Зберігаємо лише останні 10 подій у стрічці активності, щоб не перевантажувати UI.
+      setFeed(prev => [data, ...prev].slice(0, 10));
     });
 
     socket.on('connect_error', (err) => {
@@ -52,6 +65,10 @@ const DashboardPage = () => {
   }, []);
 
   useEffect(() => {
+    /**
+     * Aggregates necessary dashboard data, including the global leaderboard 
+     * and the authenticated user's personal contributions.
+     */
     const fetchData = async () => {
       try {
         const token  = localStorage.getItem('userToken') || '';
@@ -61,11 +78,13 @@ const DashboardPage = () => {
         if (!isGuest) reqs.push(axios.get(`${API_BASE_URL}/api/contributions/my`, config));
 
         const [lbRes, contribRes] = await Promise.all(reqs);
-        // getLeaderboard returns either an array (old) or {topAllTime,...} (new)
+        
+        // Бізнес-логіка: Адаптація під різні версії API лідерборду (старий масив або новий об'єкт з topAllTime).
         const lbData = lbRes.data;
         const leaderboardList = Array.isArray(lbData)
           ? lbData
           : (lbData?.topAllTime || []);
+          
         setLeaderboard(leaderboardList);
         if (!isGuest && contribRes) setContributions(contribRes.data);
       } catch (err) {
@@ -75,7 +94,7 @@ const DashboardPage = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [isGuest]);
 
   const stats = useMemo(() => ({
     totalContributions: contributions.length,
@@ -141,7 +160,6 @@ const DashboardPage = () => {
 
             {!isAdmin && (
               <>
-                {/* ── Hero ── */}
                 <div className="dashboard-hero">
                   <div className="hero-summary-card">
                     <div>
@@ -161,7 +179,6 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
-                  {/* ── KPI cards ── */}
                   <div className="dashboard-metrics-grid">
                     <div className="metric-card metric-primary">
                       <span>Усього заявок</span>
@@ -178,7 +195,6 @@ const DashboardPage = () => {
                   </div>
                 </div>
 
-                {/* ── Main grid ── */}
                 <div className="dashboard-grid">
                   <div className="panel-card panel-chart">
                     <StatsChart contributions={contributions} />
@@ -216,7 +232,6 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
-                  {/* Leaderboard */}
                   <div className="panel-card panel-leaderboard">
                     <div className="panel-heading">
                       <h3>Лідери спільноти</h3>
@@ -253,7 +268,7 @@ const DashboardPage = () => {
                       )}
                     </ul>
                   </div>
-                  {/* Live Feed */}
+                  
                   <div className="panel-card panel-feed">
                     <div className="panel-heading">
                       <h3>Live Feed</h3>

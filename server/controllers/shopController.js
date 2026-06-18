@@ -1,6 +1,13 @@
 import RewardItem from '../models/RewardItem.js';
 import User from '../models/User.js';
 
+/**
+ * Retrieves all active items available in the shop.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of active reward items.
+ */
 export const getAllItems = async (req, res) => {
   try {
     const items = await RewardItem.find({ isActive: true });
@@ -11,15 +18,23 @@ export const getAllItems = async (req, res) => {
   }
 };
 
+/**
+ * Creates a new item in the shop.
+ * Only administrators can perform this action.
+ *
+ * @param {import('express').Request} req - The Express request object containing item details.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the created item.
+ */
 export const createItem = async (req, res) => {
   try {
     const { title, price, description, type, promoCode } = req.body;
     
-    // Check if the user is admin
     if (req.user.role !== 'admin') {
       return res.status(403).json({ msg: 'Доступ заборонено. Тільки для адміністраторів.' });
     }
 
+    // За замовчуванням кількість товару (stock) встановлюється на -1, що означає безкінечний запас.
     const newItem = new RewardItem({
       name: title,
       price: price,
@@ -28,7 +43,7 @@ export const createItem = async (req, res) => {
       imageUrl: req.file ? req.file.path : null,
       promoCode: promoCode || '',
       isActive: true,
-      stock: req.body.stock || -1 // infinite by default
+      stock: req.body.stock || -1 
     });
 
     await newItem.save();
@@ -39,6 +54,14 @@ export const createItem = async (req, res) => {
   }
 };
 
+/**
+ * Processes a user's purchase of a shop item.
+ * Deducts coins, updates inventory, and grants the specific reward.
+ *
+ * @param {import('express').Request} req - The Express request object containing the item ID.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming the purchase.
+ */
 export const buyItem = async (req, res) => {
   try {
     const { itemId } = req.body;
@@ -62,16 +85,14 @@ export const buyItem = async (req, res) => {
       return res.status(400).json({ msg: 'Недостатньо монет ImpactCoins' });
     }
 
-    // Deduct coins
     user.coins -= item.price;
 
-    // Handle stock if not infinite
+    // Логіка управління запасами: якщо stock більше 0, товар лімітований, тому зменшуємо його кількість на 1 при покупці.
     if (item.stock > 0) {
       item.stock -= 1;
       await item.save();
     }
 
-    // Process the reward based on type
     if (item.type === 'partner_coupon') {
       const code = item.promoCode || `COUPON-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       user.rewards.push({
@@ -82,13 +103,11 @@ export const buyItem = async (req, res) => {
         date: new Date()
       });
     } else if (item.type === 'frame') {
-      // Add frame logic - assume user.profileCustomization exists
       if (!user.profileCustomization) {
         user.profileCustomization = {};
       }
       user.profileCustomization.avatarFrame = item.name.toLowerCase().replace(/\s+/g, '_');
     } else if (item.type === 'badge') {
-      // Check if user already has it
       const hasBadge = user.badges.some(b => b.badgeId === item._id.toString());
       if (!hasBadge) {
         user.badges.push({
@@ -115,4 +134,3 @@ export const buyItem = async (req, res) => {
     res.status(500).json({ msg: 'Помилка сервера при покупці' });
   }
 };
-

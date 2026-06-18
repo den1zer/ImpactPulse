@@ -6,9 +6,15 @@ import { sendEmail } from '../utils/sendEmail.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
+/**
+ * Registers a new user with email and password.
+ * Generates a verification token and sends an email.
+ *
+ * @param {import('express').Request} req - The Express request object containing username, email, and password.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with success or error message.
+ */
 export const registerUser = async (req, res) => {
-  console.log('--- REGISTER START ---');
-  console.log('[Register] Body:', JSON.stringify(req.body));
   const { username, email, password } = req.body;
   try {
     let user = await User.findOne({ email });
@@ -38,13 +44,11 @@ export const registerUser = async (req, res) => {
 
     let emailSent = true;
     try {
-      console.log(`[Register] Відправка verification email на ${user.email}...`);
       await sendEmail({
         email: user.email,
         subject: 'Підтвердження реєстрації на ImpactPulse',
         html: message,
       });
-      console.log(`[Register] ✅ Email відправлено успішно`);
     } catch (err) {
       console.error('[Register] ❌ Email НЕ відправлено:', err.message);
       emailSent = false;
@@ -63,6 +67,14 @@ export const registerUser = async (req, res) => {
   }
 };
 
+/**
+ * Authenticates a user and issues a JWT token.
+ * Validates credentials and recalculates activity streak.
+ *
+ * @param {import('express').Request} req - The Express request object containing email and password.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with token and user details, or an error.
+ */
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -71,7 +83,8 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ msg: 'Невірні дані для входу' });
     }
 
-    // Google-only users don't have a password — must use Google login
+    // Блокування входу: користувачі, які зареєструвались через Google, не мають пароля в БД.
+    // Забороняємо їм вхід через стандартну форму, направляємо на OAuth.
     if (!user.password) {
       return res.status(400).json({ msg: 'Цей акаунт використовує Google-авторизацію. Увійдіть через Google.' });
     }
@@ -85,7 +98,9 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ msg: 'Please verify your email before logging in.' });
     }
 
-    // Update streak logic
+    // Логіка перерахунку щоденного стріка активності:
+    // Перевіряємо різницю в днях між останньою активністю та сьогоднішньою датою (без врахування часу).
+    // Якщо різниця 1 день — продовжуємо стрік. Якщо більше (або це новий юзер) — скидаємо до 1.
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -132,6 +147,13 @@ export const loginUser = async (req, res) => {
   }
 };
 
+/**
+ * Verifies a user's email address using a token.
+ *
+ * @param {import('express').Request} req - The Express request object containing the token in params.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with success or error message.
+ */
 export const verifyEmail = async (req, res) => {
   try {
     const user = await User.findOne({ verificationToken: req.params.token });
@@ -148,6 +170,14 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
+/**
+ * Initiates the password reset process.
+ * Generates a reset token and sends it via email.
+ *
+ * @param {import('express').Request} req - The Express request object containing the email.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response indicating the email was sent.
+ */
 export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
@@ -157,7 +187,7 @@ export const forgotPassword = async (req, res) => {
 
     const resetToken = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hr
+    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000;
     await user.save();
 
     const clientUrl = req.headers.origin || process.env.FRONTEND_URL;
@@ -199,13 +229,11 @@ export const forgotPassword = async (req, res) => {
     `;
 
     try {
-      console.log(`[ForgotPassword] 🚀 Sending reset email to: ${user.email} (Token: ${resetToken.substring(0, 5)}...)`);
       await sendEmail({
         email: user.email,
         subject: 'ImpactPulse: Відновлення пароля',
         html: message,
       });
-      console.log(`[ForgotPassword] ✅ Email відправлено успішно`);
       res.status(200).json({ msg: 'Лист для скидання пароля відправлено' });
     } catch (err) {
       console.error('[ForgotPassword] ❌ Email НЕ відправлено:', err.message);
@@ -220,6 +248,13 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
+/**
+ * Resets a user's password using a valid token.
+ *
+ * @param {import('express').Request} req - The Express request object containing the token in params and new password in body.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with success or error message.
+ */
 export const resetPassword = async (req, res) => {
   try {
     const user = await User.findOne({

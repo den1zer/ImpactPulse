@@ -3,6 +3,13 @@ import User from '../models/User.js';
 import Activity from '../models/Activity.js';
 import { checkAndAwardBadges } from './contributionController.js';
 
+/**
+ * Creates a new fundraising campaign.
+ *
+ * @param {import('express').Request} req - The Express request object containing fundraiser details and an optional file.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the created fundraiser.
+ */
 export const createFundraiser = async (req, res) => {
   try {
     const { title, description, goalAmount, cardName, cardNumber, bonuses } = req.body;
@@ -30,6 +37,13 @@ export const createFundraiser = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves a list of fundraisers based on a status filter.
+ *
+ * @param {import('express').Request} req - The Express request object containing the 'filter' query parameter.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of fundraisers.
+ */
 export const getAllFundraisers = async (req, res) => {
   try {
     const { filter } = req.query;
@@ -46,6 +60,13 @@ export const getAllFundraisers = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves detailed information about a specific fundraiser by its ID.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the fundraiser object.
+ */
 export const getFundraiserById = async (req, res) => {
   try {
     const fundraiser = await Fundraiser.findById(req.params.id);
@@ -56,6 +77,14 @@ export const getFundraiserById = async (req, res) => {
   }
 };
 
+/**
+ * Simulates a donation to a specific fundraiser, adding funds to the goal.
+ * Awards points and applicable bonuses based on the donation amount.
+ *
+ * @param {import('express').Request} req - The Express request object containing the donation amount.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming the donation and rewards.
+ */
 export const simulateDonation = async (req, res) => {
   try {
     const { amount } = req.body;
@@ -68,6 +97,7 @@ export const simulateDonation = async (req, res) => {
       return res.status(400).json({ msg: 'Цей збір вже закрито' });
     }
 
+    // Логіка конвертації донату в бали: за кожні 10 грн нараховується 1 бал (коефіцієнт 0.1).
     const COEFFICIENT = 0.1;
     const pointsToAward = Math.floor(Number(amount) * COEFFICIENT);
 
@@ -81,6 +111,8 @@ export const simulateDonation = async (req, res) => {
 
     let awardedBonus = null;
     let extraMsg = '';
+    // Логіка надання бонусів за донат: бонуси сортуються за мінімальною сумою від найбільшої.
+    // Користувач отримує найкращий доступний бонус, який покривається його сумою.
     if (fundraiser.bonuses && fundraiser.bonuses.length > 0) {
       const sortedBonuses = [...fundraiser.bonuses].sort((a, b) => b.minimumAmount - a.minimumAmount);
       for (const b of sortedBonuses) {
@@ -129,6 +161,13 @@ export const simulateDonation = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves all fundraisers for administrative review.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of all fundraisers.
+ */
 export const getAllFundraisersAdmin = async (req, res) => {
   try {
     const fundraisers = await Fundraiser.find({})
@@ -140,6 +179,13 @@ export const getAllFundraisersAdmin = async (req, res) => {
   }
 };
 
+/**
+ * Updates a specific fundraiser.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated fundraiser.
+ */
 export const updateFundraiser = async (req, res) => {
   try {
     const { title, description, goalAmount, status, cardName, cardNumber, bonuses } = req.body;
@@ -162,6 +208,13 @@ export const updateFundraiser = async (req, res) => {
   }
 };
 
+/**
+ * Adds a final report to a closed fundraiser.
+ *
+ * @param {import('express').Request} req - The Express request object containing the report description and files.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated fundraiser.
+ */
 export const addFundraiserReport = async (req, res) => {
   try {
     const fundraiser = await Fundraiser.findById(req.params.id);
@@ -199,6 +252,13 @@ export const addFundraiserReport = async (req, res) => {
   }
 };
 
+/**
+ * Deletes a specific fundraiser.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming deletion.
+ */
 export const deleteFundraiser = async (req, res) => {
   try {
     const fundraiser = await Fundraiser.findById(req.params.id);
@@ -211,4 +271,3 @@ export const deleteFundraiser = async (req, res) => {
     res.status(500).send('Помилка на сервері');
   }
 };
-

@@ -3,7 +3,7 @@ const router = express.Router();
 import { body } from 'express-validator';
 import { validate } from '../middleware/validation.js';
 import { registerUser, loginUser, verifyEmail, forgotPassword, resetPassword } from '../controllers/authController.js';
-import { googleAuthRedirect, googleAuthCallback, googleAuthDebug } from '../controllers/googleAuthController.js';
+import { googleAuthRedirect, googleAuthCallback } from '../controllers/googleAuthController.js';
 
 /**
  * @swagger
@@ -202,8 +202,5 @@ router.get('/google', googleAuthRedirect);
  *         description: Redirects to frontend with JWT token
  */
 router.get('/google/callback', googleAuthCallback);
-
-// Temporary debug route — DELETE after OAuth works
-router.get('/google/debug', googleAuthDebug);
 
 export default router;

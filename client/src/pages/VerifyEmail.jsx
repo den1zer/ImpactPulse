@@ -15,6 +15,13 @@ const pageTransition = {
   duration: 0.5
 };
 
+/**
+ * VerifyEmail Component
+ * Automatically verifies a user's email address when they navigate to this route
+ * using the token provided in the URL.
+ *
+ * @returns {JSX.Element} The rendered verification status page.
+ */
 const VerifyEmail = () => {
   const { token } = useParams();
   const [status, setStatus] = useState('loading'); 

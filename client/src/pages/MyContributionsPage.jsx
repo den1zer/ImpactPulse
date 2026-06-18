@@ -32,6 +32,16 @@ const FILTERS = [
 
 const PER_PAGE = 6;
 
+/**
+ * Paginator Component
+ * Renders pagination controls for lists of items.
+ *
+ * @param {Object} props - Component properties.
+ * @param {number} props.total - The total number of pages available.
+ * @param {number} props.current - The currently active page index.
+ * @param {Function} props.onChange - Callback invoked when a new page is selected.
+ * @returns {JSX.Element|null} The rendered paginator, or null if there is only 1 page.
+ */
 const Paginator = ({ total, current, onChange }) => {
   if (total <= 1) return null;
   return (
@@ -63,6 +73,12 @@ const Paginator = ({ total, current, onChange }) => {
   );
 };
 
+/**
+ * MyContributionsPage Component
+ * Displays a history of the authenticated user's submitted contributions and active tasks in progress.
+ *
+ * @returns {JSX.Element} The rendered My Contributions page.
+ */
 const MyContributionsPage = () => {
   const [contributions, setContributions] = useState([]);
   const [tasks,         setTasks]         = useState([]);
@@ -107,7 +123,6 @@ const MyContributionsPage = () => {
         <AnimatedPage>
           <div className="dashboard-content-wrapper">
 
-            {/* Hero */}
             <div className="mc-hero">
               <div>
                 <p className="small-title">ImpactPulse / Мої внески</p>
@@ -123,7 +138,6 @@ const MyContributionsPage = () => {
               </div>
             ) : (
               <>
-                {/* ── Tasks in progress ── */}
                 <section className="mc-section">
                   <div className="mc-section-header">
                     <h2 className="mc-section-title">
@@ -157,14 +171,12 @@ const MyContributionsPage = () => {
                   )}
                 </section>
 
-                {/* ── Contributions history ── */}
                 <section className="mc-section">
                   <div className="mc-section-header">
                     <h2 className="mc-section-title">
                       Історія заявок
                       <span className="mc-count">{contributions.length}</span>
                     </h2>
-                    {/* Filters */}
                     <div className="mc-filters">
                       {FILTERS.map(f => (
                         <button

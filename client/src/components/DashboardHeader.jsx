@@ -17,7 +17,6 @@ const POINT_LEVELS = [
   { level: 8, name: 'Semigod',     value: 30000 },
 ];
 
-/* Route → breadcrumb label */
 const LABELS = {
   '/dashboard':        'Дашборд',
   '/tasks':            'Завдання',
@@ -31,6 +30,14 @@ const LABELS = {
   '/guilds':           'Гільдії',
 };
 
+/**
+ * DashboardHeader Component
+ * Renders the top navigation bar within the dashboard layout.
+ * Includes dynamic breadcrumbs based on the current route, theme toggling,
+ * and live updates of the user's gamification points and progress towards the next level.
+ *
+ * @returns {JSX.Element} The rendered dashboard header.
+ */
 const DashboardHeader = () => {
   const [userData, setUserData] = useState({ username: '...', points: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +47,9 @@ const DashboardHeader = () => {
   const location = useLocation();
   const prevPointsRef = useRef(0);
 
+  /**
+   * Toggles the application's visual theme (light/dark mode) and persists the selection.
+   */
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
@@ -49,6 +59,9 @@ const DashboardHeader = () => {
   };
 
   useEffect(() => {
+    /**
+     * Fetches user gamification data to calculate current level and progress bar percentage.
+     */
     const fetchUserData = async () => {
       const token = localStorage.getItem('userToken');
       if (!token) {
@@ -90,20 +103,16 @@ const DashboardHeader = () => {
     fetchUserData();
   }, []);
 
-  /* breadcrumb */
   const pageLabel = LABELS[location.pathname] || 'ImpactPulse';
 
   return (
     <header className="dashboard-header">
-      {/* Left: breadcrumb */}
       <div className="header-left">
         <span className="header-subtitle">ImpactPulse</span>
         <h1>{pageLabel}</h1>
       </div>
 
-      {/* Right: status + actions */}
       <div className="header-right">
-        {/* Theme toggle */}
         <button
           className="theme-toggle-btn"
           onClick={toggleTheme}
@@ -113,14 +122,12 @@ const DashboardHeader = () => {
           {theme === 'dark' ? <FiSun /> : <FiMoon />}
         </button>
 
-        {/* Points pill */}
         <div className="header-status-card">
           <span className="status-icon"><FiStar /></span>
           <span>{isLoading ? '—' : userData.points}</span>
           <strong>&nbsp;балів</strong>
         </div>
 
-        {/* Level + progress */}
         <div className="header-progress-card">
           <span className="level-line">{currentLevel.name}</span>
           <div className="level-progress">
@@ -129,7 +136,6 @@ const DashboardHeader = () => {
           <span className="text-muted" style={{ fontSize: '0.75rem' }}>{progress}%</span>
         </div>
 
-        {/* Rewards CTA */}
         <Link to="/rewards" className="header-action-button">
           <FiAward /> Нагороди
         </Link>

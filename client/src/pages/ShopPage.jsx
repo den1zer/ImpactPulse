@@ -8,6 +8,12 @@ import { FiTag, FiAward, FiImage } from 'react-icons/fi';
 import API_BASE_URL from '../config/api.js';
 import './ShopPage.css';
 
+/**
+ * ShopPage Component
+ * Provides an interface for users to exchange their earned ImpactCoins for partner rewards or platform badges.
+ *
+ * @returns {JSX.Element} The rendered shop page.
+ */
 const ShopPage = () => {
   const [items, setItems] = useState([]);
   const [coins, setCoins] = useState(0);
@@ -23,6 +29,9 @@ const ShopPage = () => {
     fetchShopItems();
   }, []);
 
+  /**
+   * Fetches the current user's balance and profile data.
+   */
   const fetchUserData = async () => {
     if (!token) return;
     try {
@@ -35,12 +44,14 @@ const ShopPage = () => {
     }
   };
 
+  /**
+   * Fetches the list of available items from the store, filtering out items out of stock.
+   */
   const fetchShopItems = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/shop`, {
         headers: { 'x-auth-token': token }
       });
-      // Filter out items that are out of stock
       const availableItems = res.data.filter(item => item.stock !== 0);
       setItems(availableItems);
       setLoading(false);
@@ -50,6 +61,12 @@ const ShopPage = () => {
     }
   };
 
+  /**
+   * Handles the purchase process for a selected item.
+   * Decrements the user's local coin balance upon success and reveals a promo code if applicable.
+   *
+   * @param {Object} item - The shop item being purchased.
+   */
   const handleBuy = async (item) => {
     if (coins < item.price) {
       setPurchaseMessage({ type: 'error', text: 'Недостатньо ImpactCoins!' });
@@ -63,7 +80,6 @@ const ShopPage = () => {
         { headers: { 'x-auth-token': token } }
       );
       
-      // Animate deduction
       setAnimatingCoin(true);
       setTimeout(() => setAnimatingCoin(false), 1000);
 
@@ -75,7 +91,7 @@ const ShopPage = () => {
         setPurchasedCodes(prev => ({ ...prev, [item._id]: res.data.code }));
       }
       
-      // Update items (decrease stock visually if not infinite)
+      // Бізнес-логіка: Візуальне зменшення залишку товару після покупки (якщо товар не є безлімітним).
       setItems(prevItems => prevItems.map(i => {
         if (i._id === item._id && i.stock > 0) {
           return { ...i, stock: i.stock - 1 };
@@ -90,7 +106,6 @@ const ShopPage = () => {
     }
   };
 
-  // Mock static layout for professional SaaS look if no items exist yet
   const displayItems = items.length > 0 ? items : [
     { _id: '1', name: 'Знижка ОККО', description: 'Знижка 15% на 20л будь-якого палива на АЗС ОККО', price: 10, type: 'partner_coupon', stock: -1 },
     { _id: '2', name: 'Кава в подарунок', description: 'Безкоштовна кава в мережі Aroma Kava', price: 5, type: 'partner_coupon', stock: 50 },
@@ -105,7 +120,6 @@ const ShopPage = () => {
         <DashboardHeader />
         <AnimatedPage>
           <div className="dashboard-content-wrapper">
-            {/* Hero */}
             <div className="shop-hero">
               <div>
                 <p className="small-title">ImpactPulse / Магазин</p>
@@ -122,7 +136,6 @@ const ShopPage = () => {
                 </div>
               </div>
             </div>
-
 
         <AnimatePresence>
           {purchaseMessage && (

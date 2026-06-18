@@ -14,6 +14,13 @@ const TABS = [
   { id: 'profile', icon: <FiUser />, label: 'Профіль та Кастомізація' }
 ];
 
+/**
+ * InstructionsPage Component
+ * Provides a user-friendly manual/knowledge base on how to use the ImpactPulse platform,
+ * including gamification rules, donation guidelines, and profile customization details.
+ *
+ * @returns {JSX.Element} The rendered instructions page.
+ */
 const InstructionsPage = () => {
   const [activeTab, setActiveTab] = useState('start');
 

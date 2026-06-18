@@ -16,6 +16,15 @@ import {
 import playSound from '../utils/sounds';
 import { io } from 'socket.io-client';
 
+/**
+ * FaqItem Component
+ * An accordion-style collapsible component used for displaying Frequently Asked Questions.
+ *
+ * @param {Object} props - Component properties.
+ * @param {string} props.title - The question text displayed in the header.
+ * @param {React.ReactNode} props.children - The answer content displayed when expanded.
+ * @returns {JSX.Element} The rendered FAQ item.
+ */
 const FaqItem = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -43,6 +52,13 @@ const FaqItem = ({ title, children }) => {
   );
 };
 
+/**
+ * SupportChat Component
+ * A live chat interface that connects directly to platform administrators.
+ * Utilizes Socket.IO for real-time messaging.
+ *
+ * @returns {JSX.Element} The rendered support chat interface.
+ */
 const SupportChat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -73,7 +89,6 @@ const SupportChat = () => {
     if (token) {
       fetchHistory();
 
-      // Initialize Socket
       socketRef.current = io(API_BASE_URL, {
         transports: ['websocket', 'polling'],
         withCredentials: true
@@ -109,7 +124,6 @@ const SupportChat = () => {
         { text },
         { headers: { 'x-auth-token': token } }
       );
-      // Message will come back via Socket
     } catch (err) {
       console.error('Send message error:', err);
     }
@@ -174,6 +188,12 @@ const SupportChat = () => {
   );
 };
 
+/**
+ * FeedbackForm Component
+ * Allows users to submit a star rating and comment to evaluate their experience with the platform.
+ *
+ * @returns {JSX.Element} The rendered feedback form.
+ */
 const FeedbackForm = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -241,7 +261,12 @@ const FeedbackForm = () => {
   );
 };
 
-
+/**
+ * SupportPage Component
+ * Consolidates the support resources, including an FAQ list, contact links, and direct live chat with admins.
+ *
+ * @returns {JSX.Element} The rendered support page.
+ */
 const SupportPage = () => {
   return (
     <div className="dashboard-layout">
@@ -251,7 +276,6 @@ const SupportPage = () => {
         <AnimatedPage>
           <div className="dashboard-content-wrapper sp-wrapper">
             
-            {/* ── Hero Section ── */}
             <header className="sp-hero">
               <div className="sp-hero-content">
                 <p className="sp-hero-tag">Допомога поруч</p>
@@ -267,7 +291,6 @@ const SupportPage = () => {
             </header>
 
             <div className="sp-grid">
-              {/* ══ LEFT COLUMN: FAQ & CONTACT ══ */}
               <div className="sp-left">
                 <section className="sp-section">
                   <h2 className="sp-section-title"><FiHelpCircle /> Часті запитання</h2>
@@ -313,7 +336,6 @@ const SupportPage = () => {
                 </section>
               </div>
 
-              {/* ══ RIGHT COLUMN: FORMS ══ */}
               <div className="sp-right">
                 <SupportChat />
                 <FeedbackForm />

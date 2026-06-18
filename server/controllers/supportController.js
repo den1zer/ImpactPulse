@@ -2,6 +2,13 @@ import Ticket from '../models/Ticket.js';
 import Feedback from '../models/Feedback.js';
 import SupportMessage from '../models/SupportMessage.js';
 
+/**
+ * Creates a new support ticket.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming the creation.
+ */
 export const createTicket = async (req, res) => {
   try {
     const { name, phone, email, question } = req.body;
@@ -21,6 +28,13 @@ export const createTicket = async (req, res) => {
   }
 };
 
+/**
+ * Submits feedback from a user.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming submission.
+ */
 export const createFeedback = async (req, res) => {
   try {
     const { rating, comment } = req.body;
@@ -38,6 +52,13 @@ export const createFeedback = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves all open support tickets for administrative review.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of open tickets.
+ */
 export const getOpenTickets = async (req, res) => {
   try {
     const tickets = await Ticket.find({ status: 'open' })
@@ -49,6 +70,13 @@ export const getOpenTickets = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves all submitted feedback for administrative review.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of feedback entries.
+ */
 export const getAllFeedback = async (req, res) => {
   try {
     const feedback = await Feedback.find()
@@ -61,6 +89,13 @@ export const getAllFeedback = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves support chat messages for the authenticated user.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of support messages.
+ */
 export const getChatMessages = async (req, res) => {
   try {
     const messages = await SupportMessage.find({ user: req.user.id })
@@ -71,6 +106,14 @@ export const getChatMessages = async (req, res) => {
   }
 };
 
+/**
+ * Sends a message in the support chat.
+ * Administrators must specify the target user ID, while regular users message themselves (their own thread).
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the sent message.
+ */
 export const sendChatMessage = async (req, res) => {
   try {
     const { text } = req.body;
@@ -99,6 +142,14 @@ export const sendChatMessage = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves a list of all users who have interacted with support chat, 
+ * aggregating their last message data.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of users and their latest support message.
+ */
 export const getAllChatUsers = async (req, res) => {
   try {
     const users = await SupportMessage.aggregate([
@@ -135,6 +186,14 @@ export const getAllChatUsers = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves the support chat messages for a specific user.
+ * Intended for use by administrators.
+ *
+ * @param {import('express').Request} req - The Express request object containing the user ID.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of support messages.
+ */
 export const getAdminChatMessages = async (req, res) => {
   try {
     const { userId } = req.params;

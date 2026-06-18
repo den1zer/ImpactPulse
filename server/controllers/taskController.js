@@ -5,7 +5,6 @@ import Activity from '../models/Activity.js';
 import { checkAndAwardBadges } from './contributionController.js';
 import { updateUserLevel } from '../utils/levelSystem.js';
 
-// ── helpers ─────────────────────────────────────────────────────────────────
 const POPULATE_CREATED_BY = { path: 'createdBy', select: 'username avatar avatarUrl xp level' };
 const POPULATE_PARTICIPANTS = {
   path: 'participants.user',
@@ -17,7 +16,13 @@ const POPULATE_COMMENTS = {
 };
 const POPULATE_GUILD = { path: 'targetGuild', select: 'name logo' };
 
-// ── CREATE TASK (any authenticated user) ──────────────────────────────────────
+/**
+ * Creates a new task.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the created task.
+ */
 export const createTask = async (req, res) => {
   try {
     const {
@@ -69,7 +74,13 @@ export const createTask = async (req, res) => {
   }
 };
 
-// ── GET ALL OPEN TASKS ────────────────────────────────────────────────────────
+/**
+ * Retrieves all open tasks, applying optional filters.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of tasks.
+ */
 export const getOpenTasks = async (req, res) => {
   try {
     const { status, category, search } = req.query;
@@ -91,7 +102,13 @@ export const getOpenTasks = async (req, res) => {
   }
 };
 
-// ── GET TASK BY ID ────────────────────────────────────────────────────────────
+/**
+ * Retrieves a single task by its ID with all related populated fields.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the task object.
+ */
 export const getTaskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
@@ -108,10 +125,16 @@ export const getTaskById = async (req, res) => {
   }
 };
 
-// ── JOIN TASK ─────────────────────────────────────────────────────────────────
+/**
+ * Allows a user to join a task either solo or as part of a guild.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated task.
+ */
 export const joinTask = async (req, res) => {
   try {
-    const { joinMode, guildId } = req.body;   // joinMode: 'solo' | 'guild'
+    const { joinMode, guildId } = req.body;
     const userId  = req.user.id;
     const task    = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
@@ -120,16 +143,13 @@ export const joinTask = async (req, res) => {
       return res.status(400).json({ msg: 'Це завдання вже закрите' });
     }
 
-    // Already a participant?
     const already = task.participants.find(p => p.user.toString() === userId);
     if (already) return res.status(400).json({ msg: 'Ви вже берете участь у цьому завданні' });
 
-    // Max participants check
     if (task.maxParticipants && task.participants.length >= task.maxParticipants) {
       return res.status(400).json({ msg: 'Досягнуто максимальну кількість учасників' });
     }
 
-    // Guild-mode validation
     let resolvedGuild = null;
     if (joinMode === 'guild') {
       if (!guildId) return res.status(400).json({ msg: 'Вкажіть guildId для командного вступу' });
@@ -141,7 +161,6 @@ export const joinTask = async (req, res) => {
       resolvedGuild = guildId;
     }
 
-    // Guild-only check
     if (task.guildOnly && joinMode !== 'guild') {
       return res.status(403).json({ msg: 'Це завдання доступне лише для команд' });
     }
@@ -164,7 +183,13 @@ export const joinTask = async (req, res) => {
   }
 };
 
-// ── LEAVE TASK ────────────────────────────────────────────────────────────────
+/**
+ * Allows a user to leave a task they previously joined.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming the action.
+ */
 export const leaveTask = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -191,7 +216,13 @@ export const leaveTask = async (req, res) => {
   }
 };
 
-// ── SUBMIT PROOF (participant marks as ready for review) ──────────────────────
+/**
+ * Submits proof for task completion by a participant.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated task.
+ */
 export const submitProof = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -219,12 +250,18 @@ export const submitProof = async (req, res) => {
   }
 };
 
-// ── APPROVE / REJECT participant (only task creator can do this) ───────────────
+/**
+ * Reviews a participant's submitted proof (approve/reject).
+ * Only the task creator can perform this action.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated task.
+ */
 export const reviewParticipant = async (req, res) => {
   try {
     const creatorId = req.user.id;
     const { participantUserId, action, reviewComment } = req.body;
-    // action: 'approve' | 'reject'
 
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
@@ -245,7 +282,6 @@ export const reviewParticipant = async (req, res) => {
     if (action === 'approve') {
       participant.status = 'approved';
 
-      // Award points & XP to the participant
       const user = await User.findById(participantUserId);
       if (user) {
         user.points = (user.points || 0) + task.points;
@@ -254,12 +290,11 @@ export const reviewParticipant = async (req, res) => {
         await checkAndAwardBadges(user);
         await user.save();
 
-        // Propagate XP to guild if joined in guild mode
+        // Синхронізація гільдій: якщо учасник приєднався від імені гільдії, нарахувати XP також і їй.
         if (participant.joinMode === 'guild' && participant.guild) {
           await Guild.findByIdAndUpdate(participant.guild, {
             $inc: { totalXP: task.points },
           });
-          // recompute level
           const guild = await Guild.findById(participant.guild);
           if (guild) { guild.recomputeLevel(); await guild.save(); }
         }
@@ -283,7 +318,13 @@ export const reviewParticipant = async (req, res) => {
   }
 };
 
-// ── ADD COMMENT ───────────────────────────────────────────────────────────────
+/**
+ * Adds a comment to a specific task.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the created comment.
+ */
 export const addComment = async (req, res) => {
   try {
     const { text } = req.body;
@@ -302,7 +343,14 @@ export const addComment = async (req, res) => {
   }
 };
 
-// ── DELETE COMMENT ────────────────────────────────────────────────────────────
+/**
+ * Deletes a comment from a task.
+ * Only the comment author or task creator can perform this action.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming deletion.
+ */
 export const deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -329,7 +377,13 @@ export const deleteComment = async (req, res) => {
   }
 };
 
-// ── LIKE COMMENT ──────────────────────────────────────────────────────────────
+/**
+ * Toggles a like on a task comment for the authenticated user.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated like count and status.
+ */
 export const likeComment = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -343,9 +397,9 @@ export const likeComment = async (req, res) => {
 
     const likedIdx = comment.likes.findIndex(l => l.toString() === userId);
     if (likedIdx > -1) {
-      comment.likes.splice(likedIdx, 1); // unlike
+      comment.likes.splice(likedIdx, 1);
     } else {
-      comment.likes.push(userId);        // like
+      comment.likes.push(userId);
     }
 
     await task.save();
@@ -356,7 +410,13 @@ export const likeComment = async (req, res) => {
   }
 };
 
-// ── GET MY TASKS ──────────────────────────────────────────────────────────────
+/**
+ * Retrieves all tasks the authenticated user is participating in.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of tasks.
+ */
 export const getMyTasks = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -369,7 +429,14 @@ export const getMyTasks = async (req, res) => {
   }
 };
 
-// ── CLOSE TASK (creator only) ─────────────────────────────────────────────────
+/**
+ * Closes an open task.
+ * Only the task creator can perform this action.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming closure.
+ */
 export const closeTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -395,7 +462,14 @@ export const closeTask = async (req, res) => {
   }
 };
 
-// ── UPDATE TASK BY CREATOR ────────────────────────────────────────────────────
+/**
+ * Updates a task.
+ * Only the task creator can perform this action.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated task.
+ */
 export const updateTaskByCreator = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -424,7 +498,13 @@ export const updateTaskByCreator = async (req, res) => {
   }
 };
 
-// ── ADMIN: GET ALL ────────────────────────────────────────────────────────────
+/**
+ * Retrieves all tasks for administration purposes.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON array of tasks.
+ */
 export const getAllTasksAdmin = async (req, res) => {
   try {
     const tasks = await Task.find({})
@@ -437,10 +517,16 @@ export const getAllTasksAdmin = async (req, res) => {
   }
 };
 
-// ── ADMIN: UPDATE ─────────────────────────────────────────────────────────────
+/**
+ * Administrator level update of any task.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated task.
+ */
 export const updateTask = async (req, res) => {
   try {
-    const { title, description, category, points, status, endDate } = req.body;
+    const { title, description, category, points, status, endDate, lat, lng, address } = req.body;
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Завдання не знайдено' });
 
@@ -461,7 +547,13 @@ export const updateTask = async (req, res) => {
   }
 };
 
-// ── ADMIN: DELETE ─────────────────────────────────────────────────────────────
+/**
+ * Administrator level deletion of any task.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response confirming deletion.
+ */
 export const deleteTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -473,7 +565,14 @@ export const deleteTask = async (req, res) => {
   }
 };
 
-// ── Legacy: claimTask / abandonTask (kept for compat) ────────────────────────
+/**
+ * Legacy support: allows a user to claim a task.
+ * Kept for backward compatibility.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated task.
+ */
 export const claimTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -493,6 +592,14 @@ export const claimTask = async (req, res) => {
   }
 };
 
+/**
+ * Legacy support: allows a user to abandon a claimed task.
+ * Kept for backward compatibility.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the updated task.
+ */
 export const abandonTask = async (req, res) => {
   try {
     const { reason } = req.body;
@@ -511,4 +618,3 @@ export const abandonTask = async (req, res) => {
     res.status(500).json({ msg: 'Помилка сервера' });
   }
 };
-

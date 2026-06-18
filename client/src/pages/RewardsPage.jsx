@@ -21,6 +21,12 @@ const LEVELS = [
   { level: 7, name: 'Герой',       threshold: 2500,  tag: 'LV.7' },
 ];
 
+/**
+ * Determines the current level, next level, and progress percentage based on a user's total XP.
+ *
+ * @param {number} xp - The total XP accumulated by the user.
+ * @returns {Object} An object containing the current level, next level, and progress percentage.
+ */
 const getLevelData = (xp = 0) => {
   let current = LEVELS[0];
   let next = LEVELS[1];
@@ -39,6 +45,16 @@ const getLevelData = (xp = 0) => {
   return { current, next, progress };
 };
 
+/**
+ * BadgeDisplay Component
+ * Renders an interactive, flippable card representing a specific achievement badge.
+ * Shows the locked/unlocked state based on the user's earned badges.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.user - The user data object containing their earned badges.
+ * @param {Object} props.badge - The badge definition object.
+ * @returns {JSX.Element} The rendered badge component.
+ */
 const BadgeDisplay = ({ user, badge }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const isUnlocked = user.badges?.some(b => b.badgeId === badge.id);
@@ -68,6 +84,12 @@ const BadgeDisplay = ({ user, badge }) => {
   );
 };
 
+/**
+ * Formats raw quest data into an object with readable titles, descriptions, and action links.
+ *
+ * @param {Object} quest - The raw quest object containing its type and target.
+ * @returns {Object} An object containing the quest's title, description, and applicable UI link.
+ */
 const getQuestInfo = (quest) => {
   const info = {
     login: {
@@ -99,6 +121,13 @@ const getQuestInfo = (quest) => {
   };
 };
 
+/**
+ * RewardsPage Component
+ * Provides a consolidated dashboard for users to track their level progression, 
+ * daily quests, earned badges, and leaderboard rankings.
+ *
+ * @returns {JSX.Element} The rendered rewards/gamification dashboard.
+ */
 const RewardsPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -143,7 +172,7 @@ const RewardsPage = () => {
         spread: 70,
         origin: { y: 0.6 }
       });
-      fetchData(); // Refresh data
+      fetchData(); 
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.msg || 'Помилка при отриманні нагороди');
@@ -154,6 +183,11 @@ const RewardsPage = () => {
 
   const levelData = user ? getLevelData(user.xp || user.points || 0) : null;
 
+  /**
+   * Evaluates the active tab state and renders the appropriate list of users for the leaderboard.
+   *
+   * @returns {JSX.Element} The rendered list of leaderboard entries.
+   */
   const renderLeaderboardList = () => {
     let list = [];
     if (activeTab === 'allTime') list = leaderboards.topAllTime;

@@ -22,7 +22,6 @@ import '../styles/TasksPage.css';
 import './TaskDetailPage2.css';
 import playSound from '../utils/sounds';
 
-// ── helpers ───────────────────────────────────────────────────
 const STATUS_META = {
   open:        { label: 'Відкрите',  color: '#22c55e' },
   in_progress: { label: 'В роботі',  color: '#f59e0b' },
@@ -52,7 +51,19 @@ const Avatar = ({ user, size = 36 }) => {
   );
 };
 
-// ── Participant row ───────────────────────────────────────────
+/**
+ * ParticipantRow Component
+ * Renders a single row for a participant in the task, displaying their status, proof of completion,
+ * and review controls for the task creator.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.p - The participant data object.
+ * @param {boolean} props.isCreator - Flag indicating if the current user is the creator of the task.
+ * @param {string} props.currentUserId - The ID of the currently authenticated user.
+ * @param {Function} props.onReview - Callback invoked when the creator approves or rejects the submission.
+ * @param {string} props.taskId - The ID of the task.
+ * @returns {JSX.Element} The rendered participant row.
+ */
 const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
   const [comment, setComment]   = useState('');
   const [expanded, setExpanded] = useState(false);
@@ -80,7 +91,6 @@ const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
         </span>
       </div>
 
-      {/* Proof (visible to creator or self) */}
       {(isCreator || isMe) && p.status === 'review' && p.proofText && (
         <div className="td2-proof-block">
           <p className="td2-proof-label">Звіт:</p>
@@ -93,7 +103,6 @@ const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
         </div>
       )}
 
-      {/* Creator review controls */}
       {isCreator && p.status === 'review' && (
         <div className="td2-review-controls">
           <textarea
@@ -113,7 +122,6 @@ const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
         </div>
       )}
 
-      {/* Review result */}
       {['approved', 'rejected'].includes(p.status) && p.reviewComment && (
         <div className={`td2-review-result ${p.status}`}>
           <FiMessageCircle size={13} /> {p.reviewComment}
@@ -123,7 +131,20 @@ const ParticipantRow = ({ p, isCreator, currentUserId, onReview, taskId }) => {
   );
 };
 
-// ── Comment item ──────────────────────────────────────────────
+/**
+ * CommentItem Component
+ * Renders a single discussion comment on the task page, providing interaction
+ * capabilities like liking or deleting the comment.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.comment - The comment object.
+ * @param {string} props.currentUserId - The ID of the currently authenticated user.
+ * @param {boolean} props.isCreator - Flag indicating if the current user is the task creator.
+ * @param {string} props.taskId - The ID of the task.
+ * @param {Function} props.onDelete - Callback invoked when deleting the comment.
+ * @param {Function} props.onLike - Callback invoked when liking the comment.
+ * @returns {JSX.Element} The rendered comment item.
+ */
 const CommentItem = ({ comment, currentUserId, isCreator, taskId, onDelete, onLike }) => {
   const isOwn  = comment.author?._id === currentUserId;
   const liked  = comment.likes?.includes(currentUserId);
@@ -162,7 +183,15 @@ const CommentItem = ({ comment, currentUserId, isCreator, taskId, onDelete, onLi
   );
 };
 
-// ── Success Overlay ───────────────────────────────────────────
+/**
+ * SuccessOverlay Component
+ * A full-screen overlay displaying a success message after submitting proof of task completion.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Function} props.onClose - Callback to close the overlay.
+ * @param {number} props.points - The number of points that will be awarded upon approval.
+ * @returns {JSX.Element} The rendered success overlay.
+ */
 const SuccessOverlay = ({ onClose, points }) => (
   <motion.div 
     className="success-overlay"
@@ -190,7 +219,15 @@ const SuccessOverlay = ({ onClose, points }) => (
   </motion.div>
 );
 
-// ── Proof submit form ─────────────────────────────────────────
+/**
+ * ProofForm Component
+ * Renders the form for a participant to submit proof of their completed task execution.
+ *
+ * @param {Object} props - Component properties.
+ * @param {string} props.taskId - The ID of the task being submitted.
+ * @param {Function} props.onSubmitted - Callback invoked upon successful submission.
+ * @returns {JSX.Element} The rendered proof submission form.
+ */
 const ProofForm = ({ taskId, onSubmitted }) => {
   const [text, setText] = useState('');
   const [file, setFile] = useState(null);
@@ -231,7 +268,19 @@ const ProofForm = ({ taskId, onSubmitted }) => {
   );
 };
 
-// ── Join buttons ──────────────────────────────────────────────
+/**
+ * JoinControls Component
+ * Provides context-aware controls for joining, leaving, or submitting proof for a task.
+ * Adapts options depending on whether the user is a guest, a solo participant, or acting on behalf of a guild.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.task - The task object.
+ * @param {Object} props.myGuild - The current user's guild data, if any.
+ * @param {string} props.currentUserId - The current user's ID.
+ * @param {Function} props.onJoin - Callback to join the task or submit proof.
+ * @param {Function} props.onLeave - Callback to leave the task.
+ * @returns {JSX.Element} The rendered join controls block.
+ */
 const JoinControls = ({ task, myGuild, currentUserId, onJoin, onLeave }) => {
   const token   = localStorage.getItem('userToken');
   const isGuest = !token || localStorage.getItem('userRole') === 'guest';
@@ -285,7 +334,12 @@ const JoinControls = ({ task, myGuild, currentUserId, onJoin, onLeave }) => {
   );
 };
 
-// ── Main page ─────────────────────────────────────────────────
+/**
+ * TaskDetailPage Component
+ * Renders the detailed view of a specific task, managing participation, proof submission, reviews, and comments.
+ *
+ * @returns {JSX.Element} The rendered task detail page.
+ */
 const TaskDetailPage = () => {
   const { id } = useParams();
   const [task, setTask]         = useState(null);
@@ -462,7 +516,6 @@ const TaskDetailPage = () => {
               )}
             </AnimatePresence>
 
-            {/* ── Toast ── */}
             {toast && (
               <div 
                 className={`guild-toast ${toast.type}`} 
@@ -472,14 +525,11 @@ const TaskDetailPage = () => {
               </div>
             )}
 
-            {/* ── Back ── */}
             <Link to="/tasks" className="td2-back"><FiChevronLeft /> Всі завдання</Link>
 
             <div className="td2-layout">
-              {/* ══ LEFT: main info ══ */}
               <div className="td2-main">
 
-                {/* Header card */}
                 <div className="td2-header-card">
                   <div className="td2-cover-emoji">
                     {task.coverImage ? (
@@ -515,7 +565,6 @@ const TaskDetailPage = () => {
                   </div>
                 </div>
 
-                {/* Description */}
                 <div className="td2-section">
                   <h3 className="td2-section-title"><FiFileText size={15} /> Опис</h3>
                   <p className="td2-description">{task.description}</p>
@@ -526,7 +575,6 @@ const TaskDetailPage = () => {
                   )}
                 </div>
 
-                {/* Location map */}
                 {task.lat && task.lng && (
                   <div className="td2-section">
                     <h3 className="td2-section-title"><FiMapPin size={15} /> Місце виконання</h3>
@@ -540,7 +588,6 @@ const TaskDetailPage = () => {
                   </div>
                 )}
 
-                {/* Join controls */}
                 <div className="td2-section">
                   <h3 className="td2-section-title"><FiZap size={15} /> Участь</h3>
                   <JoinControls
@@ -552,7 +599,6 @@ const TaskDetailPage = () => {
                   />
                 </div>
 
-                {/* Participants */}
                 <div className="td2-section">
                   <h3 className="td2-section-title">
                     <FiUsers size={15} /> Учасники ({task.participants?.length ?? 0})
@@ -576,7 +622,6 @@ const TaskDetailPage = () => {
                   )}
                 </div>
 
-                {/* Comments — Instagram style */}
                 <div className="td2-section td2-comments-section">
                   <h3 className="td2-section-title">
                     <FiMessageCircle size={15} /> Коментарі ({task.comments?.length ?? 0})
@@ -616,7 +661,6 @@ const TaskDetailPage = () => {
                 </div>
               </div>
 
-              {/* ══ RIGHT: sidebar info ══ */}
               <div className="td2-sidebar">
                 <div className="td2-info-card">
                   <h4>Статистика</h4>
@@ -669,7 +713,6 @@ const TaskDetailPage = () => {
               </div>
             </div>
 
-            {/* Edit Modal */}
             <AnimatePresence>
               {showEdit && (
                 <EditTaskModal task={task} onClose={() => setShowEdit(false)} onUpdated={(updated) => { setTask(updated); setShowEdit(false); showToast('Завдання оновлено'); }} />
@@ -682,7 +725,16 @@ const TaskDetailPage = () => {
   );
 };
 
-// ── Edit Task Modal ───────────────────────────────────────────
+/**
+ * EditTaskModal Component
+ * Provides a modal interface to edit the attributes of an existing task.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.task - The task data being edited.
+ * @param {Function} props.onClose - Callback to close the modal without saving.
+ * @param {Function} props.onUpdated - Callback invoked with the new task data upon successful update.
+ * @returns {JSX.Element} The rendered task edit modal.
+ */
 const EditTaskModal = ({ task, onClose, onUpdated }) => {
   const [form, setForm] = useState({
     title: task.title, description: task.description,
